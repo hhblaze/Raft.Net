@@ -99,8 +99,8 @@ namespace Raft
         {
             this.rn = rn;
             
-            //db = new DBreezeEngine(new DBreezeConfiguration { Storage = DBreezeConfiguration.eStorage.MEMORY });
-            db = new DBreezeEngine(dbreezePath);
+            db = new DBreezeEngine(new DBreezeConfiguration { Storage = DBreezeConfiguration.eStorage.MEMORY });
+            //db = new DBreezeEngine(dbreezePath);
 
             using (var t = db.GetTransaction())
             {
