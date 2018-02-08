@@ -11,7 +11,7 @@ Though it already works:
  - Run
  - after leader is elected (in console) type several times "set 1"
    It will create several new log entries in all test nodes.
- - stop one or two nodes:  "stop 4250" / "stop 4251". There are 5 testing nodes from 4250-4254.
+ - stop one or two nodes:  "stop 4250" / "stop 4251". There are 5 testing nodes from 4250-4254 (these are also tcp listening ports).
  - Create new entries: type several times "set 1", to make log difference among rinning and stopped nodes. 
  - Start node(s): "start 4250". Observe how values are replicated among started nodes.
  - "set 1" to add new entry(ies), observe how they are in tact commited among all nodes.
