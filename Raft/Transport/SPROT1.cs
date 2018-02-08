@@ -8,25 +8,14 @@ using Raft.Utils;
 namespace Raft.Transport
 {
     /// <summary>
-    /// S-TEC PROTOCOL 1 - SPROT1
+    /// SPROT1
     /// Protocol structure:
     /// {0;0} {0;0}{0;0;0;0}{....} {0;0}{0;0;0;0}{....} {0;0}{0;0;0;0}{....} {0;0}{0;0;0;0}{....} 
     /// on connect comes 2 byte device identificator; codec - 2 bytes; codec length - 4 bytes; codec data;  codec; codec length; data; ...
     /// 
     /// restricted device Id starts:
     /// from 0x16 (22) SSL
-    /// from 0x00 0x0F (0 15) Teltonika
-    /// from 0xFF 0xAA Navi - obsolete in the future
-    /// 
-    /// restricted starts in ASCII:
-    /// from km
-    /// from mo
-    /// from HT
-    /// from open html tag
-    /// from $
-    /// from Us
-    /// from GE
-    /// from PO        
+    
     /// </summary>
     internal class cSprot1Parser
     {
