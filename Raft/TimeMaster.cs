@@ -125,7 +125,7 @@ namespace Raft
         /// <param name="fireAnObject"></param>
         /// <param name="repeatOnce"></param>
         /// <returns>returns ID of the created event; If 0 - then mistake</returns>
-        public ulong FireEventAfter(uint milliseconds, Action<object> action, object userToken, bool repeatOnce, string eventName="")
+        public ulong FireEventEach(uint milliseconds, Action<object> action, object userToken, bool repeatOnce, string eventName="")
         {
             if (milliseconds < MinimalIntervalInMs)
                 throw new Exception("Minimal interval is " + this.MinimalIntervalInMs + " ms.");

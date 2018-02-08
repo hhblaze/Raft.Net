@@ -31,7 +31,7 @@ namespace Raft.Transport
                 return;
             }
 
-            trn.rn.TM.FireEventAfter(10000, (o) => 
+            trn.rn.TM.FireEventEach(10000, (o) => 
             {
 
                 if (Handshake == null)

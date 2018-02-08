@@ -198,7 +198,7 @@ namespace Raft.Transport
         public async Task Handshake()        
         {
             await HandshakeTo(trn.clusterEndPoints);
-            trn.rn.TM.FireEventAfter(3000, RetestConnections, null, false);
+            trn.rn.TM.FireEventEach(3000, RetestConnections, null, false);
         }
 
         async Task HandshakeTo(List<TcpClusterEndPoint> clusterEndPoints)        

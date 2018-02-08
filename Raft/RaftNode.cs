@@ -411,7 +411,7 @@ namespace Raft
             {
                 rnd.Next(System.Threading.Thread.CurrentThread.ManagedThreadId);
                 int seed = rnd.Next(nodeSettings.ElectionTimeoutMinMs, nodeSettings.ElectionTimeoutMaxMs);                
-                Election_TimerId = this.TM.FireEventAfter((uint)seed, ElectionTimeout, null, true);
+                Election_TimerId = this.TM.FireEventEach((uint)seed, ElectionTimeout, null, true);
 
                 VerbosePrint("Node {0} RunElectionTimer {1} ms", NodeAddress.NodeAddressId, seed);
             }
@@ -423,7 +423,7 @@ namespace Raft
         void RunLeaderHeartbeatWaitingTimer()
         {
             if (LeaderHeartbeat_TimerId == 0)
-                LeaderHeartbeat_TimerId = this.TM.FireEventAfter(nodeSettings.LeaderHeartbeatMs, LeaderHeartbeatTimeout, null, false);
+                LeaderHeartbeat_TimerId = this.TM.FireEventEach(nodeSettings.LeaderHeartbeatMs, LeaderHeartbeatTimeout, null, false);
         }
 
         /// <summary>
@@ -435,7 +435,7 @@ namespace Raft
             {
                 //Raising quickly one 
                 LeaderTimerElapse(null);
-                Leader_TimerId = this.TM.FireEventAfter(nodeSettings.LeaderHeartbeatMs / 2, LeaderTimerElapse, null, false, "LEADER");
+                Leader_TimerId = this.TM.FireEventEach(nodeSettings.LeaderHeartbeatMs / 2, LeaderTimerElapse, null, false, "LEADER");
             }
         }
 

@@ -27,7 +27,7 @@ Though it already works:
   and setting dbreezePath for each node inside Raft/RaftEmulator/Emulator.cs
   like rn = new TcpRaftNode(eps, @"D:\Temp\RaftDBreeze\node" + (4250 + i), 4250 + i, this, rn_settings);  
  
- ![image](https://user-images.githubusercontent.com/486781/35966826-445a2f68-0cbf-11e8-9edc-ab2e48546aa5.png)
+ ![image](https://user-images.githubusercontent.com/486781/35967718-0953e122-0cc2-11e8-8fa7-cd91d8295511.png)
  
  hhblaze@gmail.com
  
