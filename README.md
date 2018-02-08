@@ -6,7 +6,7 @@ for dotnet / .NET / .NETStandard /.NETCore
 Implementation is in progress (polishing the code).
 
 Though it already works: 
- - Checkout Revision 22
+ - Checkout Revision 25
  - make console app as a start up one in VS studio
  - Depends on [DBreeze](https://github.com/hhblaze/DBreeze) and protobuf-net (from NuGet).
  - Run
