@@ -1,6 +1,12 @@
-﻿
-- Unify TimeMaster
+﻿- Leader stores separately log entry request and doesn't apply them until receives prior COMMIT
+- Commit initiates new entry appliance and generates committed entry event
+- Only current term log entries can be applied by leader
+- timeout on log entry apply as separately supplied value
+- leader auto resend of requests unless not-committed within timeout
 
-- REMOVE techSendCnt
-- Timer is off
-- IWarnings
+- Redirect addLogs to leader with returning requestID and later redirect of COMMIT-OK back
+
+- cleanup of temp tables ?
+- config change?
+
+

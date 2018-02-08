@@ -45,31 +45,6 @@ https://www.youtube.com/watch?v=YbZ3zDzDnrw
 *This election term will continue until a follower stops receiving heartbeats and becomes a candidate.
 
 
-!!!!!!!!!!! IF NODE wants to become a leader, but has incorrect (not completely committed LOGs it can't become a leader, so candidate must also supply its log Id)
-!!! LEADER WITH THE MOST COMPLETED LOG:
-   * Voting server V denies vote if its log is "more complete":
-DENY IF     (lastTermV > lastTermC) || ((lastTermV == lastTermC) && (lastIndexV > lastIndexC))
-or
-PERMIT IF (lastTermV<=lastTermCandidate) && (lastIndexV<=lastIndexC)
-
-
-----------  PART. Heartbeats
-Leader -> Heartbeat -> Followers ALL
-Follower -> Request of new Entry -> Leader (Analogue of StateLogRequest)
-Follower -> Notification that Entry is applied -> (Analogue of StateLogAccept)
-Leader -> New Entry -> Follower CONCRETE (Analogue of Suggestion, answer on Request of New Entry)
-
-
-Leader with the Heartbeat brings
-{
-	CurrentTermId,
-	LastCommitedEntryId,
-	LastCommitedTermId,
-
-	LastSuggestedEntryIndex,
-	LastSuggestedEntryTerm
-}
-
 
 --------------------------------------------------------------   TRANSPORT  ----------------------------------------------------
 -- USE HttpClient as a webClient

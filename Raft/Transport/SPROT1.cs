@@ -236,8 +236,8 @@ namespace Raft.Transport
                 }
             };
 
-            //spreadAction.DoAsync();
-            System.Threading.Tasks.Task.Run(spreadAction);
+            
+            Task.Run(spreadAction);
 
         }
         #endregion
@@ -357,8 +357,9 @@ namespace Raft.Transport
 
                 if ((this.package != null && this.package.Length > this._maxPayLoad))
                 {
-                    if (this.DestroySelf != null)
-                        this.DestroySelf();
+                    //if (this.DestroySelf != null)
+                    //    this.DestroySelf();
+                    this.DestroySelf?.Invoke();
 
                     return;
                 }
@@ -449,8 +450,9 @@ namespace Raft.Transport
 
                 if (this.newPacketSize > this._maxPayLoad || this.newPacketSize < 0)
                 {
-                    if (this.DestroySelf != null)
-                        this.DestroySelf();
+                    //if (this.DestroySelf != null)
+                    //    this.DestroySelf();
+                    this.DestroySelf?.Invoke();
 
                     return;
                 }
