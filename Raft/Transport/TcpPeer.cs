@@ -207,8 +207,8 @@ namespace Raft.Transport
 
         object lock_writer = new object();
         bool inWrite = false;
-        Queue<Tuple<byte[], byte[]>> writerQueue = new Queue<Tuple<byte[], byte[]>>();
-        Queue<Tuple<byte[], byte[]>> highPriorityQueue = new Queue<Tuple<byte[], byte[]>>();
+        Queue<byte[]> writerQueue = new Queue<byte[]>();
+        Queue<byte[]> highPriorityQueue = new Queue<byte[]>();
 
         /// <summary>
         /// !!! Due to high priority sending, don't forget to make extra protocol in case if we want to split SPROT data on several packages
@@ -216,17 +216,17 @@ namespace Raft.Transport
         /// <param name="codec"></param>
         /// <param name="data"></param>
         /// <param name="highPriority"></param>
-        public void Write(byte[] codec, byte[] data, bool highPriority = false)
+        public void Write(byte[] sprot, bool highPriority = false)
         {
-            lock(lock_writer)
+            lock (lock_writer)
             {
                 if (highPriority)
                 {
-                    highPriorityQueue.Enqueue(new Tuple<byte[], byte[]>(codec, data));
+                    highPriorityQueue.Enqueue(sprot);
                 }
                 else
                 {
-                    writerQueue.Enqueue(new Tuple<byte[], byte[]>(codec, data));
+                    writerQueue.Enqueue(sprot);
                 }
                 if (inWrite)
                     return;
@@ -236,18 +236,37 @@ namespace Raft.Transport
             Task.Run(async () => { await Writer(); });
 
         }
+        //public void Write(byte[] codec, byte[] data, bool highPriority = false)
+        //{
+        //    lock(lock_writer)
+        //    {
+        //        if (highPriority)
+        //        {
+        //            highPriorityQueue.Enqueue(new Tuple<byte[], byte[]>(codec, data));
+        //        }
+        //        else
+        //        {
+        //            writerQueue.Enqueue(new Tuple<byte[], byte[]>(codec, data));
+        //        }
+        //        if (inWrite)
+        //            return;
+        //        inWrite = true;
+        //    }
+
+        //    Task.Run(async () => { await Writer(); });
+
+        //}
 
         /// <summary>
-        /// // !!! Due to high priority sending, don't forget to make extra protocol in case if we want to split SPROT data on several packages
+        /// highPriorityQueue is served first
         /// </summary>
         /// <returns></returns>
         async Task Writer()
         {
             if (this.Disposed)
                 return;
-
-            Tuple<byte[], byte[]> tpl = null;
-            byte[] pd = null;
+            
+            byte[] sprot = null;            
             try
             {
                 while (true)
@@ -260,17 +279,14 @@ namespace Raft.Transport
                             return;
                         }
                         if(highPriorityQueue.Count>0)
-                            tpl = highPriorityQueue.Dequeue();
+                            sprot = highPriorityQueue.Dequeue();
                         else
-                            tpl = writerQueue.Dequeue();
+                            sprot = writerQueue.Dequeue();
                     }
-                    
-                    
-                    pd = cSprot1Parser.GetSprot1Codec(tpl.Item1, tpl.Item2);
-                    // !!! Due to high priority sending, don't forget to make extra protocol in case if we want to split SPROT data on several packages
-                    //if pd.Lenght is quite big, we can split it on chunks etc...
-                    await stream.WriteAsync(pd, 0, pd.Length).ConfigureAwait(false);
-                    await stream.FlushAsync().ConfigureAwait(false);
+
+                    //huge sprot should be splitted, packed into new sprot codec by chunks and supplied here as a standard chunk
+                    await stream.WriteAsync(sprot, 0, sprot.Length);//.ConfigureAwait(false);
+                    await stream.FlushAsync();//.ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
@@ -278,37 +294,7 @@ namespace Raft.Transport
                 Dispose();
             }
         }
-
-
-        //public void Write_old(byte[] codec, byte[] data)
-        //{            
-        //    try
-        //    {
-        //        //!!!!!!!!!!!!!!!   here regulate big messages, giving ability to peers to breeze, sending heartbeats first by priority (if sprot allows it)
-        //        //var pd = cSprot1Parser.GetSprot1Codec(new byte[] { 00, 01 }, data);
-        //        var pd = cSprot1Parser.GetSprot1Codec(codec, data);
-
-        //        stream.Write(pd, 0, pd.Length);
-        //        stream.Flush();
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        //if(codec?.Length==2 && codec[1] == 5)
-        //        //{
-        //        //    //ping
-        //        //    trn.log.Log(new WarningLogEntry()
-        //        //    {
-        //        //        LogType = WarningLogEntry.eLogType.DEBUG,
-        //        //        Description = $"{trn.port} ({trn.rn.NodeState})> Write exception to socket of {((na == null) ? "unknown" : na.NodeAddressId.ToString())}; Disposed: {this.Disposed}"
-        //        //    });
-        //        //    Dispose();
-                  
-        //        //}
-        //        //else 
-        //            Dispose();
-        //    }
-
-        //}
+        
 
         async Task Read()
         {
@@ -317,7 +303,8 @@ namespace Raft.Transport
                 //Example of pure tcp
                 byte[] rbf = new byte[10000];
                 int a = 0;
-                while ((a = await stream.ReadAsync(rbf, 0, rbf.Length).ConfigureAwait(false)) > 0)
+                //while ((a = await stream.ReadAsync(rbf, 0, rbf.Length).ConfigureAwait(false)) > 0)
+                while ((a = await stream.ReadAsync(rbf, 0, rbf.Length)) > 0)
                 {
                     _sprot1.MessageQueue.Enqueue(rbf.Substring(0, a));
                     _sprot1.PacketAnalizator(false);
@@ -337,36 +324,7 @@ namespace Raft.Transport
             }
 
         }
-
-        //void Read()
-        //{
-        //    try
-        //    {
-        //        //Example of pure tcp
-        //        byte[] rbf = new byte[10000];
-        //        int a = 0;
-        //        while ((a = stream.Read(rbf, 0, rbf.Length)) > 0)
-        //        {
-        //            _sprot1.MessageQueue.Enqueue(rbf.Substring(0, a));
-        //            _sprot1.PacketAnalizator(false);
-        //            //Console.WriteLine(a);
-        //        }
-
-        //        //trn.log.Log(new WarningLogEntry()
-        //        //{
-        //        //    LogType = WarningLogEntry.eLogType.DEBUG,
-        //        //    Description = $"{trn.port}> finished Read of {((na == null) ? "unknown" : na.NodeAddressId.ToString() )}"
-        //        //});
-        //    }
-        //    catch (System.Exception ex)
-        //    {
-        //        //Fires when remote client drops connection //Null reference              
-        //        Dispose();
-        //    }
-
-        //}
-
-        //internal bool DontRemoveFromSpider = false;
+        
         long disposed = 0;
 
         public bool Disposed

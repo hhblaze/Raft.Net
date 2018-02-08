@@ -15,7 +15,7 @@ Though it already works:
  - stop one or two nodes:  "stop 4250" / "stop 4251". There are 5 testing nodes from 4250-4254 (these are also tcp listening ports).
  - Create new entries: type several times "set 1", to make log difference among running and stopped nodes. 
  - Start node(s): "start 4250". Observe how values are replicated among started nodes.
- - "set 1" to add new entry(ies), observe how they are in tact commited among all nodes.
+ - "set 1" to add new entry(ies), observe how they are in tact committed among all nodes.
  - "test 4250" - shows peer connections from client 4250.
  
  Current test stores log data in DBreeze memory mode, it is possible to change it on real disk mode 

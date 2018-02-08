@@ -122,6 +122,10 @@ namespace Raft
         /// Latest heartbeat from leader, can be null on start
         /// </summary>
         internal LeaderHeartbeat LeaderHeartbeat = null;
+        /// <summary>
+        /// 
+        /// </summary>
+        internal RedirectHandler redirector = null;
 
         public RaftNode(RaftNodeSettings settings, string dbreezePath, IRaftComSender raftSender, IWarningLog log)
         {
@@ -134,7 +138,8 @@ namespace Raft
 
             Sender = raftSender;
             nodeSettings = settings;
-            
+
+            redirector = new RedirectHandler(this);
         }
 
         int disposed = 0;
@@ -392,6 +397,12 @@ namespace Raft
                         case eRaftSignalType.StateLogEntryAccepted:                                                       
                             ParseStateLogEntryAccepted(address, data);
                             break;
+                        case eRaftSignalType.StateLogRedirectRequest:
+                            ParseStateLogRedirectRequest(address, data);
+                            break;
+                        case eRaftSignalType.StateLogRedirectResponse:
+                            ParseStateLogRedirectResponse(address, data);
+                            break;
                     }
                 }
             }
@@ -401,6 +412,7 @@ namespace Raft
             }
 
         }
+
 
         #region "TIMERS HANDLER"
 
@@ -558,7 +570,7 @@ namespace Raft
                 this.NodeTerm = suggest.LeaderTerm;
 
 
-            if (suggest.StateLogEntry.Index <= NodeStateLog.LastCommittedIndex) //Preventing same entry income, though should not happen
+            if (suggest.StateLogEntry.Index <= NodeStateLog.LastCommittedIndex) //Preventing same entry income, can happen if restoration was sent twice (while switch of leaders)
                 return;  //breakpoint don't remove
 
             //Checking if node can accept current suggestion
@@ -581,7 +593,8 @@ namespace Raft
             StateLogEntryApplied applied = new StateLogEntryApplied()
             {
                  StateLogEntryId = suggest.StateLogEntry.Index,
-                 StateLogEntryTerm = suggest.StateLogEntry.Term
+                 StateLogEntryTerm = suggest.StateLogEntry.Term,
+                 RedirectId = suggest.StateLogEntry.RedirectId
             };
             
             //this.NodeStateLog.LeaderSynchronizationIsActive = false;
@@ -926,6 +939,65 @@ namespace Raft
         }
 
 
+        /// <summary>
+        /// called from lock try..catch
+        /// </summary>
+        /// <param name="address"></param>
+        /// <param name="data"></param>
+        void ParseStateLogRedirectRequest(NodeAddress address, byte[] data)
+        {
+            StateLogEntryRedirectRequest req = data.DeserializeProtobuf<StateLogEntryRedirectRequest>();
+            StateLogEntryRedirectResponse resp = new StateLogEntryRedirectResponse() { RedirectId = req.RedirectId };
+
+            if (this.NodeState != eNodeState.Leader)
+            {
+                resp.ResponseType = StateLogEntryRedirectResponse.eResponseType.NOT_A_LEADER;
+
+                this.Sender.SendTo(address, eRaftSignalType.StateLogRedirectResponse, resp.SerializeProtobuf(), this.NodeAddress);
+                return;
+            }
+
+            resp.ResponseType = StateLogEntryRedirectResponse.eResponseType.CACHED;
+            var redirectId = this.redirector.StoreRedirect(address); //here we must store redirect data
+            var addedStateLogTermIndex = this.NodeStateLog.AddStateLogEntryForDistribution(req.Data, redirectId);
+            ApplyLogEntry();
+
+            this.Sender.SendTo(address, eRaftSignalType.StateLogRedirectResponse, resp.SerializeProtobuf(), this.NodeAddress);
+        }
+
+        void ParseStateLogRedirectResponse(NodeAddress address, byte[] data)
+        {
+            StateLogEntryRedirectResponse resp = data.DeserializeProtobuf<StateLogEntryRedirectResponse>();
+
+            //var redirectInfo = this.redirector.GetRedirectByIdTerm(applied.RedirectId, applied.StateLogEntryTerm);
+            //if (redirectInfo != null && redirectInfo.NodeAddress != null)
+            //{
+            //    StateLogEntryRedirectResponse resp = new StateLogEntryRedirectResponse()
+            //    {
+            //        RedirectId = applied.RedirectId,
+            //        ResponseType = StateLogEntryRedirectResponse.eResponseType.COMMITED
+            //    };
+            //    this.Sender.SendTo(redirectInfo.NodeAddress, eRaftSignalType.StateLogRedirectResponse, resp.SerializeProtobuf(), this.NodeAddress);
+            //}
+
+
+
+            //if (this.NodeState != eNodeState.Leader)
+            //{
+            //    resp.ResponseType = StateLogEntryRedirectResponse.eResponseType.NOT_A_LEADER;
+
+            //    this.Sender.SendTo(address, eRaftSignalType.StateLogRedirectResponse, resp.SerializeProtobuf(), this.NodeAddress);
+            //    return;
+            //}
+
+            //resp.ResponseType = StateLogEntryRedirectResponse.eResponseType.CACHED;
+            //var redirectId = this.redirector.StoreRedirect(address); //here we must store redirect data
+            //var addedStateLogTermIndex = this.NodeStateLog.AddStateLogEntryForDistribution(req.Data, redirectId);
+            //ApplyLogEntry();
+
+            //this.Sender.SendTo(address, eRaftSignalType.StateLogRedirectResponse, resp.SerializeProtobuf(), this.NodeAddress);
+        }
+
 
         /// <summary>
         /// Leader receives accepted Log
@@ -949,6 +1021,21 @@ namespace Raft
                 RemoveLeaderLogResendTimer();
                 this.NodeStateLog.RemoveEntryFromDistribution(applied.StateLogEntryId, applied.StateLogEntryTerm);
                 InLogEntrySend = false;
+
+                //Sending back to the client information that entry is committed
+                if (applied.RedirectId > 0)
+                {                    
+                    var redirectInfo = this.redirector.GetRedirectByIdTerm(applied.RedirectId, applied.StateLogEntryTerm);
+                    if (redirectInfo != null && redirectInfo.NodeAddress != null)
+                    {
+                        StateLogEntryRedirectResponse resp = new StateLogEntryRedirectResponse() {
+                            RedirectId = applied.RedirectId,
+                            ResponseType = StateLogEntryRedirectResponse.eResponseType.COMMITED
+                        };
+                        this.Sender.SendTo(redirectInfo.NodeAddress, eRaftSignalType.StateLogRedirectResponse, resp.SerializeProtobuf(), this.NodeAddress);
+                    }
+                }
+
                 ApplyLogEntry();
             }
 
@@ -988,45 +1075,33 @@ namespace Raft
             if (suggest == null)
                 return;
 
-            InLogEntrySend = true;            
             VerbosePrint($"{NodeAddress.NodeAddressId} (Leader)> Sending to all (I/T): {suggest.StateLogEntry.Index}/{suggest.StateLogEntry.Term};");
+
+            InLogEntrySend = true;                        
             RunLeaderLogResendTimer();
             this.Sender.SendToAll(eRaftSignalType.StateLogEntrySuggestion, suggest.SerializeProtobuf(), this.NodeAddress);
         }
 
         /// <summary>
-        /// Leader Only.
+        /// Leader and followers via redirect. (later callback info for followers is needed)
         /// </summary>
         /// <param name="data"></param>
         /// <param name="logEntryExternalId"></param>
         /// <returns></returns>
-        public AddLogEntryResult AddLogEntryLeader(byte[] data)
+        public AddLogEntryResult AddLogEntry(byte[] data)
         {
             AddLogEntryResult res = new AddLogEntryResult();
 
             try
-            {
-                //
+            {                
                 lock (lock_Operations)
                 {
                     if (this.NodeState == eNodeState.Leader)
                     {
-                        res.AddedStateLogTermIndex = this.NodeStateLog.AddStateLogEntryForDistribution(data);
-
-                        //StateLogEntry sle = this.NodeStateLog.AddEntryToStateLogByLeader(data);
-                        res.AddResult = AddLogEntryResult.eAddLogEntryResult.LOG_ENTRY_IS_CACHED;
-
+                        res.AddedStateLogTermIndex = this.NodeStateLog.AddStateLogEntryForDistribution(data);                                                
                         ApplyLogEntry();
 
-                        //StateLogEntrySuggestion sles = new StateLogEntrySuggestion()
-                        //{
-                        //    StateLogEntry = sle,
-                        //    LeaderTerm = this.NodeTerm
-                        //};
-
-                        //VerbosePrint($"{NodeAddress.NodeAddressId} (Leader)> Sending to all (I/T): {sle.Index}/{sle.Term};");
-
-                        //this.Sender.SendToAll(eRaftSignalType.StateLogEntrySuggestion, sles.SerializeProtobuf(), this.NodeAddress);
+                        res.AddResult = AddLogEntryResult.eAddLogEntryResult.LOG_ENTRY_IS_CACHED;
                     }
                     else
                     {
@@ -1036,6 +1111,15 @@ namespace Raft
                         {
                             res.AddResult = AddLogEntryResult.eAddLogEntryResult.NODE_NOT_A_LEADER;
                             res.LeaderAddress = this.LeaderNodeAddress;
+
+                            //Redirecting                            
+                            this.Sender.SendTo(this.LeaderNodeAddress,eRaftSignalType.StateLogRedirectRequest, 
+                                (
+                                new StateLogEntryRedirectRequest
+                                {
+                                    Data = data,
+                                    RedirectId = this.redirector.StoreRedirect(null)   //!!!!!!!!!!! Later must be enhanced by the address of connected external client
+                                }).SerializeProtobuf(), this.NodeAddress);
                         }
 
                     }
@@ -1043,7 +1127,7 @@ namespace Raft
             }
             catch (Exception ex)
             {
-                Log.Log(new WarningLogEntry() { Exception = ex, Method = "Raft.RaftNode.AddLogEntry" });
+                Log.Log(new WarningLogEntry() { Exception = ex, Method = "Raft.RaftNode.AddLogEntryLeader" });
                 res.AddResult = AddLogEntryResult.eAddLogEntryResult.ERROR_OCCURED;
             }
 
@@ -1069,7 +1153,7 @@ namespace Raft
 
         public void EmulationSetValue(byte[] data)
         {
-            this.AddLogEntryLeader(data);
+            this.AddLogEntry(data);
         }
     }//eoc
 

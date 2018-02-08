@@ -51,5 +51,8 @@ namespace Raft
         [ProtoBuf.ProtoMember(6, IsRequired = true)]
         public ulong PreviousStateLogTerm = 0;
 
+        [ProtoBuf.ProtoMember(7, IsRequired = true)]
+        public ulong RedirectId = 0;
+
     }
 }

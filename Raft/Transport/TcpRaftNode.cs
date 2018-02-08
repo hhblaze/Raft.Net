@@ -21,6 +21,7 @@ namespace Raft.Transport
         internal TcpSpider spider = null;
         internal List<TcpClusterEndPoint> clusterEndPoints = new List<TcpClusterEndPoint>();  //init clusterEndPoints creating 1-N connection
         
+        
         public TcpRaftNode(List<TcpClusterEndPoint> clusterEndPoints, string dbreezePath, int port = 4250, IWarningLog log = null,RaftNodeSettings rn_settings = null)
         {
             this.rn_settings = rn_settings ?? new RaftNodeSettings();
@@ -29,7 +30,7 @@ namespace Raft.Transport
             this.port = port;
             if(clusterEndPoints != null)
                 this.clusterEndPoints.AddRange(clusterEndPoints.SerializeProtobuf().DeserializeProtobuf<List<TcpClusterEndPoint>>());
-            spider = new TcpSpider(this);
+            spider = new TcpSpider(this);          
 
             rn = new RaftNode(this.rn_settings, dbreezePath, this.spider, this.log);
             
@@ -82,7 +83,7 @@ namespace Raft.Transport
 
                 while (true)
                 {
-                    var peer = await server.AcceptTcpClientAsync().ConfigureAwait(false);
+                    var peer = await server.AcceptTcpClientAsync();//.ConfigureAwait(false);
                     spider.AddTcpClient(peer);
                 }
 
@@ -102,7 +103,7 @@ namespace Raft.Transport
 
         public void EmulationSetValue(byte[] data)
         {
-            rn.AddLogEntryLeader(data);          
+            rn.AddLogEntry(data);          
         }
 
 

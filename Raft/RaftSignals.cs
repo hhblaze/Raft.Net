@@ -32,8 +32,16 @@ namespace Raft
         /// <summary>
         /// Sent by Follower to Leader, to acknowledge logEntry acceptance
         /// </summary>
-        StateLogEntryAccepted
-        
+        StateLogEntryAccepted,
+        /// <summary>
+        /// Follower redirects a StateLogEntry from the connected client and expects StateLogRedirectResponse 
+        /// </summary>
+        StateLogRedirectRequest,
+        /// <summary>
+        /// Answer of the leader on StateLogRedirectRequest. Twice: first time stored if (byte[] index and term), second - commit acceptance or timeout
+        /// </summary>
+        StateLogRedirectResponse,
+
 
         //THEN WAITING FOR COMMIT SIGNAL
 

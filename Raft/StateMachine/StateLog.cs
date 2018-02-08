@@ -44,12 +44,9 @@ namespace Raft
         /// </summary>
         const string tblAppendLogEntry = "RaftTbl_AppendLogEntry";
         
-
         internal RaftNode rn = null;
         DBreezeEngine db = null;
-
         
-
         /// <summary>
         /// Holds last committed State Log Index.
         /// If node is leader it sets it, if follower it comes with the Leader's heartbeat
@@ -66,11 +63,6 @@ namespace Raft
         /// It will have the same index as LastCommitted only in case if on majority of servers will be stored at least one entry from current term. Docu.
         /// </summary>
         public ulong LastAppliedIndex = 0;
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        //public ulong LastCommittedTermId = 0;
-
         /// <summary>
         /// Monotonically grown StateLog Index.
         /// 
@@ -95,9 +87,7 @@ namespace Raft
         /// <summary>
         /// Follower part. State Log synchro with Leader.
         /// </summary>
-        public uint LeaderSynchronizationTimeOut = 1;
-
-
+        public uint LeaderSynchronizationTimeOut = 1;        
         /// <summary>
         /// Only for the Leader.
         /// Key is StateLogEntryId, Value contains information about how many nodes accepted LogEntry
@@ -109,8 +99,8 @@ namespace Raft
         {
             this.rn = rn;
             
-            db = new DBreezeEngine(new DBreezeConfiguration { Storage = DBreezeConfiguration.eStorage.MEMORY });
-            //db = new DBreezeEngine(dbreezePath);
+            //db = new DBreezeEngine(new DBreezeConfiguration { Storage = DBreezeConfiguration.eStorage.MEMORY });
+            db = new DBreezeEngine(dbreezePath);
 
             using (var t = db.GetTransaction())
             {
@@ -138,6 +128,9 @@ namespace Raft
             }
         }
 
+        /// <summary>
+        /// Secured by RaftNode
+        /// </summary>
         public void Dispose()
         {
             if(db != null)
@@ -151,7 +144,7 @@ namespace Raft
         /// Returns null if nothing to distribute
         /// </summary>
         /// <returns></returns>
-        StateLogEntrySuggestion GetNextLogToBeDistributed()
+        StateLogEntrySuggestion GetNextLogEntryToBeDistributed()
         {
             /*
              * Only nodes of the current term can be distributed
@@ -182,11 +175,13 @@ namespace Raft
         ulong tempStateLogId = 0;
         ulong tempTerm = 0;
         /// <summary>
+        /// Adds to silo table, until is moved to log table.
+        /// This table can be cleared up on start
         /// returns concatenated term+index inserted identifier
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public byte[] AddStateLogEntryForDistribution(byte[] data)
+        public byte[] AddStateLogEntryForDistribution(byte[] data, ulong redirectId=0)
         {
             /*
              * Only nodes of the current term can be distributed
@@ -217,7 +212,8 @@ namespace Raft
                 Data = data,
                 Term = tempTerm,                
                 PreviousStateLogId = tempPrevStateLogId,
-                PreviousStateLogTerm = tempTerm
+                PreviousStateLogTerm = tempTerm,
+                RedirectId = redirectId
             };
 
             using (var t = db.GetTransaction())
@@ -229,9 +225,13 @@ namespace Raft
             return tempTerm.ToBytes(tempStateLogId);
         }
 
+        /// <summary>
+        /// Copyies from distribution silo table and puts in StateLog table
+        /// </summary>
+        /// <returns></returns>
         public StateLogEntrySuggestion AddNextEntryToStateLogByLeader()
         {
-            var suggest = GetNextLogToBeDistributed();
+            var suggest = GetNextLogEntryToBeDistributed();
             if (suggest == null)
                 return null;
 
@@ -251,6 +251,11 @@ namespace Raft
 
         }
 
+        /// <summary>
+        /// Removes from distribution silo if committed (that correct entry could be picked up on GetNextLogEntryToBeDistributed)
+        /// </summary>
+        /// <param name="stateLogId"></param>
+        /// <param name="stateLogTerm"></param>
         public void RemoveEntryFromDistribution(ulong stateLogId, ulong stateLogTerm)
         {
             using (var t = db.GetTransaction())
@@ -260,41 +265,6 @@ namespace Raft
             }
         }
 
-
-
-        ///// <summary>
-        ///// +
-        ///// Leader only. When client wants to syncronize new command it makes it via Leader Node
-        ///// Is done inside of operation lock
-        ///// </summary>
-        ///// <param name="nodeTerm"></param>
-        ///// <param name="data"></param>
-        ///// <returns></returns>
-        //public StateLogEntry AddEntryToStateLogByLeader(byte[] data)
-        //{
-        //    PreviousStateLogId = StateLogId;
-        //    PreviousStateLogTerm = StateLogTerm;
-        //    StateLogId++;
-        //    StateLogTerm = rn.NodeTerm;
-
-        //    StateLogEntry le = new StateLogEntry()
-        //    {
-        //        Index = StateLogId,
-        //        Data = data,
-        //        Term = rn.NodeTerm,                
-        //        PreviousStateLogId = PreviousStateLogId, 
-        //        PreviousStateLogTerm = PreviousStateLogTerm
-        //    };
-
-        //    using(var t = db.GetTransaction())
-        //    {
-        //        t.Insert<byte[], byte[]>(tblStateLogEntry, new byte[] { 1 }.ToBytes(le.Index, le.Term), le.SerializeProtobuf());
-        //        t.Commit();
-        //    }
-            
-        //    return le;
-        //}
-        
         /// <summary>
         /// 
         /// </summary>
@@ -496,8 +466,7 @@ namespace Raft
                 using (var t = db.GetTransaction())
                 {
                     //Removing from the persisted all keys equal or bigger then supplied Log (also from other terms)
-                    foreach (var el in t.SelectForwardFromTo<byte[], byte[]>(tblStateLogEntry,
-                                //new byte[] { 1 }.ToBytes(suggestion.StateLogEntry.Index, suggestion.StateLogEntry.Term), true,
+                    foreach (var el in t.SelectForwardFromTo<byte[], byte[]>(tblStateLogEntry,                                
                                 new byte[] { 1 }.ToBytes(suggestion.StateLogEntry.Index, ulong.MinValue), true,
                                 new byte[] { 1 }.ToBytes(ulong.MaxValue, ulong.MaxValue), true,true))
                     {

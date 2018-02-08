@@ -24,5 +24,11 @@ namespace Raft
         /// </summary>
         [ProtoBuf.ProtoMember(2, IsRequired = true)]
         public ulong StateLogEntryTerm { get; set; }
+
+        /// <summary>
+        /// Requested client redirect id
+        /// </summary>
+        [ProtoBuf.ProtoMember(3, IsRequired = true)]
+        public ulong RedirectId { get; set; }
     }
 }

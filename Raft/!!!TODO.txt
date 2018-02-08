@@ -1,14 +1,15 @@
-﻿- Leader stores separately log entry requests and doesn't apply them until receives prior COMMIT
-- Commit initiates new entry appliance and generates committed entry event
-- Only current term log entries can be applied by leader
-- timeout on log entry apply as separately supplied parameter
-- leader auto resend of request, unless it's not committed within timeout
+﻿+ Leader stores separately log entry requests and doesn't apply them until receives prior COMMIT
++ Commit initiates new entry appliance and generates committed entry event
++ Only current term log entries can be applied by leader
+-+ timeout on log entry apply as separately supplied parameter (currently is fixed to 30 sec)
++ leader auto resend of request, unless it's not committed within timeout
 
 - Redirect addLogs to leader with returning requestID and later redirect of COMMIT-OK back
+- GetLog / Logs+redirection to leader
 
 - Saving also latest commit date together with index and term
 
-- cleanup of temp tables ?
-- config change?
+-? cleanup of temp tables
+-? config change
 
 
