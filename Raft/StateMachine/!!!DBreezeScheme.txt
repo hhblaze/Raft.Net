@@ -1,0 +1,16 @@
+﻿
+
+"RaftTbl_StateLogEntry"
+1 -- first byte   
+   K<byte[]>: StateLogEntry.Index + StateLogTerm, V<StateLogEntry>
+2 -- first ONLY byte   
+   V<byte[]>: last commited index(ulong) + last commited term(ulong)
+
+
+
+-------------
+StateLog.AddEntryToStateLogByLeader adds new log element on leader
+
+
+        const string tblNewLogEntry = "RaftTbl_NewLogEntry";
+        const string tblStateLogEntry = "RaftTbl_StateLogEntry";

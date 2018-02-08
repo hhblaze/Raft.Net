@@ -1,0 +1,185 @@
+﻿DOCUS:
+https://ramcloud.stanford.edu/wiki/download/attachments/11370504/raft.pdf
+http://raftconsensus.github.io/
+http://thesecretlivesofdata.com/raft/
+https://www.youtube.com/watch?v=YbZ3zDzDnrw
+
+
+- RaftNode must exactly know the quantity of nodes in the system to operate with the meaning of MAJORITY OF NODES FOR ELECTION
+
+- Any moment RaftNode can receive signal from other nodes:
+	- Vote For Me (is sent by a candidate)
+		- Stop current internal activity
+		- Answer OK or NOT OK (if gave vote to other candidate)
+	- Heartbeat (is sent by a Leader)
+		- Stop current internal activity if self not a Leader
+		- If self a Leader with a higher term - ignore signal
+		- If self is a Leader with a lower term - step back
+
+- Term is a monotonically increased number.
+- Follower can become a candidate and, as a CandidateRequest, send PreviousCandidateId+1 (if node doesn't know current candidate as after first start then just 0+1)
+
+- Any signal from the Leader, can restart LeaderHeartbeat timer
+
+
+
+
+
+
+
+
+
+
+
+------------  PART 1 of descripiton ... Leader Election 
+*First timeout: Follower waits until he becomes a candidate (random from 150-300ms)
+*After the election timeout the follower becomes a candidate and starts a new election term...
++*...votes for itself...
++*...and sends out Request Vote messages to other nodes.
+*If the receiving node hasn't voted yet in this term then it votes for the candidate...
+*...and the node resets its election timeout.
+*Once a candidate has a majority of votes it becomes leader.
+*The leader begins sending out Append Entries messages to its followers.
+*These messages are sent in intervals specified by the heartbeat timeout.
+*Followers then respond to each Append Entries message.
+*This election term will continue until a follower stops receiving heartbeats and becomes a candidate.
+
+
+!!!!!!!!!!! IF NODE wants to become a leader, but has incorrect (not completely committed LOGs it can't become a leader, so candidate must also supply its log Id)
+!!! LEADER WITH THE MOST COMPLETED LOG:
+   * Voting server V denies vote if its log is "more complete":
+DENY IF     (lastTermV > lastTermC) || ((lastTermV == lastTermC) && (lastIndexV > lastIndexC))
+or
+PERMIT IF (lastTermV<=lastTermCandidate) && (lastIndexV<=lastIndexC)
+
+
+----------  PART. Heartbeats
+Leader -> Heartbeat -> Followers ALL
+Follower -> Request of new Entry -> Leader (Analogue of StateLogRequest)
+Follower -> Notification that Entry is applied -> (Analogue of StateLogAccept)
+Leader -> New Entry -> Follower CONCRETE (Analogue of Suggestion, answer on Request of New Entry)
+
+
+Leader with the Heartbeat brings
+{
+	CurrentTermId,
+	LastCommitedEntryId,
+	LastCommitedTermId,
+
+	LastSuggestedEntryIndex,
+	LastSuggestedEntryTerm
+}
+
+
+--------------------------------------------------------------   TRANSPORT  ----------------------------------------------------
+-- USE HttpClient as a webClient
+-- USE https://github.com/Code-Sharp/uHttpSharp as possible webserver (enable support keepl-alive)
+-- ENABLE HttpClient automatic decompression https://blogs.msdn.microsoft.com/dotnet/2013/07/17/httpclient-2-2-is-now-stable/
+   http://www.nimaara.com/2016/11/01/beware-of-the-net-httpclient/
+   https://aspnetmonsters.com/2016/08/2016-08-27-httpclientwrong/
+
+
+     System.Net.Http.HttpClient httpClient = null;
+        object lock_httpClient = new object();
+
+        async public Task<string> CallReverseGeocodingService(string uri)
+        {
+            if(httpClient == null)
+            {
+                lock(lock_httpClient)
+                {
+                    if (httpClient == null)
+                    {
+                        var handler = new System.Net.Http.HttpClientHandler();
+                        if (handler.SupportsAutomaticDecompression)
+                        {
+                            handler.AutomaticDecompression = DecompressionMethods.GZip |
+                                                             DecompressionMethods.Deflate;
+                        }
+                        httpClient = new System.Net.Http.HttpClient(handler);                        
+                        httpClient.Timeout = TimeSpan.FromSeconds(20);
+                        httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 6.3; rv:36.0) Gecko/20100101 Firefox/36.0");
+                        httpClient.DefaultRequestHeaders.Add("Referer", "http://google.de");
+                        httpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate");
+						httpClient.DefaultRequestHeaders.ConnectionClose = false;
+                        ServicePointManager.DnsRefreshTimeout = TimeSpan.FromSeconds(60).Milliseconds;
+                    }
+                }
+            }
+            //System.Net.HttpWebRequest wr = null;
+            //WebResponse webResp = null;
+            string body = null;
+
+            lock (lock_rgq)
+            {
+                currentQuantityOfActiveGeocodings++;
+            }
+
+            try
+            {
+                var request = new System.Net.Http.HttpRequestMessage();
+                request.RequestUri = new Uri(uri);
+                //request.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 6.3; rv:36.0) Gecko/20100101 Firefox/36.0");
+                //request.Headers.Add("Referer", "http://google.de");
+                //request.Headers.Add("Accept-Encoding", "gzip, deflate");
+
+                var response = await httpClient.SendAsync(request);
+
+                body = System.Text.Encoding.UTF8.GetString(await response.Content.ReadAsByteArrayAsync());
+
+                //No dispose
+
+                //wr = (HttpWebRequest)WebRequest.Create(uri);
+
+                ////Supplying fake otherwise some service decline the connection
+                //wr.UserAgent = "Mozilla/5.0 (Windows NT 6.3; rv:36.0) Gecko/20100101 Firefox/36.0";
+                //wr.Referer = "http://google.de";
+
+                ////webResp = wr.GetResponse();
+                //webResp = await wr.GetResponseAsync();
+                //using (var sr = new StreamReader(webResp.GetResponseStream()))
+                //{
+                //    //body = sr.ReadToEnd();
+                //    body = await sr.ReadToEndAsync();
+                //    sr.Close();
+                //}
+                //webResp.Close();
+            }
+            catch (Exception ex)
+            {
+                _M_WDA._Log.LogException("GM_CoreWebFace.Geocoding.AbstractGisService", "CallReverseGeocodingService", ex, uri);
+                body = null;
+				  try
+                {
+                    lock(lock_httpClient)
+                    {
+                        if(httpClient != null)
+                            httpClient.Dispose();
+                        httpClient = null;
+                    }
+                }
+                catch
+                {}
+                httpClient = null;
+            }
+            finally
+            {
+                //if (webResp != null)
+                //{
+                //    webResp.Close();
+                //    webResp = null;
+                //}
+
+                //if (wr != null)
+                //{
+                //    wr = null;
+                //}
+            }
+
+            lock (lock_rgq)
+            {
+                currentQuantityOfActiveGeocodings--;
+            }
+
+            return body;
+        }
