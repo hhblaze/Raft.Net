@@ -8,6 +8,8 @@
 - GetLog / Logs+redirection to leader
 
 - Saving also latest commit date together with index and term
+- ParseStateLogRedirectResponse
+
 
 -? cleanup of temp tables
 -? config change

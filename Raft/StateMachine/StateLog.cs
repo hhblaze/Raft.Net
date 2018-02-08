@@ -115,6 +115,13 @@ namespace Raft
                     sle = row.Value.DeserializeProtobuf<StateLogEntry>();
                     StateLogId = sle.Index;
                     StateLogTerm = sle.Term;
+                    PreviousStateLogId = sle.PreviousStateLogId;
+                    PreviousStateLogTerm = sle.PreviousStateLogTerm;
+
+                    tempPrevStateLogId = PreviousStateLogId;
+                    tempPrevStateLogTerm = PreviousStateLogTerm;
+                    tempStateLogId = StateLogId;
+                    tempStateLogTerm = StateLogTerm;
 
                     rn.NodeTerm = sle.Term;
                 }
@@ -172,8 +179,10 @@ namespace Raft
 
 
         ulong tempPrevStateLogId = 0;
+        ulong tempPrevStateLogTerm = 0;
         ulong tempStateLogId = 0;
-        ulong tempTerm = 0;
+        ulong tempStateLogTerm = 0;
+
         /// <summary>
         /// Adds to silo table, until is moved to log table.
         /// This table can be cleared up on start
@@ -187,42 +196,30 @@ namespace Raft
              * Only nodes of the current term can be distributed
              */
 
-            if (tempTerm == 0)
-                tempTerm = rn.NodeTerm;
-            else if (rn.NodeTerm != tempTerm)
-            {
-                tempPrevStateLogId = 0;
-                tempStateLogId = 0;
-            }
+            tempPrevStateLogId = tempStateLogId;
+            tempPrevStateLogTerm = tempStateLogTerm;
 
-            if (tempStateLogId == 0)
-            {
-                tempPrevStateLogId = StateLogId;
-                tempStateLogId = StateLogId + 1;
-            }
-            else
-            {
-                tempPrevStateLogId = tempStateLogId;
-                tempStateLogId++;
-            }
+            tempStateLogId++;
+            tempStateLogTerm = rn.NodeTerm;
+            
 
             StateLogEntry le = new StateLogEntry()
             {
                 Index = tempStateLogId,
                 Data = data,
-                Term = tempTerm,                
+                Term = tempStateLogTerm,                
                 PreviousStateLogId = tempPrevStateLogId,
-                PreviousStateLogTerm = tempTerm,
+                PreviousStateLogTerm = tempPrevStateLogTerm,
                 RedirectId = redirectId
             };
 
             using (var t = db.GetTransaction())
             {
-                t.Insert<byte[], byte[]>(tblAppendLogEntry, new byte[] { 1 }.ToBytes(tempTerm, tempStateLogId), le.SerializeProtobuf());
+                t.Insert<byte[], byte[]>(tblAppendLogEntry, new byte[] { 1 }.ToBytes(tempStateLogTerm, tempStateLogId), le.SerializeProtobuf());
                 t.Commit();
             }
 
-            return tempTerm.ToBytes(tempStateLogId);
+            return tempStateLogTerm.ToBytes(tempStateLogId);
         }
 
         /// <summary>
@@ -485,6 +482,11 @@ namespace Raft
                 PreviousStateLogTerm = StateLogTerm;
                 StateLogId = suggestion.StateLogEntry.Index;
                 StateLogTerm = suggestion.StateLogEntry.Term;
+
+                tempPrevStateLogId = PreviousStateLogId;
+                tempPrevStateLogTerm = PreviousStateLogTerm;
+                tempStateLogId = StateLogId;
+                tempStateLogTerm = StateLogTerm;
 
                 if (suggestion.IsCommitted)
                 {
