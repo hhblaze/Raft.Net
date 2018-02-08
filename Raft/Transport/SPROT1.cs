@@ -517,15 +517,12 @@ namespace Raft.Transport
 
         }//eo function
 
-
-
-        #region "Byte Conversions"
-        //INDEPENDENT BYTE CONVERTER
-
-        #endregion
+        
     } //End of class
 
-
+    /// <summary>
+    /// !!! Take from DBreeze
+    /// </summary>
     internal static class BytesExtensions
     {
         public static void CopyInside(this byte[] destArray, int destOffset, byte[] srcArray, int srcOffset, int quantity)
