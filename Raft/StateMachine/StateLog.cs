@@ -35,8 +35,15 @@ namespace Raft
           
         }
 
-        const string tblNewLogEntry = "RaftTbl_NewLogEntry";
+        /// <summary>
+        /// Main table that stores logs
+        /// </summary>
         const string tblStateLogEntry = "RaftTbl_StateLogEntry";
+        /// <summary>
+        /// Leader only. Stores logs before being distributed.
+        /// </summary>
+        const string tblAppendLogEntry = "RaftTbl_AppendLogEntry";
+        
 
         internal RaftNode rn = null;
         DBreezeEngine db = null;
@@ -141,40 +148,152 @@ namespace Raft
         }
 
         /// <summary>
-        /// +
-        /// Leader only. When client wants to syncronize new command it makes it via Leader Node
-        /// Is done inside of operation lock
+        /// Returns null if nothing to distribute
         /// </summary>
-        /// <param name="nodeTerm"></param>
+        /// <returns></returns>
+        StateLogEntrySuggestion GetNextLogToBeDistributed()
+        {
+            /*
+             * Only nodes of the current term can be distributed
+             */
+            StateLogEntrySuggestion sles = null;
+            using (var t = db.GetTransaction())
+            {
+                var row = t.SelectForwardFromTo<byte[], byte[]>(tblAppendLogEntry, 
+                    new byte[] { 1 }.ToBytes(rn.NodeTerm, ulong.MinValue), true,
+                    new byte[] { 1 }.ToBytes(rn.NodeTerm, ulong.MaxValue), true)
+                    .FirstOrDefault();
+                
+                if(row != null && row.Exists)
+                {
+                    sles = new StateLogEntrySuggestion()
+                    {
+                        StateLogEntry = row.Value.DeserializeProtobuf<StateLogEntry>(),
+                        LeaderTerm = rn.NodeTerm
+                    };                    
+                }
+            }
+
+            return sles;
+        }
+
+
+        ulong tempPrevStateLogId = 0;
+        ulong tempStateLogId = 0;
+        ulong tempTerm = 0;
+        /// <summary>
+        /// returns concatenated term+index inserted identifier
+        /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public StateLogEntry AddEntryToStateLogByLeader(byte[] data, ulong stateLogEntryExternalId)
+        public byte[] AddStateLogEntryForDistribution(byte[] data)
         {
-            PreviousStateLogId = StateLogId;
-            PreviousStateLogTerm = StateLogTerm;
-            StateLogId++;
-            StateLogTerm = rn.NodeTerm;
+            /*
+             * Only nodes of the current term can be distributed
+             */
+
+            if (tempTerm == 0)
+                tempTerm = rn.NodeTerm;
+            else if (rn.NodeTerm != tempTerm)
+            {
+                tempPrevStateLogId = 0;
+                tempStateLogId = 0;
+            }
+
+            if (tempStateLogId == 0)
+            {
+                tempPrevStateLogId = StateLogId;
+                tempStateLogId = StateLogId + 1;
+            }
+            else
+            {
+                tempPrevStateLogId = tempStateLogId;
+                tempStateLogId++;
+            }
 
             StateLogEntry le = new StateLogEntry()
             {
-                Index = StateLogId,
+                Index = tempStateLogId,
                 Data = data,
-                Term = rn.NodeTerm,
-                ExternalId = stateLogEntryExternalId,
-                PreviousStateLogId = PreviousStateLogId, 
-                PreviousStateLogTerm = PreviousStateLogTerm
+                Term = tempTerm,                
+                PreviousStateLogId = tempPrevStateLogId,
+                PreviousStateLogTerm = tempTerm
             };
 
-            byte[] fdf = le.SerializeProtobuf();
-
-            using(var t = db.GetTransaction())
+            using (var t = db.GetTransaction())
             {
-                t.Insert<byte[], byte[]>(tblStateLogEntry, new byte[] { 1 }.ToBytes(le.Index, le.Term), le.SerializeProtobuf());
+                t.Insert<byte[], byte[]>(tblAppendLogEntry, new byte[] { 1 }.ToBytes(tempTerm, tempStateLogId), le.SerializeProtobuf());
                 t.Commit();
             }
-            
-            return le;
+
+            return tempTerm.ToBytes(tempStateLogId);
         }
+
+        public StateLogEntrySuggestion AddNextEntryToStateLogByLeader()
+        {
+            var suggest = GetNextLogToBeDistributed();
+            if (suggest == null)
+                return null;
+
+            //Restoring current values
+            PreviousStateLogId = suggest.StateLogEntry.PreviousStateLogId;
+            PreviousStateLogTerm = suggest.StateLogEntry.PreviousStateLogTerm;
+            StateLogId = suggest.StateLogEntry.Index;
+            StateLogTerm = suggest.StateLogEntry.Term;
+            
+            using (var t = db.GetTransaction())
+            {
+                t.Insert<byte[], byte[]>(tblStateLogEntry, new byte[] { 1 }.ToBytes(suggest.StateLogEntry.Index, suggest.StateLogEntry.Term), suggest.StateLogEntry.SerializeProtobuf());
+                t.Commit();
+            }
+
+            return suggest;
+
+        }
+
+        public void RemoveEntryFromDistribution(ulong stateLogId, ulong stateLogTerm)
+        {
+            using (var t = db.GetTransaction())
+            {
+                t.RemoveKey<byte[]>(tblAppendLogEntry, new byte[] { 1 }.ToBytes(stateLogTerm, stateLogId));
+                t.Commit();             
+            }
+        }
+
+
+
+        ///// <summary>
+        ///// +
+        ///// Leader only. When client wants to syncronize new command it makes it via Leader Node
+        ///// Is done inside of operation lock
+        ///// </summary>
+        ///// <param name="nodeTerm"></param>
+        ///// <param name="data"></param>
+        ///// <returns></returns>
+        //public StateLogEntry AddEntryToStateLogByLeader(byte[] data)
+        //{
+        //    PreviousStateLogId = StateLogId;
+        //    PreviousStateLogTerm = StateLogTerm;
+        //    StateLogId++;
+        //    StateLogTerm = rn.NodeTerm;
+
+        //    StateLogEntry le = new StateLogEntry()
+        //    {
+        //        Index = StateLogId,
+        //        Data = data,
+        //        Term = rn.NodeTerm,                
+        //        PreviousStateLogId = PreviousStateLogId, 
+        //        PreviousStateLogTerm = PreviousStateLogTerm
+        //    };
+
+        //    using(var t = db.GetTransaction())
+        //    {
+        //        t.Insert<byte[], byte[]>(tblStateLogEntry, new byte[] { 1 }.ToBytes(le.Index, le.Term), le.SerializeProtobuf());
+        //        t.Commit();
+        //    }
+            
+        //    return le;
+        //}
         
         /// <summary>
         /// 
@@ -452,16 +571,16 @@ namespace Raft
         public eEntryAcceptanceResult EntryIsAccepted(uint majorityQuantity, StateLogEntryApplied applied)
         {
             //If we receive acceptance signals of already Committed entries, we just ignore them
-            if (applied.AppliedLogEntryIndex <= this.LastCommittedIndex)
+            if (applied.StateLogEntryId <= this.LastCommittedIndex)
                 return  eEntryAcceptanceResult.AlreadyAccepted;    //already accepted
-            if (applied.AppliedLogEntryIndex <= this.LastAppliedIndex)
+            if (applied.StateLogEntryId <= this.LastAppliedIndex)
                 return eEntryAcceptanceResult.AlreadyAccepted;    //already accepted
                         
             StateLogEntryAcceptance acc = null;
 
-            if (dStateLogEntryAcceptance.TryGetValue(applied.AppliedLogEntryIndex, out acc))
+            if (dStateLogEntryAcceptance.TryGetValue(applied.StateLogEntryId, out acc))
             {
-                if (acc.Term != applied.AppliedLogEntryTerm)
+                if (acc.Term != applied.StateLogEntryTerm)
                     return eEntryAcceptanceResult.NotAccepted;   //Came from wrong Leader probably
 
                 acc.Quantity += 1;              
@@ -471,24 +590,24 @@ namespace Raft
                 acc = new StateLogEntryAcceptance()
                 {
                      Quantity = 2,  //Leader + first incoming
-                     Index = applied.AppliedLogEntryIndex,
-                     Term = applied.AppliedLogEntryTerm
+                     Index = applied.StateLogEntryId,
+                     Term = applied.StateLogEntryTerm
                 };
 
-                dStateLogEntryAcceptance[applied.AppliedLogEntryIndex] = acc;
+                dStateLogEntryAcceptance[applied.StateLogEntryId] = acc;
             }
             
                      
             if (acc.Quantity >= majorityQuantity)
             {
-                this.LastAppliedIndex = applied.AppliedLogEntryIndex;
+                this.LastAppliedIndex = applied.StateLogEntryId;
                 //Removing from Dictionary
-                dStateLogEntryAcceptance.Remove(applied.AppliedLogEntryIndex);
+                dStateLogEntryAcceptance.Remove(applied.StateLogEntryId);
 
-                if (this.LastCommittedIndex < applied.AppliedLogEntryIndex && rn.NodeTerm == applied.AppliedLogEntryTerm)    //Setting LastCommittedId
+                if (this.LastCommittedIndex < applied.StateLogEntryId && rn.NodeTerm == applied.StateLogEntryTerm)    //Setting LastCommittedId
                 {
-                    this.LastCommittedIndex = applied.AppliedLogEntryIndex;
-                    this.LastCommittedIndexTerm = applied.AppliedLogEntryTerm;
+                    this.LastCommittedIndex = applied.StateLogEntryId;
+                    this.LastCommittedIndexTerm = applied.StateLogEntryTerm;
 
                     //Saving committed entry (all previous are automatically committed)
                     

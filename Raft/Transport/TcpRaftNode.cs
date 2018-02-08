@@ -102,7 +102,7 @@ namespace Raft.Transport
 
         public void EmulationSetValue(byte[] data)
         {
-            rn.AddLogEntry(data, 0);          
+            rn.AddLogEntryLeader(data);          
         }
 
 

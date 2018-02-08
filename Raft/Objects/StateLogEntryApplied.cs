@@ -17,9 +17,12 @@ namespace Raft
         /// 
         /// </summary>
         [ProtoBuf.ProtoMember(1, IsRequired = true)]
-        public ulong AppliedLogEntryIndex { get; set; }
+        public ulong StateLogEntryId { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         [ProtoBuf.ProtoMember(2, IsRequired = true)]
-        public ulong AppliedLogEntryTerm { get; set; }
+        public ulong StateLogEntryTerm { get; set; }
     }
 }

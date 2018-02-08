@@ -1,13 +1,11 @@
-﻿/*
- * Implemented 15.08.2014
- */
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+//Implemented 15.08.2014
 
-using DBreeze;
+//using DBreeze;
 //using DBreeze.Utils;
 
 //http://thesecretlivesofdata.com/raft/
@@ -82,6 +80,10 @@ namespace Raft
         /// 
         /// </summary>
         ulong Leader_TimerId = 0;
+        /// <summary>
+        /// 
+        /// </summary>
+        ulong LeaderLogResend_TimerId = 0;
 
         Random rnd = new Random();
         uint VotesQuantity = 0;   //After becoming a candidate
@@ -451,6 +453,25 @@ namespace Raft
             }
         }
 
+        void RunLeaderLogResendTimer()
+        {
+            if (LeaderLogResend_TimerId == 0)
+            {
+                LeaderLogResend_TimerId = this.TM.FireEventEach(nodeSettings.LeaderLogResendIntervalMs, LeaderLogResendTimerElapse, null, true);
+            }
+        }
+
+        void RemoveLeaderLogResendTimer()
+        {
+            if (this.LeaderLogResend_TimerId > 0)
+            {
+                this.TM.RemoveEvent(this.LeaderLogResend_TimerId);
+                this.LeaderLogResend_TimerId = 0;
+            }
+        }
+
+      
+
         /// <summary>
         /// 
         /// </summary>
@@ -505,27 +526,8 @@ namespace Raft
 
 
 
-        /// <summary>
-        /// Leader receives accepted Log
-        /// </summary>
-        /// <param name="address"></param>
-        /// <param name="data"></param>
-        void ParseStateLogEntryAccepted(NodeAddress address, byte[] data)
-        {   
+       
 
-            if (this.NodeState != eNodeState.Leader)
-                return;
-
-            StateLogEntryApplied applied = data.DeserializeProtobuf<StateLogEntryApplied>();
-
-            var res = this.NodeStateLog.EntryIsAccepted(GetMajorityQuantity(), applied);
-            
-            if (res == StateLog.eEntryAcceptanceResult.Committed)
-            {                
-                this.VerbosePrint($"{this.NodeAddress.NodeAddressId}> LogEntry {applied.AppliedLogEntryIndex} is COMMITTED (answer from {address.NodeAddressId})");
-            }                     
-            
-        }
 
         uint GetMajorityQuantity()
         {
@@ -578,8 +580,8 @@ namespace Raft
 
             StateLogEntryApplied applied = new StateLogEntryApplied()
             {
-                 AppliedLogEntryIndex = suggest.StateLogEntry.Index,
-                 AppliedLogEntryTerm = suggest.StateLogEntry.Term
+                 StateLogEntryId = suggest.StateLogEntry.Index,
+                 StateLogEntryTerm = suggest.StateLogEntry.Term
             };
             
             //this.NodeStateLog.LeaderSynchronizationIsActive = false;
@@ -602,6 +604,7 @@ namespace Raft
             RemoveElectionTimer();
             RemoveLeaderHeartbeatWaitingTimer();
             RemoveLeaderTimer();
+            RemoveLeaderLogResendTimer();
             //Starting Leaderheartbeat
             RunLeaderHeartbeatWaitingTimer();
             
@@ -823,9 +826,7 @@ namespace Raft
                         //Probably we can vote for this Node (if we didn't vote for any other one)
                         if (LastVotedTermId < req.TermId)
                         {
-                            //-------------------  FORMULA OF VOTING
-
-
+                            //formula of voting
                             if (
                                 (NodeStateLog.StateLogTerm > req.LastTermId)
                                 ||
@@ -848,49 +849,7 @@ namespace Raft
                                 this.RunElectionTimer();
                             }
                            
-
-                            //
-                            //if (
-                            //    NodeStateLog.StateLogTerm <= req.LastTermId
-                            //    &&
-                            //    NodeStateLog.StateLogId <= req.LastLogId
-                            //    )
-                            //{
-                            //    LastVotedTermId = req.TermId;
-                            //    vote.VoteType = VoteOfCandidate.eVoteType.VoteFor;
-
-                            //    //Restaring Election Timer
-                            //    this.RemoveElectionTimer();
-                            //    this.RunElectionTimer();
-                            //}
-                            //else
-                            //    vote.VoteType = VoteOfCandidate.eVoteType.VoteReject;
-
-
-
-                            //if (
-                            //        lastApplied.Item1 > req.LastTermId
-                            //         ||
-                            //        (
-                            //        lastApplied.Item1 == req.LastTermId
-                            //        &&
-                            //        lastApplied.Item2 > req.LastLogId
-                            //        )
-                            //    )
-                            //    vote.VoteType = VoteOfCandidate.eVoteType.VoteReject;
-                            //else
-                            //{
-                            //    LastVotedTermId = req.TermId;
-                            //    vote.VoteType = VoteOfCandidate.eVoteType.VoteFor;
-
-                            //    //Restaring Election Timer
-                            //    this.RemoveElectionTimer();
-                            //    this.RunElectionTimer();
-                            //}
-
-
-
-
+                            
                         }
                         else
                             vote.VoteType = VoteOfCandidate.eVoteType.VoteReject;
@@ -966,15 +925,82 @@ namespace Raft
             }
         }
 
+
+
         /// <summary>
-        /// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   Multiple log entries, must be serialized and put one after another into queue
-        /// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! After logEntry is accepted clients must recieve signal, new entry must be applied
-        /// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! new cached entries can be sent only inside of one term. after restart they are not valid
+        /// Leader receives accepted Log
+        /// </summary>
+        /// <param name="address"></param>
+        /// <param name="data"></param>
+        void ParseStateLogEntryAccepted(NodeAddress address, byte[] data)
+        {
+
+            if (this.NodeState != eNodeState.Leader)
+                return;
+
+            StateLogEntryApplied applied = data.DeserializeProtobuf<StateLogEntryApplied>();
+
+            var res = this.NodeStateLog.EntryIsAccepted(GetMajorityQuantity(), applied);
+
+            if (res == StateLog.eEntryAcceptanceResult.Committed)
+            {
+                this.VerbosePrint($"{this.NodeAddress.NodeAddressId}> LogEntry {applied.StateLogEntryId} is COMMITTED (answer from {address.NodeAddressId})");
+
+                RemoveLeaderLogResendTimer();
+                this.NodeStateLog.RemoveEntryFromDistribution(applied.StateLogEntryId, applied.StateLogEntryTerm);
+                InLogEntrySend = false;
+                ApplyLogEntry();
+            }
+
+        }
+
+        void LeaderLogResendTimerElapse(object userToken)
+        {
+            try
+            {
+                lock (lock_Operations)
+                {
+                    if (this.LeaderLogResend_TimerId == 0)
+                        return;
+                    RemoveLeaderLogResendTimer();
+                    InLogEntrySend = false;
+                    ApplyLogEntry();
+                }
+                
+            }
+            catch (Exception ex)
+            {
+                Log.Log(new WarningLogEntry() { Exception = ex, Method = "Raft.RaftNode.LeaderLogResendTimerElapse" });
+            }
+        }
+
+        bool InLogEntrySend = false;
+
+        /// <summary>
+        /// Tries to apply new entry, must be called from lock
+        /// </summary>
+        void ApplyLogEntry()
+        {
+            if (InLogEntrySend)
+                return;
+            
+            var suggest = this.NodeStateLog.AddNextEntryToStateLogByLeader();
+            if (suggest == null)
+                return;
+
+            InLogEntrySend = true;            
+            VerbosePrint($"{NodeAddress.NodeAddressId} (Leader)> Sending to all (I/T): {suggest.StateLogEntry.Index}/{suggest.StateLogEntry.Term};");
+            RunLeaderLogResendTimer();
+            this.Sender.SendToAll(eRaftSignalType.StateLogEntrySuggestion, suggest.SerializeProtobuf(), this.NodeAddress);
+        }
+
+        /// <summary>
+        /// Leader Only.
         /// </summary>
         /// <param name="data"></param>
         /// <param name="logEntryExternalId"></param>
         /// <returns></returns>
-        public AddLogEntryResult AddLogEntry(byte[] data, ulong logEntryExternalId)
+        public AddLogEntryResult AddLogEntryLeader(byte[] data)
         {
             AddLogEntryResult res = new AddLogEntryResult();
 
@@ -985,19 +1011,22 @@ namespace Raft
                 {
                     if (this.NodeState == eNodeState.Leader)
                     {
+                        res.AddedStateLogTermIndex = this.NodeStateLog.AddStateLogEntryForDistribution(data);
 
-                        StateLogEntry sle = this.NodeStateLog.AddEntryToStateLogByLeader(data, logEntryExternalId);
+                        //StateLogEntry sle = this.NodeStateLog.AddEntryToStateLogByLeader(data);
                         res.AddResult = AddLogEntryResult.eAddLogEntryResult.LOG_ENTRY_IS_CACHED;
-                        
-                        StateLogEntrySuggestion sles = new StateLogEntrySuggestion()
-                        {
-                            StateLogEntry = sle,
-                            LeaderTerm = this.NodeTerm
-                        };
 
-                        VerbosePrint($"{NodeAddress.NodeAddressId} (Leader)> Sending 2 all (I/T): {sle.Index}/{sle.Term};");
+                        ApplyLogEntry();
 
-                        this.Sender.SendToAll(eRaftSignalType.StateLogEntrySuggestion, sles.SerializeProtobuf(), this.NodeAddress);
+                        //StateLogEntrySuggestion sles = new StateLogEntrySuggestion()
+                        //{
+                        //    StateLogEntry = sle,
+                        //    LeaderTerm = this.NodeTerm
+                        //};
+
+                        //VerbosePrint($"{NodeAddress.NodeAddressId} (Leader)> Sending to all (I/T): {sle.Index}/{sle.Term};");
+
+                        //this.Sender.SendToAll(eRaftSignalType.StateLogEntrySuggestion, sles.SerializeProtobuf(), this.NodeAddress);
                     }
                     else
                     {
@@ -1040,7 +1069,7 @@ namespace Raft
 
         public void EmulationSetValue(byte[] data)
         {
-            this.AddLogEntry(data, 0);
+            this.AddLogEntryLeader(data);
         }
     }//eoc
 

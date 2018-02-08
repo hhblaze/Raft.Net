@@ -33,6 +33,11 @@ namespace Raft
         //public int ElectionTimeoutMaxMs = 2000;
 
         /// <summary>
+        /// If leader doesn't receive COMMIT on log-entry within interval it tries to resend it.
+        /// </summary>
+        public uint LeaderLogResendIntervalMs = 1000 * 30;
+
+        /// <summary>
         /// Exceptionally for emulators
         /// </summary>
         public int RaftNodeIdExternalForEmulator = 0;

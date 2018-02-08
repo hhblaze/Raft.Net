@@ -41,5 +41,10 @@ namespace Raft
         /// </summary>
         public NodeAddress LeaderAddress { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        public byte[] AddedStateLogTermIndex { get; set; }
+
     }
 }

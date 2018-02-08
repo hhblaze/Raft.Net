@@ -245,7 +245,7 @@ namespace Raft.RaftEmulator
                         if (leader == null)
                             return;
 
-                        leader.rn.AddLogEntry(data, 0);
+                        leader.rn.AddLogEntryLeader(data);
                     }
                     else
                     {
@@ -255,7 +255,7 @@ namespace Raft.RaftEmulator
                         if (leader == null)
                             return;
 
-                        leader.AddLogEntry(data, 0);
+                        leader.AddLogEntryLeader(data);
                     }
                 }
             });

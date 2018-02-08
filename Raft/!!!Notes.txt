@@ -1,4 +1,7 @@
 ﻿DOCUS:
+https://github.com/raft/raft.github.io
+https://github.com/hhblaze/Raft.Net
+
 https://ramcloud.stanford.edu/wiki/download/attachments/11370504/raft.pdf
 http://raftconsensus.github.io/
 http://thesecretlivesofdata.com/raft/

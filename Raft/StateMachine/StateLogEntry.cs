@@ -35,26 +35,20 @@ namespace Raft
         public byte[] Data { get; set; }
 
         /// <summary>
-        /// Id supplied by the client, to understand in async response that this data was applied
-        /// </summary>
-        [ProtoBuf.ProtoMember(4, IsRequired = true)]
-        public ulong ExternalId { get; set; }
-
-        /// <summary>
         /// If value is committed by Leader
         /// </summary>
-        [ProtoBuf.ProtoMember(5, IsRequired = true)]
+        [ProtoBuf.ProtoMember(4, IsRequired = true)]
         public bool IsCommitted { get; set; }
 
         /// <summary>
         /// Out of protobuf
         /// </summary>
-        [ProtoBuf.ProtoMember(6, IsRequired = true)]
+        [ProtoBuf.ProtoMember(5, IsRequired = true)]
         public ulong PreviousStateLogId = 0;
         /// <summary>
         /// Out of protobuf
         /// </summary>
-        [ProtoBuf.ProtoMember(7, IsRequired = true)]
+        [ProtoBuf.ProtoMember(6, IsRequired = true)]
         public ulong PreviousStateLogTerm = 0;
 
     }
