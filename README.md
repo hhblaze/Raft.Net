@@ -2,7 +2,7 @@
 Implementation of RAFT consensus algorithm on .NET and .NET Standard with TCP Peers.
 
 ----
-Implementation in progress.
+Implementation is in progress.
 
 Though it already works: 
  - Checkout Revision 3
