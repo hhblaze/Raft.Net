@@ -1,5 +1,5 @@
 # Raft.Net
-Implementation of the RAFT consensus algorithm among TCP peers 
+Implementation of the RAFT consensus algorithm among TCP peers with persistent or memory storage
 for dotnet / .NET / .NETStandard /.NETCore
 
 ----
