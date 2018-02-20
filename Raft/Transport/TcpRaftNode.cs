@@ -28,8 +28,15 @@ namespace Raft.Transport
 
             this.log = log;
             this.port = port;
-            if(clusterEndPoints != null)
-                this.clusterEndPoints.AddRange(clusterEndPoints.SerializeProtobuf().DeserializeProtobuf<List<TcpClusterEndPoint>>());
+            if (clusterEndPoints != null)
+            {
+                var bt = clusterEndPoints.SerializeBiser();
+                var decoder = new Biser.Decoder(bt);
+                this.clusterEndPoints = new List<TcpClusterEndPoint>();
+                decoder.GetCollection(() => { return TcpClusterEndPoint.BiserDecode(extDecoder: decoder); }, this.clusterEndPoints, false);
+               
+                //this.clusterEndPoints.AddRange(clusterEndPoints.SerializeProtobuf().DeserializeProtobuf<List<TcpClusterEndPoint>>());
+            }
             spider = new TcpSpider(this);          
 
             rn = new RaftNode(this.rn_settings, dbreezePath, this.spider, this.log);

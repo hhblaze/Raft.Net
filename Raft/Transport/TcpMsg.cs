@@ -4,23 +4,61 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using DBreeze.Utils;
+
 namespace Raft.Transport
 {
-    [ProtoBuf.ProtoContract]
-    public class TcpMsg
+    
+    public class TcpMsg : Biser.IEncoder
     {
         public TcpMsg()
         {
             MsgType = "Default";
         }
-
-        [ProtoBuf.ProtoMember(1, IsRequired = true)]
+                
         public string MsgType { get; set; }
-
-        [ProtoBuf.ProtoMember(2, IsRequired = true)]
+                
         public byte[] Data { get; set; }
-
-        [ProtoBuf.ProtoMember(3, IsRequired = true)]
+                
         public string DataString { get; set; }
+
+        public Biser.Encoder BiserEncoder(Biser.Encoder existingEncoder = null)
+        {
+            Biser.Encoder enc = new Biser.Encoder(existingEncoder);
+
+            enc
+            .Add(MsgType)
+            .Add(Data)
+            .Add(DataString)
+            ;
+            return enc;
+        }
+
+        public static TcpMsg BiserDecode(byte[] enc = null, Biser.Decoder extDecoder = null) //!!!!!!!!!!!!!! change return type
+        {
+            Biser.Decoder decoder = null;
+            if (extDecoder == null)
+            {
+                if (enc == null || enc.Length == 0)
+                    return null;
+                decoder = new Biser.Decoder(enc);
+                if (decoder.CheckNull())
+                    return null;
+            }
+            else
+            {
+                decoder = new Biser.Decoder(extDecoder);
+                if (decoder.IsNull)
+                    return null;
+            }
+
+            TcpMsg m = new TcpMsg();  //!!!!!!!!!!!!!! change return type
+
+            m.MsgType = decoder.GetString();
+            m.Data = decoder.GetByteArray();
+            m.DataString = decoder.GetString();
+
+            return m;
+        }
     }
 }

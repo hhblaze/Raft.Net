@@ -161,7 +161,7 @@ namespace Raft.Transport
                             {
                                 NodeListeningPort = trn.port,
                                 NodeUID = trn.rn.NodeAddress.NodeUId,
-                            }).SerializeProtobuf())
+                            }).SerializeBiser())
                         );
                     }
                   
@@ -226,7 +226,7 @@ namespace Raft.Transport
                     {
                         NodeListeningPort = trn.port,
                         NodeUID = trn.rn.NodeAddress.NodeUId, //Generated GUID on Node start                        
-                    }).SerializeProtobuf()));
+                    }).SerializeBiser()));
                 }
                 catch (Exception ex)
                 {
@@ -321,7 +321,7 @@ namespace Raft.Transport
                     peer.Write(cSprot1Parser.GetSprot1Codec(new byte[] { 00, 02 },
                         (
                             new TcpMsgRaft() { RaftSignalType = (int)signalType, Data = data }
-                        ).SerializeProtobuf()), highPriority);
+                        ).SerializeBiser()), highPriority);
                 }
             }
             catch (Exception ex)
@@ -356,7 +356,7 @@ namespace Raft.Transport
                     peer.Write(cSprot1Parser.GetSprot1Codec(new byte[] { 00, 04 },
                         (
                             new TcpMsg() { DataString = dataString, MsgType = msgType, Data = data }
-                        ).SerializeProtobuf()));
+                        ).SerializeBiser()));
                 }
 
             }
@@ -377,7 +377,7 @@ namespace Raft.Transport
                     peer.Write(cSprot1Parser.GetSprot1Codec(new byte[] { 00, 02 },
                        (
                            new TcpMsgRaft() { RaftSignalType = (int)signalType, Data = data }
-                       ).SerializeProtobuf()));
+                       ).SerializeBiser()));
                 }
             }
             catch (Exception ex)

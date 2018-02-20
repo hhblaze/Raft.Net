@@ -21,6 +21,13 @@ namespace Raft.RaftEmulator
 
         public void StartEmulateTcpNodes(int nodesQuantity)
         {
+
+
+
+           TestSer.Test();
+
+
+
             TcpRaftNode rn = null;
 
             rn_settings = new RaftNodeSettings()

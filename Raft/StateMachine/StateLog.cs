@@ -112,7 +112,7 @@ namespace Raft
                 StateLogEntry sle = null;
                 if (row != null && row.Exists)
                 {
-                    sle = row.Value.DeserializeProtobuf<StateLogEntry>();
+                    sle = StateLogEntry.BiserDecode(row.Value);
                     StateLogId = sle.Index;
                     StateLogTerm = sle.Term;
                     PreviousStateLogId = sle.PreviousStateLogId;
@@ -168,7 +168,7 @@ namespace Raft
                 {
                     sles = new StateLogEntrySuggestion()
                     {
-                        StateLogEntry = row.Value.DeserializeProtobuf<StateLogEntry>(),
+                        StateLogEntry = StateLogEntry.BiserDecode(row.Value),
                         LeaderTerm = rn.NodeTerm
                     };                    
                 }
@@ -215,7 +215,7 @@ namespace Raft
 
             using (var t = db.GetTransaction())
             {
-                t.Insert<byte[], byte[]>(tblAppendLogEntry, new byte[] { 1 }.ToBytes(tempStateLogTerm, tempStateLogId), le.SerializeProtobuf());
+                t.Insert<byte[], byte[]>(tblAppendLogEntry, new byte[] { 1 }.ToBytes(tempStateLogTerm, tempStateLogId), le.SerializeBiser());
                 t.Commit();
             }
 
@@ -240,7 +240,7 @@ namespace Raft
             
             using (var t = db.GetTransaction())
             {
-                t.Insert<byte[], byte[]>(tblStateLogEntry, new byte[] { 1 }.ToBytes(suggest.StateLogEntry.Index, suggest.StateLogEntry.Term), suggest.StateLogEntry.SerializeProtobuf());
+                t.Insert<byte[], byte[]>(tblStateLogEntry, new byte[] { 1 }.ToBytes(suggest.StateLogEntry.Index, suggest.StateLogEntry.Term), suggest.StateLogEntry.SerializeBiser());
                 t.Commit();
             }
 
@@ -347,7 +347,7 @@ namespace Raft
 
                     if(trow != null && trow.Exists)
                     {
-                        sle = trow.Value.DeserializeProtobuf<StateLogEntry>();
+                        sle = StateLogEntry.BiserDecode(trow.Value);
                         le.StateLogEntry = sle;
 
                         if (
@@ -374,7 +374,7 @@ namespace Raft
                            new byte[] { 1 }.ToBytes(ulong.MaxValue, ulong.MaxValue), true).Take(2))
                     {
                         cnt++;
-                        sle = el.Value.DeserializeProtobuf<StateLogEntry>();
+                        sle = StateLogEntry.BiserDecode(el.Value);
                         if (cnt == 1)
                         {
                             prevId = sle.Index;
@@ -437,7 +437,7 @@ namespace Raft
                         return null;
                     }
 
-                    return row.Value.DeserializeProtobuf<StateLogEntry>();
+                    return StateLogEntry.BiserDecode(row.Value);
                 }
             }
             catch (Exception ex)
@@ -470,7 +470,7 @@ namespace Raft
                         t.RemoveKey<byte[]>(tblStateLogEntry, el.Key);
                     }
                    
-                    t.Insert<byte[], byte[]>(tblStateLogEntry, new byte[] { 1 }.ToBytes(suggestion.StateLogEntry.Index, suggestion.StateLogEntry.Term), suggestion.StateLogEntry.SerializeProtobuf());
+                    t.Insert<byte[], byte[]>(tblStateLogEntry, new byte[] { 1 }.ToBytes(suggestion.StateLogEntry.Index, suggestion.StateLogEntry.Term), suggestion.StateLogEntry.SerializeBiser());
                     t.Commit();
                 }
 

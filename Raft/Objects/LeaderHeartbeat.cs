@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using DBreeze.Utils;
+
 namespace Raft
-{
-    [ProtoBuf.ProtoContract]
-    internal class LeaderHeartbeat
+{    
+    internal class LeaderHeartbeat:Biser.IEncoder
     {
         public LeaderHeartbeat()
         {
@@ -16,33 +17,72 @@ namespace Raft
 
         /// <summary>
         /// Leader's current Term
-        /// </summary>
-        [ProtoBuf.ProtoMember(1, IsRequired = true)]
+        /// </summary>        
         public ulong LeaderTerm { get; set; }
 
         /// <summary>
         /// Latest inserted into Leader State Log Term
-        /// </summary>
-        [ProtoBuf.ProtoMember(2, IsRequired = true)]
+        /// </summary>        
         public ulong StateLogLatestTerm { get; set; }
 
         /// <summary>
         /// Latest inserted into Leader State Log ID
-        /// </summary>
-        [ProtoBuf.ProtoMember(3, IsRequired = true)]
+        /// </summary>        
         public ulong StateLogLatestIndex { get; set; }
 
         /// <summary>
         /// Leader includes LastCommitted Index, Followers must apply if it's bigger then theirs
-        /// </summary>
-        [ProtoBuf.ProtoMember(4, IsRequired = true)]
+        /// </summary>        
         public ulong LastStateLogCommittedIndex { get; set; }
 
         /// <summary>
         /// Leader includes LastCommitted Term, Followers must apply if it's bigger then theirs
-        /// </summary>
-        [ProtoBuf.ProtoMember(5, IsRequired = true)]
+        /// </summary>        
         public ulong LastStateLogCommittedIndexTerm { get; set; }
+
+        public Biser.Encoder BiserEncoder(Biser.Encoder existingEncoder = null)
+        {
+            Biser.Encoder enc = new Biser.Encoder(existingEncoder);
+
+            enc
+            .Add(LeaderTerm)
+            .Add(StateLogLatestTerm)
+            .Add(StateLogLatestIndex)
+            .Add(LastStateLogCommittedIndex)
+            .Add(LastStateLogCommittedIndexTerm)
+            ;
+            return enc;
+        }
+
+        public static LeaderHeartbeat BiserDecode(byte[] enc = null, Biser.Decoder extDecoder = null) //!!!!!!!!!!!!!! change return type
+        {
+            Biser.Decoder decoder = null;
+            if (extDecoder == null)
+            {
+                if (enc == null || enc.Length == 0)
+                    return null;
+                decoder = new Biser.Decoder(enc);
+                if (decoder.CheckNull())
+                    return null;
+            }
+            else
+            {
+                decoder = new Biser.Decoder(extDecoder);
+                if (decoder.IsNull)
+                    return null;
+            }
+
+            LeaderHeartbeat m = new LeaderHeartbeat();  //!!!!!!!!!!!!!! change return type
+
+            m.LeaderTerm = decoder.GetULong();
+            m.StateLogLatestTerm = decoder.GetULong();
+            m.StateLogLatestIndex = decoder.GetULong();
+            m.LastStateLogCommittedIndex = decoder.GetULong();
+            m.LastStateLogCommittedIndexTerm = decoder.GetULong();
+            
+
+            return m;
+        }
 
     }
 }

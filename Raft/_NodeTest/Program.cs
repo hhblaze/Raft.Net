@@ -28,6 +28,7 @@ namespace _NodeTest
         {
             log = new Logger();
             tm = new TimeMaster(log);
+            
 
 
             //UdpTester t = new UdpTester(tm, log);

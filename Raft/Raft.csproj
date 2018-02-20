@@ -30,11 +30,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DBreeze, Version=1.89.2017.829, Culture=neutral, PublicKeyToken=174b57f1c155f3c6, processorArchitecture=MSIL">
-      <HintPath>packages\DBreeze.1.89.0\lib\net45\DBreeze.dll</HintPath>
-    </Reference>
-    <Reference Include="protobuf-net, Version=2.3.6.0, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
-      <HintPath>packages\protobuf-net.2.3.6\lib\net40\protobuf-net.dll</HintPath>
+    <Reference Include="DBreeze, Version=1.89.2018.809, Culture=neutral, PublicKeyToken=174b57f1c155f3c6, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\DBreeze\DBreeze\bin\Release\DBreeze.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
@@ -70,6 +68,7 @@
     <Compile Include="Transport\TcpRaftNode.cs" />
     <Compile Include="TcpRedirectHandler.cs" />
     <Compile Include="Transport\TcpSpider.cs" />
+    <Compile Include="Utils\BiserExtension.cs" />
     <Compile Include="Utils\SDictAutoIdentityLong.cs" />
     <Compile Include="Utils\SDictionary.cs" />
     <Compile Include="Utils\SQueue.cs" />
@@ -84,7 +83,6 @@
     <Compile Include="RaftNodeSettings.cs" />
     <Compile Include="RaftSignals.cs" />
     <Compile Include="TimeMaster.cs" />
-    <Compile Include="Utils\ProtobufSerializatorExtension.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="!!!Notes.txt" />

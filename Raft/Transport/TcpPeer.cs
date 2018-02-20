@@ -110,7 +110,7 @@ namespace Raft.Transport
                 {
                     case 1: //Handshake
                             
-                        Handshake = data.DeserializeProtobuf<TcpMsgHandshake>();
+                        Handshake = TcpMsgHandshake.BiserDecode(data);
                         if (trn.rn.NodeAddress.NodeUId != this.Handshake.NodeUID)
                         {
                             //trn.log.Log(new WarningLogEntry()
@@ -126,7 +126,7 @@ namespace Raft.Transport
                         if (this.na == null)
                             return;
                         
-                        var msg = data.DeserializeProtobuf<TcpMsgRaft>();
+                        var msg = TcpMsgRaft.BiserDecode(data);
                         
                         Task.Run(() =>
                         {
@@ -135,7 +135,7 @@ namespace Raft.Transport
                         return;
                     case 3: //Handshake ACK
 
-                        Handshake = data.DeserializeProtobuf<TcpMsgHandshake>();
+                        Handshake = TcpMsgHandshake.BiserDecode(data);
                         //trn.log.Log(new WarningLogEntry()
                         //{
                         //    LogType = WarningLogEntry.eLogType.DEBUG,
@@ -146,13 +146,13 @@ namespace Raft.Transport
                         return;
                     case 4: //Free Message protocol
 
-                        var TcpMsg = data.DeserializeProtobuf<TcpMsg>();
+                        var Tcpmsg = TcpMsg.BiserDecode(data);
                         if (na != null)
                         {
                             trn.log.Log(new WarningLogEntry()
                             {
                                 LogType = WarningLogEntry.eLogType.DEBUG,
-                                Description = $"{trn.port} ({trn.rn.NodeState})> peer {na.NodeAddressId} sent: { TcpMsg.MsgType }"
+                                Description = $"{trn.port} ({trn.rn.NodeState})> peer {na.NodeAddressId} sent: { Tcpmsg.MsgType }"
                             });
                         }
                         return;

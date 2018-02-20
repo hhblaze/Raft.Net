@@ -1,5 +1,5 @@
 # Raft.Net
-Implementation of the RAFT consensus algorithm among TCP peers with persistent or memory storage<br />for .NET / dotnet / netstandard /netcore
+Implementation of the RAFT consensus algorithm among TCP peers with persistent or memory storage<br />.NET / dotnet / netstandard /netcore<br />
 
 ----
 Implementation is in progress (polishing the code).
@@ -7,7 +7,7 @@ Implementation is in progress (polishing the code).
 Though, it already works: 
  - Checkout Revision 26
  - make console app as a start up one in VS studio
- - Depends on [DBreeze](https://github.com/hhblaze/DBreeze) and protobuf-net (from NuGet).
+ - Depends on [DBreeze](https://github.com/hhblaze/DBreeze) and [Biser](https://github.com/hhblaze/Biser).
  - Run
  - after leader is elected (in console) type several times "set 1"
    It will create several new log entries in all test nodes.
