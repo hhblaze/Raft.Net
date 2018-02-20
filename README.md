@@ -7,7 +7,7 @@ Implementation is in progress (polishing the code).
 Though, it already works: 
  - Checkout Revision 26
  - make console app as a start up one in VS studio
- - Depends on [DBreeze](https://github.com/hhblaze/DBreeze) and [Biser](https://github.com/hhblaze/Biser).
+ - Depends on [DBreeze](https://github.com/hhblaze/DBreeze) and integrated into it [Biser.NET](https://github.com/hhblaze/Biser).
  - Run
  - after leader is elected (in console) type several times "set 1"
    It will create several new log entries in all test nodes.
