@@ -190,7 +190,7 @@ namespace Raft
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public byte[] AddStateLogEntryForDistribution(byte[] data, ulong redirectId=0)
+        public byte[] AddStateLogEntryForDistribution(byte[] data)//, ulong redirectId=0)
         {
             /*
              * Only nodes of the current term can be distributed
@@ -209,8 +209,8 @@ namespace Raft
                 Data = data,
                 Term = tempStateLogTerm,                
                 PreviousStateLogId = tempPrevStateLogId,
-                PreviousStateLogTerm = tempPrevStateLogTerm,
-                RedirectId = redirectId
+                PreviousStateLogTerm = tempPrevStateLogTerm
+                //RedirectId = redirectId
             };
 
             using (var t = db.GetTransaction())
@@ -248,19 +248,19 @@ namespace Raft
 
         }
 
-        /// <summary>
-        /// Removes from distribution silo if committed (that correct entry could be picked up on GetNextLogEntryToBeDistributed)
-        /// </summary>
-        /// <param name="stateLogId"></param>
-        /// <param name="stateLogTerm"></param>
-        public void RemoveEntryFromDistribution(ulong stateLogId, ulong stateLogTerm)
-        {
-            using (var t = db.GetTransaction())
-            {
-                t.RemoveKey<byte[]>(tblAppendLogEntry, new byte[] { 1 }.ToBytes(stateLogTerm, stateLogId));
-                t.Commit();             
-            }
-        }
+        ///// <summary>
+        ///// Removes from distribution silo if committed (that correct entry could be picked up on GetNextLogEntryToBeDistributed)
+        ///// </summary>
+        ///// <param name="stateLogId"></param>
+        ///// <param name="stateLogTerm"></param>
+        //public void RemoveEntryFromDistribution(ulong stateLogId, ulong stateLogTerm)
+        //{
+        //    using (var t = db.GetTransaction())
+        //    {
+        //        t.RemoveKey<byte[]>(tblAppendLogEntry, new byte[] { 1 }.ToBytes(stateLogTerm, stateLogId));
+        //        t.Commit();             
+        //    }
+        //}
 
         /// <summary>
         /// 
@@ -272,13 +272,26 @@ namespace Raft
             if (this.LastCommittedIndex < lhb.LastStateLogCommittedIndex)
             {
                 //Node tries to understand if it contains already this index/term, if not it will need synchronization
+                //StateLogEntry committedSle = null;
+                List<byte[]> lstCommited = new List<byte[]>();
                 using (var t = db.GetTransaction())
                 {
+                    t.ValuesLazyLoadingIsOn = false;
                     var row = t.Select<byte[], byte[]>(tblStateLogEntry, (new byte[] { 1 }).ToBytes(lhb.LastStateLogCommittedIndex, lhb.LastStateLogCommittedIndexTerm));
                     if(row.Exists)
                     {
+                        //Gathering all not commited entries that a bigger than latest commited index of the committed term
+                        foreach (var el in t.SelectForwardFromTo<byte[], byte[]>(tblStateLogEntry,
+                           new byte[] { 1 }.ToBytes(this.LastCommittedIndex+1, lhb.LastStateLogCommittedIndexTerm), true,
+                           new byte[] { 1 }.ToBytes(ulong.MaxValue, lhb.LastStateLogCommittedIndexTerm), true, true))
+                        {
+                            lstCommited.Add(StateLogEntry.BiserDecode(row.Value).Data);
+                        }
+                        
                         this.LastCommittedIndex = lhb.LastStateLogCommittedIndex;
                         this.LastCommittedIndexTerm = lhb.LastStateLogCommittedIndexTerm;
+
+                        //rn.VerbosePrint($"{rn.NodeAddress.NodeAddressId}> AddToLogFollower (I/T): here");
 
                         t.Insert<byte[], byte[]>(tblStateLogEntry, new byte[] { 2 }, lhb.LastStateLogCommittedIndex.ToBytes(lhb.LastStateLogCommittedIndexTerm));
                         t.Commit();
@@ -286,6 +299,14 @@ namespace Raft
                     else
                         return false;
                 }
+                
+                if(lstCommited.Count > 0)
+                {
+                    //---RAISE UP COMMITTED DATA
+                    if (this.rn.OnCommit != null)
+                        Task.Run(() => { this.rn.OnCommit(lstCommited); });
+                }
+
             }
 
             return true;
@@ -506,6 +527,11 @@ namespace Raft
                     {
                         this.LastCommittedIndex = suggestion.StateLogEntry.Index;
                         this.LastCommittedIndexTerm = suggestion.StateLogEntry.Term;
+
+                        //---RAISE UP COMMITTED DATA
+                        //Currently only one, change when supply block of committed data
+                        if (this.rn.OnCommit != null)
+                            Task.Run(() => { this.rn.OnCommit(new List<byte[]> { suggestion.StateLogEntry.Data }); });
                     }
                 }
 
@@ -577,15 +603,39 @@ namespace Raft
 
                 if (this.LastCommittedIndex < applied.StateLogEntryId && rn.NodeTerm == applied.StateLogEntryTerm)    //Setting LastCommittedId
                 {
+                    //Saving committed entry (all previous are automatically committed)
+                    List<byte[]> lstCommited = new List<byte[]>();
+
+                    using (var t = db.GetTransaction())
+                    {
+                        t.SynchronizeTables(tblStateLogEntry, tblAppendLogEntry);
+
+                        //Setting latest commited index
+                        t.Insert<byte[], byte[]>(tblStateLogEntry, new byte[] { 2 }, applied.StateLogEntryId.ToBytes(applied.StateLogEntryTerm));
+                        //Removing entry from command queue
+                        t.RemoveKey<byte[]>(tblAppendLogEntry, new byte[] { 1 }.ToBytes(applied.StateLogEntryTerm, applied.StateLogEntryId));
+
+
+                        //Gathering all not commited entries that a bigger than latest commited index of the committed term
+                        t.ValuesLazyLoadingIsOn = false;
+                        foreach (var el in t.SelectForwardFromTo<byte[], byte[]>(tblStateLogEntry,
+                           new byte[] { 1 }.ToBytes(this.LastCommittedIndex + 1, applied.StateLogEntryTerm), true,
+                           new byte[] { 1 }.ToBytes(ulong.MaxValue, applied.StateLogEntryTerm), true, true))
+                        {
+                            lstCommited.Add(StateLogEntry.BiserDecode(el.Value).Data);
+                        }
+
+                        t.Commit();
+                    }
+
                     this.LastCommittedIndex = applied.StateLogEntryId;
                     this.LastCommittedIndexTerm = applied.StateLogEntryTerm;
 
-                    //Saving committed entry (all previous are automatically committed)
-                    
-                    using (var t = db.GetTransaction())
+                    if (lstCommited.Count > 0)
                     {
-                        t.Insert<byte[], byte[]>(tblStateLogEntry, new byte[] { 2 }, this.LastCommittedIndex.ToBytes(this.LastCommittedIndexTerm));
-                        t.Commit();
+                        //---RAISE UP COMMITTED DATA
+                        if (this.rn.OnCommit != null)
+                            Task.Run(() => { this.rn.OnCommit(lstCommited); });
                     }
 
                     return eEntryAcceptanceResult.Committed;

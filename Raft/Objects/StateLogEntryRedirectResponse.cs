@@ -28,15 +28,16 @@ namespace Raft
         /// </summary>        
         public eResponseType ResponseType { get; set; } = eResponseType.CACHED;
         
-        public ulong RedirectId { get; set; }
+        //public ulong RedirectId { get; set; }
 
+        #region "Biser"
         public Biser.Encoder BiserEncoder(Biser.Encoder existingEncoder = null)
         {
             Biser.Encoder enc = new Biser.Encoder(existingEncoder);
 
             enc
             .Add((int)ResponseType)
-            .Add(RedirectId)
+            //.Add(RedirectId)
             ;
             return enc;
         }
@@ -62,10 +63,11 @@ namespace Raft
             StateLogEntryRedirectResponse m = new StateLogEntryRedirectResponse();  //!!!!!!!!!!!!!! change return type
 
             m.ResponseType = (eResponseType)decoder.GetInt();
-            m.RedirectId = decoder.GetULong();
+            //m.RedirectId = decoder.GetULong();
 
             return m;
         }
+        #endregion
 
     }
 }

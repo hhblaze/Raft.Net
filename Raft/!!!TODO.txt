@@ -1,4 +1,37 @@
-﻿+ Leader stores separately log entry requests and doesn't apply them until receives prior COMMIT
+﻿
+!!! - Balance in memory mode: don't send whole history
+!!! - send commands to woke up follower in a bigger block (not one by one)
+!!! - State log constructor, if no dbreeze path - in-memory mode via settings
+
+
+!!! - DONE
+[
+	To mix in-memory and persisted RAFT solutions better to create to RAFT instances (for each own TCP port): one with db 
+	second in-memory and use for different needs its own
+]
+
+!!! - DONE -
+[
+	---RAISE UP COMMITTED DATA	
+	indicates at 3 places committed
+]
+
+!!! - DONE - 
+[
+	via RaftNode.AddLogEntry entry is added (or redirected to the leader and added)
+	when entry is committed via standard COMMITTED action entry is raised up.
+]
+
+!!! - DONE -
+[
+	FORCE LEADER HEARTBEAT AFTER COMMIT, so followers receive their data faster
+]
+
+
+
+---------------------
+
++ Leader stores separately log entry requests and doesn't apply them until receives prior COMMIT
 + Commit initiates new entry appliance and generates committed entry event
 + Only current term log entries can be applied by leader
 -+ timeout on log entry apply as separately supplied parameter (currently is fixed to 30 sec)

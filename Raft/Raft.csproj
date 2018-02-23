@@ -47,7 +47,6 @@
   <ItemGroup>
     <Compile Include="Objects\LeaderHeartbeat.cs" />
     <Compile Include="Objects\StateLogEntryApplied.cs" />
-    <Compile Include="Objects\StateLogEntryRedirectResponse.cs" />
     <Compile Include="Objects\StateLogEntryRedirectRequest.cs" />
     <Compile Include="Objects\StateLogEntryRequest.cs" />
     <Compile Include="Objects\StateLogEntrySuggestion.cs" />
@@ -66,7 +65,6 @@
     <Compile Include="Transport\TcpMsgRaft.cs" />
     <Compile Include="Transport\TcpPeer.cs" />
     <Compile Include="Transport\TcpRaftNode.cs" />
-    <Compile Include="TcpRedirectHandler.cs" />
     <Compile Include="Transport\TcpSpider.cs" />
     <Compile Include="Utils\BiserExtension.cs" />
     <Compile Include="Utils\SDictAutoIdentityLong.cs" />

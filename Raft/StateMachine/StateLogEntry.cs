@@ -44,9 +44,11 @@ namespace Raft
         /// Out of protobuf
         /// </summary>        
         public ulong PreviousStateLogTerm = 0;
-        
-        public ulong RedirectId = 0;
 
+        //public ulong RedirectId = 0;
+
+
+        #region "Biser"
         public Biser.Encoder BiserEncoder(Biser.Encoder existingEncoder = null)
         {
             Biser.Encoder enc = new Biser.Encoder(existingEncoder);
@@ -58,7 +60,7 @@ namespace Raft
             .Add(IsCommitted)
             .Add(PreviousStateLogId)
             .Add(PreviousStateLogTerm)
-            .Add(RedirectId)
+            //.Add(RedirectId)
             ;
             return enc;
         }
@@ -89,9 +91,11 @@ namespace Raft
             m.IsCommitted = decoder.GetBool();
             m.PreviousStateLogId = decoder.GetULong();
             m.PreviousStateLogTerm = decoder.GetULong();
-            m.RedirectId = decoder.GetULong();
+            //m.RedirectId = decoder.GetULong();
 
             return m;
         }
+
+        #endregion
     }
 }

@@ -122,10 +122,15 @@ namespace Raft
         /// Latest heartbeat from leader, can be null on start
         /// </summary>
         internal LeaderHeartbeat LeaderHeartbeat = null;
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        //internal RedirectHandler redirector = null;
+
         /// <summary>
-        /// 
+        /// Supplied from outside
         /// </summary>
-        internal RedirectHandler redirector = null;
+        public Action<List<byte[]>> OnCommit = null;
 
         public RaftNode(RaftNodeSettings settings, string dbreezePath, IRaftComSender raftSender, IWarningLog log)
         {
@@ -139,7 +144,7 @@ namespace Raft
             Sender = raftSender;
             nodeSettings = settings;
 
-            redirector = new RedirectHandler(this);
+            //redirector = new RedirectHandler(this);
         }
 
         int disposed = 0;
@@ -160,6 +165,7 @@ namespace Raft
             this.NodeStateLog.Dispose();
             this.NodeStateLog = null;
         }
+                
 
         /// <summary>
         /// We need this value to calculate majority while leader election
@@ -397,12 +403,12 @@ namespace Raft
                         case eRaftSignalType.StateLogEntryAccepted:                                                       
                             ParseStateLogEntryAccepted(address, data);
                             break;
-                        case eRaftSignalType.StateLogRedirectRequest:
+                        case eRaftSignalType.StateLogRedirectRequest: //Not a leader node tries to add command
                             ParseStateLogRedirectRequest(address, data);
                             break;
-                        case eRaftSignalType.StateLogRedirectResponse:
-                            ParseStateLogRedirectResponse(address, data);
-                            break;
+                        //case eRaftSignalType.StateLogRedirectResponse: //We don't need that, if request is accepted and committed all will be notified
+                        //    ParseStateLogRedirectResponse(address, data);
+                        //    break;
                     }
                 }
             }
@@ -593,8 +599,8 @@ namespace Raft
             StateLogEntryApplied applied = new StateLogEntryApplied()
             {
                  StateLogEntryId = suggest.StateLogEntry.Index,
-                 StateLogEntryTerm = suggest.StateLogEntry.Term,
-                 RedirectId = suggest.StateLogEntry.RedirectId
+                 StateLogEntryTerm = suggest.StateLogEntry.Term
+                // RedirectId = suggest.StateLogEntry.RedirectId
             };
             
             //this.NodeStateLog.LeaderSynchronizationIsActive = false;
@@ -946,56 +952,57 @@ namespace Raft
         void ParseStateLogRedirectRequest(NodeAddress address, byte[] data)
         {
             StateLogEntryRedirectRequest req = StateLogEntryRedirectRequest.BiserDecode(data);
-            StateLogEntryRedirectResponse resp = new StateLogEntryRedirectResponse() { RedirectId = req.RedirectId };
+            //StateLogEntryRedirectResponse resp = new StateLogEntryRedirectResponse(); //{ RedirectId = req.RedirectId };
 
-            if (this.NodeState != eNodeState.Leader)
+            if (this.NodeState != eNodeState.Leader)  //Just return
             {
-                resp.ResponseType = StateLogEntryRedirectResponse.eResponseType.NOT_A_LEADER;
+                //resp.ResponseType = StateLogEntryRedirectResponse.eResponseType.NOT_A_LEADER;
 
-                this.Sender.SendTo(address, eRaftSignalType.StateLogRedirectResponse, resp.SerializeBiser(), this.NodeAddress);
+                //this.Sender.SendTo(address, eRaftSignalType.StateLogRedirectResponse, resp.SerializeBiser(), this.NodeAddress);
                 return;
             }
 
-            resp.ResponseType = StateLogEntryRedirectResponse.eResponseType.CACHED;
-            var redirectId = this.redirector.StoreRedirect(address); //here we must store redirect data
-            var addedStateLogTermIndex = this.NodeStateLog.AddStateLogEntryForDistribution(req.Data, redirectId);
-            ApplyLogEntry();
-
-            this.Sender.SendTo(address, eRaftSignalType.StateLogRedirectResponse, resp.SerializeBiser(), this.NodeAddress);
-        }
-
-        void ParseStateLogRedirectResponse(NodeAddress address, byte[] data)
-        {
-            StateLogEntryRedirectResponse resp = StateLogEntryRedirectResponse.BiserDecode(data);
-
-            //var redirectInfo = this.redirector.GetRedirectByIdTerm(applied.RedirectId, applied.StateLogEntryTerm);
-            //if (redirectInfo != null && redirectInfo.NodeAddress != null)
-            //{
-            //    StateLogEntryRedirectResponse resp = new StateLogEntryRedirectResponse()
-            //    {
-            //        RedirectId = applied.RedirectId,
-            //        ResponseType = StateLogEntryRedirectResponse.eResponseType.COMMITED
-            //    };
-            //    this.Sender.SendTo(redirectInfo.NodeAddress, eRaftSignalType.StateLogRedirectResponse, resp.SerializeProtobuf(), this.NodeAddress);
-            //}
-
-
-
-            //if (this.NodeState != eNodeState.Leader)
-            //{
-            //    resp.ResponseType = StateLogEntryRedirectResponse.eResponseType.NOT_A_LEADER;
-
-            //    this.Sender.SendTo(address, eRaftSignalType.StateLogRedirectResponse, resp.SerializeProtobuf(), this.NodeAddress);
-            //    return;
-            //}
-
             //resp.ResponseType = StateLogEntryRedirectResponse.eResponseType.CACHED;
             //var redirectId = this.redirector.StoreRedirect(address); //here we must store redirect data
-            //var addedStateLogTermIndex = this.NodeStateLog.AddStateLogEntryForDistribution(req.Data, redirectId);
-            //ApplyLogEntry();
+            var addedStateLogTermIndex = this.NodeStateLog.AddStateLogEntryForDistribution(req.Data);//, redirectId);
+            ApplyLogEntry();
 
-            //this.Sender.SendTo(address, eRaftSignalType.StateLogRedirectResponse, resp.SerializeProtobuf(), this.NodeAddress);
+            //Don't answer, committed value wil be delivered via standard channel
+            //this.Sender.SendTo(address, eRaftSignalType.StateLogRedirectResponse, resp.SerializeBiser(), this.NodeAddress);
         }
+
+        //void ParseStateLogRedirectResponse(NodeAddress address, byte[] data)
+        //{
+        //    StateLogEntryRedirectResponse resp = StateLogEntryRedirectResponse.BiserDecode(data);
+
+        //    //var redirectInfo = this.redirector.GetRedirectByIdTerm(applied.RedirectId, applied.StateLogEntryTerm);
+        //    //if (redirectInfo != null && redirectInfo.NodeAddress != null)
+        //    //{
+        //    //    StateLogEntryRedirectResponse resp = new StateLogEntryRedirectResponse()
+        //    //    {
+        //    //        RedirectId = applied.RedirectId,
+        //    //        ResponseType = StateLogEntryRedirectResponse.eResponseType.COMMITED
+        //    //    };
+        //    //    this.Sender.SendTo(redirectInfo.NodeAddress, eRaftSignalType.StateLogRedirectResponse, resp.SerializeProtobuf(), this.NodeAddress);
+        //    //}
+
+
+
+        //    //if (this.NodeState != eNodeState.Leader)
+        //    //{
+        //    //    resp.ResponseType = StateLogEntryRedirectResponse.eResponseType.NOT_A_LEADER;
+
+        //    //    this.Sender.SendTo(address, eRaftSignalType.StateLogRedirectResponse, resp.SerializeProtobuf(), this.NodeAddress);
+        //    //    return;
+        //    //}
+
+        //    //resp.ResponseType = StateLogEntryRedirectResponse.eResponseType.CACHED;
+        //    //var redirectId = this.redirector.StoreRedirect(address); //here we must store redirect data
+        //    //var addedStateLogTermIndex = this.NodeStateLog.AddStateLogEntryForDistribution(req.Data, redirectId);
+        //    //ApplyLogEntry();
+
+        //    //this.Sender.SendTo(address, eRaftSignalType.StateLogRedirectResponse, resp.SerializeProtobuf(), this.NodeAddress);
+        //}
 
 
         /// <summary>
@@ -1018,22 +1025,37 @@ namespace Raft
                 this.VerbosePrint($"{this.NodeAddress.NodeAddressId}> LogEntry {applied.StateLogEntryId} is COMMITTED (answer from {address.NodeAddressId})");
 
                 RemoveLeaderLogResendTimer();
-                this.NodeStateLog.RemoveEntryFromDistribution(applied.StateLogEntryId, applied.StateLogEntryTerm);
+
+
+                //Force heartbeat, to make followers to get faster info about commited elements
+                LeaderHeartbeat heartBeat= new LeaderHeartbeat()
+                {
+                    LeaderTerm = this.NodeTerm,
+                    StateLogLatestIndex = NodeStateLog.StateLogId,
+                    StateLogLatestTerm = NodeStateLog.StateLogTerm,
+                    LastStateLogCommittedIndex = this.NodeStateLog.LastCommittedIndex,
+                    LastStateLogCommittedIndexTerm = this.NodeStateLog.LastCommittedIndexTerm
+                };
+                this.Sender.SendToAll(eRaftSignalType.LeaderHearthbeat, heartBeat.SerializeBiser(), this.NodeAddress, true);
+                //---------------------------------------
+
+                //this.NodeStateLog.RemoveEntryFromDistribution(applied.StateLogEntryId, applied.StateLogEntryTerm);
                 InLogEntrySend = false;
 
-                //Sending back to the client information that entry is committed
-                if (applied.RedirectId > 0)
-                {                    
-                    var redirectInfo = this.redirector.GetRedirectByIdTerm(applied.RedirectId, applied.StateLogEntryTerm);
-                    if (redirectInfo != null && redirectInfo.NodeAddress != null)
-                    {
-                        StateLogEntryRedirectResponse resp = new StateLogEntryRedirectResponse() {
-                            RedirectId = applied.RedirectId,
-                            ResponseType = StateLogEntryRedirectResponse.eResponseType.COMMITED
-                        };
-                        this.Sender.SendTo(redirectInfo.NodeAddress, eRaftSignalType.StateLogRedirectResponse, resp.SerializeBiser(), this.NodeAddress);
-                    }
-                }
+                //We don't to send anything back, because COMMIT signal in any case will be delivered to the caller, and then caller must react
+                ////Sending back to the client information that entry is committed
+                //if (applied.RedirectId > 0)
+                //{                    
+                //    var redirectInfo = this.redirector.GetRedirectByIdTerm(applied.RedirectId, applied.StateLogEntryTerm);
+                //    if (redirectInfo != null && redirectInfo.NodeAddress != null)
+                //    {
+                //        StateLogEntryRedirectResponse resp = new StateLogEntryRedirectResponse() {
+                //            RedirectId = applied.RedirectId,
+                //            ResponseType = StateLogEntryRedirectResponse.eResponseType.COMMITED
+                //        };
+                //        this.Sender.SendTo(redirectInfo.NodeAddress, eRaftSignalType.StateLogRedirectResponse, resp.SerializeBiser(), this.NodeAddress);
+                //    }
+                //}
 
                 ApplyLogEntry();
             }
@@ -1111,13 +1133,13 @@ namespace Raft
                             res.AddResult = AddLogEntryResult.eAddLogEntryResult.NODE_NOT_A_LEADER;
                             res.LeaderAddress = this.LeaderNodeAddress;
 
-                            //Redirecting                            
+                            //Redirecting only in case if there is a leader                            
                             this.Sender.SendTo(this.LeaderNodeAddress,eRaftSignalType.StateLogRedirectRequest, 
                                 (
                                 new StateLogEntryRedirectRequest
                                 {
-                                    Data = data,
-                                    RedirectId = this.redirector.StoreRedirect(null)   //!!!!!!!!!!! Later must be enhanced by the address of connected external client
+                                    Data = data
+                                    //RedirectId = this.redirector.StoreRedirect(null)   //!!!!!!!!!!! Later must be enhanced by the address of connected external client
                                 }).SerializeBiser(), this.NodeAddress);
                         }
 

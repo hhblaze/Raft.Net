@@ -320,7 +320,7 @@ namespace Raft.Transport
                     
                     peer.Write(cSprot1Parser.GetSprot1Codec(new byte[] { 00, 02 },
                         (
-                            new TcpMsgRaft() { RaftSignalType = (int)signalType, Data = data }
+                            new TcpMsgRaft() { RaftSignalType = signalType, Data = data }
                         ).SerializeBiser()), highPriority);
                 }
             }
@@ -376,7 +376,7 @@ namespace Raft.Transport
                 {
                     peer.Write(cSprot1Parser.GetSprot1Codec(new byte[] { 00, 02 },
                        (
-                           new TcpMsgRaft() { RaftSignalType = (int)signalType, Data = data }
+                           new TcpMsgRaft() { RaftSignalType = signalType, Data = data }
                        ).SerializeBiser()));
                 }
             }

@@ -130,7 +130,7 @@ namespace Raft.Transport
                         
                         Task.Run(() =>
                         {
-                            trn.rn.IncomingSignalHandler(this.na, (Raft.eRaftSignalType)msg.RaftSignalType, msg.Data);
+                            trn.rn.IncomingSignalHandler(this.na, msg.RaftSignalType, msg.Data);
                         });
                         return;
                     case 3: //Handshake ACK
@@ -221,15 +221,13 @@ namespace Raft.Transport
             lock (lock_writer)
             {
                 if (highPriority)
-                {
                     highPriorityQueue.Enqueue(sprot);
-                }
                 else
-                {
                     writerQueue.Enqueue(sprot);
-                }
+
                 if (inWrite)
                     return;
+
                 inWrite = true;
             }
 
@@ -278,6 +276,7 @@ namespace Raft.Transport
                             inWrite = false;
                             return;
                         }
+
                         if(highPriorityQueue.Count>0)
                             sprot = highPriorityQueue.Dequeue();
                         else

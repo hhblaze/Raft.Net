@@ -19,7 +19,7 @@ namespace Raft.Transport
         /// <summary>
         /// from Raft.eRaftSignalType
         /// </summary>      
-        public int RaftSignalType { get; set; }
+        public eRaftSignalType RaftSignalType { get; set; }
                 
         public byte[] Data { get; set; }
 
@@ -28,7 +28,7 @@ namespace Raft.Transport
             Biser.Encoder enc = new Biser.Encoder(existingEncoder);
 
             enc
-            .Add(RaftSignalType)
+            .Add((int)RaftSignalType)
             .Add(Data)
             ;
             return enc;
@@ -54,30 +54,11 @@ namespace Raft.Transport
 
             TcpMsgRaft m = new TcpMsgRaft();  //!!!!!!!!!!!!!! change return type
 
-            m.RaftSignalType = decoder.GetInt();
+            m.RaftSignalType = (eRaftSignalType)decoder.GetInt();
             m.Data = decoder.GetByteArray();
 
             return m;
         }
     }
-
-    public class TestSer
-    {        
-        public static void Test()
-        {
-            //this class (StateLogEntryRedirectRequest) implements Biser.IDecoder and is decribed in the bottom
-            TcpMsgHandshake voc = new TcpMsgHandshake()
-            {
-                NodeListeningPort = 44,
-                 NodeUID =long.MaxValue
-            };
-
-            //Biser.Encoder enc = new Biser.Encoder().Add(voc);
-            var btEnc = new Biser.Encoder().Add(voc).Encode();
-            var des = TcpMsgHandshake.BiserDecode(btEnc);
-
-        }
-    }
-
 
 }

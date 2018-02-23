@@ -13,6 +13,7 @@ namespace Raft
         ulong redirectId = 0;
 
         //ReaderWriterLockSlim _sync = new ReaderWriterLockSlim();
+        //!!! Called from RaftNode lock_Operations
         Dictionary<ulong, RedirectInfo> _d = new Dictionary<ulong, RedirectInfo>();
 
         public class RedirectInfo

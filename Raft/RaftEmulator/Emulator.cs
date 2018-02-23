@@ -24,10 +24,6 @@ namespace Raft.RaftEmulator
 
 
 
-           TestSer.Test();
-
-
-
             TcpRaftNode rn = null;
 
             rn_settings = new RaftNodeSettings()
@@ -44,6 +40,7 @@ namespace Raft.RaftEmulator
                 lock (sync_nodes)
                 {
                     rn = new TcpRaftNode(eps, @"D:\Temp\RaftDBreeze\node" + (4250 + i), 4250 + i, this, rn_settings);
+                    rn.rn.OnCommit = (lst) => { Console.WriteLine($"wow committed"); };
                     nodes.Add(rn.rn.NodeAddress.NodeAddressId, rn);
                     
                 }

@@ -20,15 +20,16 @@ namespace Raft
         /// </summary>   
         public byte[] Data { get; set; }
                 
-        public ulong RedirectId { get; set; }
+        //public ulong RedirectId { get; set; }
 
+        #region "Biser"
         public Biser.Encoder BiserEncoder(Biser.Encoder existingEncoder = null)
         {
             Biser.Encoder enc = new Biser.Encoder(existingEncoder);
 
             enc
             .Add(Data)
-            .Add(RedirectId)
+            //.Add(RedirectId)
             ;
             return enc;
         }
@@ -54,10 +55,11 @@ namespace Raft
             StateLogEntryRedirectRequest m = new StateLogEntryRedirectRequest();  //!!!!!!!!!!!!!! change return type
 
             m.Data = decoder.GetByteArray();
-            m.RedirectId = decoder.GetULong();
+            //m.RedirectId = decoder.GetULong();
             
 
             return m;
         }
+        #endregion
     }
 }

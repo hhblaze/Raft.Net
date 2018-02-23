@@ -25,11 +25,12 @@ namespace Raft
         /// </summary>        
         public ulong StateLogEntryTerm { get; set; }
 
-        /// <summary>
-        /// Requested client redirect id
-        /// </summary>        
-        public ulong RedirectId { get; set; }
+        ///// <summary>
+        ///// Requested client redirect id
+        ///// </summary>        
+        //public ulong RedirectId { get; set; }
 
+        #region "Biser"
         public Biser.Encoder BiserEncoder(Biser.Encoder existingEncoder = null)
         {
             Biser.Encoder enc = new Biser.Encoder(existingEncoder);
@@ -37,7 +38,7 @@ namespace Raft
             enc
             .Add(StateLogEntryId)
             .Add(StateLogEntryTerm)
-            .Add(RedirectId)
+            //.Add(RedirectId)
             ;
             return enc;
         }
@@ -64,10 +65,11 @@ namespace Raft
 
             m.StateLogEntryId = decoder.GetULong();
             m.StateLogEntryTerm = decoder.GetULong();
-            m.RedirectId = decoder.GetULong();
+            //m.RedirectId = decoder.GetULong();
 
 
             return m;
         }
+        #endregion
     }
 }

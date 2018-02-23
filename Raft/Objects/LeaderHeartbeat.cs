@@ -40,6 +40,8 @@ namespace Raft
         /// </summary>        
         public ulong LastStateLogCommittedIndexTerm { get; set; }
 
+
+        #region "Biser"
         public Biser.Encoder BiserEncoder(Biser.Encoder existingEncoder = null)
         {
             Biser.Encoder enc = new Biser.Encoder(existingEncoder);
@@ -83,6 +85,7 @@ namespace Raft
 
             return m;
         }
+        #endregion
 
     }
 }
