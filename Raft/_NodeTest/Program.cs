@@ -69,6 +69,11 @@ namespace _NodeTest
                                         val++;
                                         dd.SetValue(new byte[] { (byte)val });
                                         break;
+
+                                    case "set10": //set10 1 - will create an entity
+                                        for(int qi = 0;qi<10;qi++)
+                                            dd.SetValue(new byte[] { 12 });
+                                        break;
                                 }
                             }
                             //else if(spl.Count() == 1)

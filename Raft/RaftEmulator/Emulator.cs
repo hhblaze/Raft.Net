@@ -28,8 +28,8 @@ namespace Raft.RaftEmulator
 
             rn_settings = new RaftNodeSettings()
             {
-                //VerboseRaft = true,
-                VerboseRaft = false,
+                VerboseRaft = true,
+                //VerboseRaft = false,
                 VerboseTransport = false
             };
                         
@@ -41,9 +41,16 @@ namespace Raft.RaftEmulator
                 lock (sync_nodes)
                 {
                     //S:\temp\RaftDbr
-                    rn = new TcpRaftNode(eps, @"D:\Temp\RaftDBreeze\node" + (4250 + i), 4250 + i, this, rn_settings);
-                    //rn = new TcpRaftNode(eps, @"S:\temp\RaftDbr\node" + (4250 + i), 4250 + i, this, rn_settings);
-                    rn.rn.OnCommit = (lst) => { Console.WriteLine($"wow committed"); };
+                    rn = new TcpRaftNode(eps, @"D:\Temp\RaftDBreeze\node" + (4250 + i), 4250 + i,
+                            (data) => {
+                                Console.WriteLine($"wow committed");
+                            }, this, rn_settings);
+
+                    //rn = new TcpRaftNode(eps, @"S:\temp\RaftDbr\node" + (4250 + i), 4250 + i,
+                    //       (data) => {
+                    //           Console.WriteLine($"wow committed");
+                    //       }, this, rn_settings);
+           
                     nodes.Add(rn.rn.NodeAddress.NodeAddressId, rn);
                     
                 }
@@ -101,7 +108,7 @@ namespace Raft.RaftEmulator
 
             for (int i = 0; i < nodesQuantity; i++)
             {
-                rn = new RaftNode(rn_settings, @"D:\Temp\RaftDBreeze\node" + (4250 + i), this, this);
+                rn = new RaftNode(rn_settings, @"D:\Temp\RaftDBreeze\node" + (4250 + i), this, this, (data)=> { });
                 rn.Verbose = true;
                 rn.SetNodesQuantityInTheCluster((uint)nodesQuantity);
                 rn.NodeAddress.NodeAddressId = i + 1;
@@ -175,7 +182,7 @@ namespace Raft.RaftEmulator
 
                     lock (sync_nodes)
                     {
-                        rn = new TcpRaftNode(eps, @"D:\Temp\RaftDBreeze\node"+ nodeId, nodeId, this, rn_settings);
+                        rn = new TcpRaftNode(eps, @"D:\Temp\RaftDBreeze\node"+ nodeId, nodeId, (data) => { Console.WriteLine($"wow committed"); }, this, rn_settings);
                         nodes[rn.rn.NodeAddress.NodeAddressId] = rn;
                     }
                     rn.Start();

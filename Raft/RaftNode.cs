@@ -128,15 +128,16 @@ namespace Raft
         //internal RedirectHandler redirector = null;
 
         /// <summary>
-        /// Supplied from outside
+        /// Supplied via constructor. Will be called and supply
         /// </summary>
-        public Action<List<byte[]>> OnCommit = null;
+        Action<byte[]> OnCommit = null;
 
-        public RaftNode(RaftNodeSettings settings, string dbreezePath, IRaftComSender raftSender, IWarningLog log)
+        public RaftNode(RaftNodeSettings settings, string dbreezePath, IRaftComSender raftSender, IWarningLog log, Action<byte[]> OnCommit=null)
         {
             if (log == null)
                 throw new Exception("ILog is not supplied");
             Log = log;
+            this.OnCommit = OnCommit;
             //Starting time master
             this.TM = new TimeMaster(log);
             NodeStateLog = new StateLog(dbreezePath, this);            
@@ -1185,7 +1186,7 @@ namespace Raft
                     
                     try
                     {
-                        this.OnCommit(new List<byte[]> { sle.Data });
+                        this.OnCommit(sle.Data);
                     }
                     catch (Exception ex)
                     {

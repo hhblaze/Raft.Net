@@ -22,7 +22,7 @@ namespace Raft.Transport
         internal List<TcpClusterEndPoint> clusterEndPoints = new List<TcpClusterEndPoint>();  //init clusterEndPoints creating 1-N connection
         
         
-        public TcpRaftNode(List<TcpClusterEndPoint> clusterEndPoints, string dbreezePath, int port = 4250, IWarningLog log = null,RaftNodeSettings rn_settings = null)
+        public TcpRaftNode(List<TcpClusterEndPoint> clusterEndPoints, string dbreezePath, int port = 4250, Action<byte[]> OnCommit = null, IWarningLog log = null,RaftNodeSettings rn_settings = null)
         {
             this.rn_settings = rn_settings ?? new RaftNodeSettings();
 
@@ -39,7 +39,7 @@ namespace Raft.Transport
             }
             spider = new TcpSpider(this);          
 
-            rn = new RaftNode(this.rn_settings, dbreezePath, this.spider, this.log);
+            rn = new RaftNode(this.rn_settings, dbreezePath, this.spider, this.log, OnCommit);
             
 #if DEBUG
             rn.Verbose = rn_settings.VerboseRaft;          //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   DEBUG PURPOSES
