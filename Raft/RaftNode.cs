@@ -615,7 +615,7 @@ namespace Raft
         void SetNodeFollower()
         {
             if(this.NodeState != eNodeState.Follower)
-                VerbosePrint("Node {0} state is {1} of {2}", NodeAddress.NodeAddressId, this.NodeState,this.LeaderNodeAddress.NodeAddressId);
+                VerbosePrint("Node {0} state is {1} of {2}", NodeAddress.NodeAddressId, this.NodeState,this.LeaderNodeAddress?.NodeAddressId);
 
             this.NodeState = eNodeState.Follower;
             

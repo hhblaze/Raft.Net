@@ -99,8 +99,10 @@ namespace Raft
         {
             this.rn = rn;
             
-            //db = new DBreezeEngine(new DBreezeConfiguration { Storage = DBreezeConfiguration.eStorage.MEMORY });
-            db = new DBreezeEngine(dbreezePath);
+            if(String.IsNullOrEmpty(dbreezePath))
+                db = new DBreezeEngine(new DBreezeConfiguration { Storage = DBreezeConfiguration.eStorage.MEMORY });
+            else
+                db = new DBreezeEngine(dbreezePath);
 
             using (var t = db.GetTransaction())
             {
@@ -653,7 +655,7 @@ namespace Raft
                         t.RemoveKey<byte[]>(tblAppendLogEntry, new byte[] { 1 }.ToBytes(applied.StateLogEntryTerm, applied.StateLogEntryId));
 
 
-                        //Gathering all not commited entries that a bigger than latest commited index of the committed term
+                        //Gathering all not commited entries that are bigger than latest committed index
                         t.ValuesLazyLoadingIsOn = false;
                         foreach (var el in t.SelectForwardFromTo<byte[], byte[]>(tblStateLogEntry,
                            new byte[] { 1 }.ToBytes(this.LastCommittedIndex + 1, applied.StateLogEntryTerm), true,

@@ -1,4 +1,5 @@
 ﻿using Raft;
+using Raft.Transport;
 //using Raft.Transport.UdpServer;
 using System;
 using System.Collections.Generic;
@@ -29,6 +30,15 @@ namespace _NodeTest
             log = new Logger();
             tm = new TimeMaster(log);
             
+            if(args.Length > 0)
+            {
+                switch(args[0])
+                {
+                    case "1":
+                        Scenario1(args);
+                        return;
+                }
+            }
 
 
             //UdpTester t = new UdpTester(tm, log);
@@ -109,6 +119,73 @@ namespace _NodeTest
                         break;
                 }
             }
+        }
+
+        
+        static void Scenario1(string[] args)
+        {
+            Console.WriteLine("Scenario 1 is running");
+            if(args.Length<1)
+            {
+                Console.WriteLine("RaftCluster TCP listening port is not specified");
+                return;
+            }
+
+            if (args.Length < 2 || !(new System.IO.FileInfo(args[2])).Exists)
+            {
+                Console.WriteLine("Path to configuration file is not supplied or file is not found");
+                return;
+            }
+
+            Console.WriteLine($"Listening port: {args[1]}; Path to config: {args[2]}");
+            var configLines = System.IO.File.ReadAllLines(args[2]);
+            
+
+           TcpRaftNode rn = null;
+
+            var rn_settings = new RaftNodeSettings()
+            {
+                VerboseRaft = false,                
+                VerboseTransport = false
+            };
+
+            string[] sev;
+            List<TcpClusterEndPoint> eps = new List<TcpClusterEndPoint>();
+            string dbreeze = "";
+
+            foreach (var el in configLines)
+            {
+                var se = el.Split(new char[] { ':' });
+                if (se.Length < 2)
+                    continue;
+                switch(se[0].Trim().ToLower())
+                {
+                    case "endpoint":
+                        sev = se[1].Split(new char[] { ',' });
+                        eps.Add(new TcpClusterEndPoint() { Host = sev[0].Trim(), Port = Convert.ToInt32(sev[1].Trim()) });
+                        break;
+                    case "verboseraft":
+                        if (se[1].Trim().ToLower().Equals("true"))
+                            rn_settings.VerboseRaft = true;
+                        break;
+                    case "verbosetransport":
+                        if (se[1].Trim().ToLower().Equals("true"))
+                            rn_settings.VerboseRaft = true;
+                        break;
+                    case "dbreeze":
+                        dbreeze = se[1].Trim();                        
+                        break;
+                }
+            }
+
+            rn = new TcpRaftNode(eps, dbreeze, Convert.ToInt32(args[1]),
+                           (data) => {
+                               Console.WriteLine($"wow committed");
+                           }, log, rn_settings);
+
+            rn.Start();
+            //Console.WriteLine("Press any key");
+            Console.ReadLine();
         }
     }
 }
