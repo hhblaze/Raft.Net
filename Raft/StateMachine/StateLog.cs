@@ -273,20 +273,22 @@ namespace Raft
             {
                 //Node tries to understand if it contains already this index/term, if not it will need synchronization
                 //StateLogEntry committedSle = null;
-                List<byte[]> lstCommited = new List<byte[]>();
+                //List<byte[]> lstCommited = new List<byte[]>();
+                ulong populateFrom = 0;
                 using (var t = db.GetTransaction())
                 {
                     t.ValuesLazyLoadingIsOn = false;
                     var row = t.Select<byte[], byte[]>(tblStateLogEntry, (new byte[] { 1 }).ToBytes(lhb.LastStateLogCommittedIndex, lhb.LastStateLogCommittedIndexTerm));
                     if(row.Exists)
                     {
-                        //Gathering all not commited entries that a bigger than latest commited index of the committed term
-                        foreach (var el in t.SelectForwardFromTo<byte[], byte[]>(tblStateLogEntry,
-                           new byte[] { 1 }.ToBytes(this.LastCommittedIndex+1, lhb.LastStateLogCommittedIndexTerm), true,
-                           new byte[] { 1 }.ToBytes(ulong.MaxValue, lhb.LastStateLogCommittedIndexTerm), true, true))
-                        {
-                            lstCommited.Add(StateLogEntry.BiserDecode(row.Value).Data);
-                        }
+                        populateFrom = this.LastCommittedIndex + 1;
+                        ////Gathering all not commited entries that a bigger than latest commited index of the committed term
+                        //foreach (var el in t.SelectForwardFromTo<byte[], byte[]>(tblStateLogEntry,
+                        //   new byte[] { 1 }.ToBytes(this.LastCommittedIndex+1, lhb.LastStateLogCommittedIndexTerm), true,
+                        //   new byte[] { 1 }.ToBytes(ulong.MaxValue, lhb.LastStateLogCommittedIndexTerm), true, true))
+                        //{
+                        //    lstCommited.Add(StateLogEntry.BiserDecode(row.Value).Data);
+                        //}
                         
                         this.LastCommittedIndex = lhb.LastStateLogCommittedIndex;
                         this.LastCommittedIndexTerm = lhb.LastStateLogCommittedIndexTerm;
@@ -299,13 +301,16 @@ namespace Raft
                     else
                         return false;
                 }
-                
-                if(lstCommited.Count > 0)
-                {
-                    //---RAISE UP COMMITTED DATA
-                    if (this.rn.OnCommit != null)
-                        Task.Run(() => { this.rn.OnCommit(lstCommited); });
-                }
+
+                if (populateFrom > 0)
+                    this.rn.Commited(populateFrom);
+
+                //if(lstCommited.Count > 0)
+                //{
+                //    //---RAISE UP COMMITTED DATA
+                //    if (this.rn.OnCommit != null)
+                //        Task.Run(() => { this.rn.OnCommit(lstCommited); });
+                //}
 
             }
 
@@ -469,6 +474,41 @@ namespace Raft
             
         }
 
+        /// <summary>
+        /// +
+        /// Must be called inside of operation lock.
+        /// </summary>
+        /// <param name="logEntryId"></param>
+        /// <returns></returns>
+        public StateLogEntry GetCommitedEntryByIndex(ulong logEntryId)
+        {
+            try
+            {  
+                if (this.LastCommittedIndex < logEntryId)
+                    return null;
+                StateLogEntry ret = null;
+
+                using (var t = db.GetTransaction())
+                {
+                   
+                    foreach (var el in t.SelectForwardFromTo<byte[], byte[]>(tblStateLogEntry,
+                                new byte[] { 1 }.ToBytes(logEntryId, ulong.MinValue), true,
+                                new byte[] { 1 }.ToBytes(ulong.MaxValue, ulong.MaxValue), true, true))
+                    {
+                        ret = StateLogEntry.BiserDecode(el.Value);
+                        break;
+                    }
+                    
+                }
+
+                return ret;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+        }
 
         /// <summary>
         /// +
@@ -528,10 +568,7 @@ namespace Raft
                         this.LastCommittedIndex = suggestion.StateLogEntry.Index;
                         this.LastCommittedIndexTerm = suggestion.StateLogEntry.Term;
 
-                        //---RAISE UP COMMITTED DATA
-                        //Currently only one, change when supply block of committed data
-                        if (this.rn.OnCommit != null)
-                            Task.Run(() => { this.rn.OnCommit(new List<byte[]> { suggestion.StateLogEntry.Data }); });
+                        this.rn.Commited(suggestion.StateLogEntry.Index);                      
                     }
                 }
 
@@ -633,9 +670,7 @@ namespace Raft
 
                     if (lstCommited.Count > 0)
                     {
-                        //---RAISE UP COMMITTED DATA
-                        if (this.rn.OnCommit != null)
-                            Task.Run(() => { this.rn.OnCommit(lstCommited); });
+                        this.rn.Commited(applied.StateLogEntryId);
                     }
 
                     return eEntryAcceptanceResult.Committed;

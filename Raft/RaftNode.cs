@@ -1154,6 +1154,49 @@ namespace Raft
 
             return res;
         }
+
+
+        int inCommit = 0;
+
+        internal void Commited(ulong index)
+        {
+            if (this.OnCommit == null)
+                return;
+
+            if (System.Threading.Interlocked.CompareExchange(ref inCommit, 1, 0) != 0)
+                return;
+
+            Task.Run(() =>
+            {
+
+                ulong i = 0;
+                StateLogEntry sle = null;
+                while (true)
+                {
+                    lock (lock_Operations)
+                    {
+                        sle = this.NodeStateLog.GetCommitedEntryByIndex(index + i);
+                        if (sle == null)
+                            System.Threading.Interlocked.Exchange(ref inCommit, 0);
+                    }
+
+                    if (sle == null)
+                        return;
+                    
+                    try
+                    {
+                        this.OnCommit(new List<byte[]> { sle.Data });
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Log(new WarningLogEntry() { Exception = ex, Method = "Raft.RaftNode.Commited" });
+                    }
+
+                    i++;
+                }
+
+            });            
+        }
         
 
         public void EmulationStop()

@@ -28,8 +28,9 @@ namespace Raft.RaftEmulator
 
             rn_settings = new RaftNodeSettings()
             {
-                 VerboseRaft = true,
-                 VerboseTransport = false
+                //VerboseRaft = true,
+                VerboseRaft = false,
+                VerboseTransport = false
             };
                         
             for(int i = 0;i< nodesQuantity;i++)
@@ -39,7 +40,9 @@ namespace Raft.RaftEmulator
             {
                 lock (sync_nodes)
                 {
+                    //S:\temp\RaftDbr
                     rn = new TcpRaftNode(eps, @"D:\Temp\RaftDBreeze\node" + (4250 + i), 4250 + i, this, rn_settings);
+                    //rn = new TcpRaftNode(eps, @"S:\temp\RaftDbr\node" + (4250 + i), 4250 + i, this, rn_settings);
                     rn.rn.OnCommit = (lst) => { Console.WriteLine($"wow committed"); };
                     nodes.Add(rn.rn.NodeAddress.NodeAddressId, rn);
                     
