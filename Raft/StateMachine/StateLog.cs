@@ -39,10 +39,10 @@ namespace Raft
         /// Main table that stores logs
         /// </summary>
         const string tblStateLogEntry = "RaftTbl_StateLogEntry";
-        /// <summary>
-        /// Leader only. Stores logs before being distributed.
-        /// </summary>
-        const string tblAppendLogEntry = "RaftTbl_AppendLogEntry";
+        ///// <summary>
+        ///// Leader only. Stores logs before being distributed.
+        ///// </summary>
+        //const string tblAppendLogEntry = "RaftTbl_AppendLogEntry";
         
         internal RaftNode rn = null;
         DBreezeEngine db = null;
@@ -155,28 +155,38 @@ namespace Raft
         /// <returns></returns>
         StateLogEntrySuggestion GetNextLogEntryToBeDistributed()
         {
-            /*
-             * Only nodes of the current term can be distributed
-             */
-            StateLogEntrySuggestion sles = null;
-            using (var t = db.GetTransaction())
+            if (qDistribution.Count < 1)
+                return null;
+            
+            return new StateLogEntrySuggestion()
             {
-                var row = t.SelectForwardFromTo<byte[], byte[]>(tblAppendLogEntry, 
-                    new byte[] { 1 }.ToBytes(rn.NodeTerm, ulong.MinValue), true,
-                    new byte[] { 1 }.ToBytes(rn.NodeTerm, ulong.MaxValue), true)
-                    .FirstOrDefault();
-                
-                if(row != null && row.Exists)
-                {
-                    sles = new StateLogEntrySuggestion()
-                    {
-                        StateLogEntry = StateLogEntry.BiserDecode(row.Value),
-                        LeaderTerm = rn.NodeTerm
-                    };                    
-                }
-            }
+                StateLogEntry = qDistribution.Dequeue(),
+                LeaderTerm = rn.NodeTerm
+            };
+            
 
-            return sles;
+            ///*
+            // * Only nodes of the current term can be distributed
+            // */
+            //StateLogEntrySuggestion sles = null;
+            //using (var t = db.GetTransaction())
+            //{
+            //    var row = t.SelectForwardFromTo<byte[], byte[]>(tblAppendLogEntry, 
+            //        new byte[] { 1 }.ToBytes(rn.NodeTerm, ulong.MinValue), true,
+            //        new byte[] { 1 }.ToBytes(rn.NodeTerm, ulong.MaxValue), true)
+            //        .FirstOrDefault();
+                
+            //    if(row != null && row.Exists)
+            //    {
+            //        sles = new StateLogEntrySuggestion()
+            //        {
+            //            StateLogEntry = StateLogEntry.BiserDecode(row.Value),
+            //            LeaderTerm = rn.NodeTerm
+            //        };                    
+            //    }
+            //}
+
+            //return sles;
         }
 
 
@@ -185,14 +195,21 @@ namespace Raft
         ulong tempStateLogId = 0;
         ulong tempStateLogTerm = 0;
 
+
         /// <summary>
+        /// Leader only.Stores logs before being distributed.
+        /// </summary>
+        Queue<StateLogEntry> qDistribution = new Queue<StateLogEntry>();
+
+        /// <summary>
+        /// Is called from lock_operations
         /// Adds to silo table, until is moved to log table.
         /// This table can be cleared up on start
         /// returns concatenated term+index inserted identifier
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public byte[] AddStateLogEntryForDistribution(byte[] data)//, ulong redirectId=0)
+        public void AddStateLogEntryForDistribution(byte[] data)//, ulong redirectId=0)
         {
             /*
              * Only nodes of the current term can be distributed
@@ -215,13 +232,20 @@ namespace Raft
                 //RedirectId = redirectId
             };
 
-            using (var t = db.GetTransaction())
-            {
-                t.Insert<byte[], byte[]>(tblAppendLogEntry, new byte[] { 1 }.ToBytes(tempStateLogTerm, tempStateLogId), le.SerializeBiser());
-                t.Commit();
-            }
+            qDistribution.Enqueue(le);
 
-            return tempStateLogTerm.ToBytes(tempStateLogId);
+            //using (var t = db.GetTransaction())
+            //{
+            //    t.Insert<byte[], byte[]>(tblAppendLogEntry, new byte[] { 1 }.ToBytes(tempStateLogTerm, tempStateLogId), le.SerializeBiser());
+            //    t.Commit();
+            //}
+
+            //return tempStateLogTerm.ToBytes(tempStateLogId);
+        }
+
+        public void ClearLogEntryForDistribution()
+        {
+            qDistribution.Clear();
         }
 
         /// <summary>
@@ -647,12 +671,13 @@ namespace Raft
 
                     using (var t = db.GetTransaction())
                     {
-                        t.SynchronizeTables(tblStateLogEntry, tblAppendLogEntry);
+                        // t.SynchronizeTables(tblStateLogEntry, tblAppendLogEntry);
+                        t.SynchronizeTables(tblStateLogEntry);
 
                         //Setting latest commited index
                         t.Insert<byte[], byte[]>(tblStateLogEntry, new byte[] { 2 }, applied.StateLogEntryId.ToBytes(applied.StateLogEntryTerm));
                         //Removing entry from command queue
-                        t.RemoveKey<byte[]>(tblAppendLogEntry, new byte[] { 1 }.ToBytes(applied.StateLogEntryTerm, applied.StateLogEntryId));
+                        //t.RemoveKey<byte[]>(tblAppendLogEntry, new byte[] { 1 }.ToBytes(applied.StateLogEntryTerm, applied.StateLogEntryId));
 
 
                         //Gathering all not commited entries that are bigger than latest committed index

@@ -113,6 +113,10 @@ namespace Raft.Transport
             rn.AddLogEntry(data);          
         }
 
+        public AddLogEntryResult AddLogEntry(byte[] data)
+        {
+            return rn.AddLogEntry(data);
+        }
 
 
         long disposed = 0;

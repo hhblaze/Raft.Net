@@ -627,7 +627,6 @@ namespace Raft
             RemoveLeaderLogResendTimer();
             //Starting Leaderheartbeat
             RunLeaderHeartbeatWaitingTimer();
-            
         }
 
         /// <summary>
@@ -915,6 +914,7 @@ namespace Raft
                         //Node becomes a Leader
                         this.NodeState = eNodeState.Leader;
                         this.NodeStateLog.ClearLogAcceptance();
+                        this.NodeStateLog.ClearLogEntryForDistribution();
 
                         VerbosePrint("Node {0} state is {1} _ParseVoteOfCandidate", NodeAddress.NodeAddressId, this.NodeState);
                         VerbosePrint("Node {0} is Leader **********************************************",NodeAddress.NodeAddressId);
@@ -965,7 +965,7 @@ namespace Raft
 
             //resp.ResponseType = StateLogEntryRedirectResponse.eResponseType.CACHED;
             //var redirectId = this.redirector.StoreRedirect(address); //here we must store redirect data
-            var addedStateLogTermIndex = this.NodeStateLog.AddStateLogEntryForDistribution(req.Data);//, redirectId);
+            this.NodeStateLog.AddStateLogEntryForDistribution(req.Data);//, redirectId);
             ApplyLogEntry();
 
             //Don't answer, committed value wil be delivered via standard channel
@@ -1086,6 +1086,7 @@ namespace Raft
         bool InLogEntrySend = false;
 
         /// <summary>
+        /// Is called from lock_operations
         /// Tries to apply new entry, must be called from lock
         /// </summary>
         void ApplyLogEntry()
@@ -1120,9 +1121,11 @@ namespace Raft
                 {
                     if (this.NodeState == eNodeState.Leader)
                     {
-                        res.AddedStateLogTermIndex = this.NodeStateLog.AddStateLogEntryForDistribution(data);                                                
+                        //res.AddedStateLogTermIndex = this.NodeStateLog.AddStateLogEntryForDistribution(data);
+                        this.NodeStateLog.AddStateLogEntryForDistribution(data);
                         ApplyLogEntry();
 
+                        res.LeaderAddress = this.NodeAddress;
                         res.AddResult = AddLogEntryResult.eAddLogEntryResult.LOG_ENTRY_IS_CACHED;
                     }
                     else

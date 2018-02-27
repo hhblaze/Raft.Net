@@ -29,16 +29,16 @@ namespace _NodeTest
         {
             log = new Logger();
             tm = new TimeMaster(log);
-            
-            if(args.Length > 0)
-            {
-                switch(args[0])
-                {
-                    case "1":
-                        Scenario1(args);
-                        return;
-                }
-            }
+
+            //if (args.Length > 0)
+            //{
+            //    switch (args[0])
+            //    {
+            //        case "1":
+            //            Scenario1(args);
+            //            return;
+            //    }
+            //}
 
 
             //UdpTester t = new UdpTester(tm, log);
@@ -184,8 +184,27 @@ namespace _NodeTest
                            }, log, rn_settings);
 
             rn.Start();
-            //Console.WriteLine("Press any key");
-            Console.ReadLine();
+
+            AddLogEntryResult addRes = null;
+            while(true)
+            {
+                var cmd = Console.ReadLine();
+                switch(cmd)
+                {
+                    case "set1":
+                        addRes = rn.AddLogEntry(new byte[] { 23 });
+                        Console.WriteLine($"Adding: {addRes.AddResult.ToString()}");
+                        break;
+                    case "set10":
+                        for (int k = 0; k < 10; k++)
+                        {
+                            addRes = rn.AddLogEntry(new byte[] { 23 });
+                            Console.WriteLine($"Adding: {addRes.AddResult.ToString()}");
+                        }
+                        break;
+                }
+            }
+            
         }
     }
 }
