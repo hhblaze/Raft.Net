@@ -559,7 +559,8 @@ namespace Raft
             //Getting suggestion
             var suggestion = this.NodeStateLog.GetNextStateLogEntrySuggestionFromRequested(req);
 
-            VerbosePrint($"{NodeAddress.NodeAddressId} (Leader)> Request (I/T): {req.StateLogEntryId}/{req.StateLogEntryTerm} from {address.NodeAddressId};");
+            //VerbosePrint($"{NodeAddress.NodeAddressId} (Leader)> Request (I/T): {req.StateLogEntryId}/{req.StateLogEntryTerm} from {address.NodeAddressId};");
+            VerbosePrint($"{NodeAddress.NodeAddressId} (Leader)> Request (I): {req.StateLogEntryId} from {address.NodeAddressId};");
 
             if (suggestion != null)
             {
@@ -769,12 +770,23 @@ namespace Raft
             NodeStateLog.LeaderSynchronizationIsActive = true;
             NodeStateLog.LeaderSynchronizationRequestWasSent = DateTime.UtcNow;
 
-
-            StateLogEntryRequest req = new StateLogEntryRequest()
-            {                
-                StateLogEntryId = NodeStateLog.LastCommittedIndex,
-                StateLogEntryTerm = NodeStateLog.LastCommittedIndexTerm
-            };
+            StateLogEntryRequest req = null;
+            if (nodeSettings.InMemoryEntity && nodeSettings.InMemoryEntityStartSyncFromLatestEntity)
+            {
+                req = new StateLogEntryRequest()
+                {
+                    StateLogEntryId = this.LeaderHeartbeat.LastStateLogCommittedIndex == 0 ? 0 : this.LeaderHeartbeat.LastStateLogCommittedIndex-1
+                    //StateLogEntryTerm = this.LeaderHeartbeat.LastStateLogCommittedIndexTerm
+                };
+            }
+            else
+            {
+                req = new StateLogEntryRequest()
+                {
+                    StateLogEntryId = NodeStateLog.LastCommittedIndex
+                    //StateLogEntryTerm = NodeStateLog.LastCommittedIndexTerm
+                };
+            }
 
             
 

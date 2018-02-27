@@ -48,6 +48,12 @@ namespace Raft.Transport
                     firstNode = false;
                 }
 
+                if (String.IsNullOrEmpty(rn_settings.EntityName))
+                    throw new Exception("Raft.Net: entities must have unique names. Change RaftNodeSettings.EntityName.");
+
+                if (this.raftNodes.ContainsKey(rn_settings.EntityName))
+                    throw new Exception("Raft.Net: entities must have unique names. Change RaftNodeSettings.EntityName.");
+
                 var rn = new RaftNode(rn_settings ?? new RaftNodeSettings(), dbreezePath, this.spider, this.log, OnCommit);
              
 #if DEBUG

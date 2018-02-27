@@ -22,10 +22,10 @@ namespace Raft
         /// Id of the State log, which Leader must send to the Follower
         /// </summary>        
         public ulong StateLogEntryId { get; set; }
-        /// <summary>
-        /// Id of the State log, which Leader must send to the Follower
-        /// </summary>        
-        public ulong StateLogEntryTerm { get; set; }
+        ///// <summary>
+        ///// Id of the State log, which Leader must send to the Follower
+        ///// </summary>        
+        //public ulong StateLogEntryTerm { get; set; }
 
         public Biser.Encoder BiserEncoder(Biser.Encoder existingEncoder = null)
         {
@@ -33,7 +33,7 @@ namespace Raft
 
             enc
             .Add(StateLogEntryId)
-            .Add(StateLogEntryTerm)
+            //.Add(StateLogEntryTerm)
             ;
             return enc;
         }
@@ -59,7 +59,7 @@ namespace Raft
             StateLogEntryRequest m = new StateLogEntryRequest();  //!!!!!!!!!!!!!! change return type
 
             m.StateLogEntryId = decoder.GetULong();
-            m.StateLogEntryTerm = decoder.GetULong();
+            //m.StateLogEntryTerm = decoder.GetULong();
 
             return m;
         }

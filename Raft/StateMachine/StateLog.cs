@@ -102,7 +102,8 @@ namespace Raft
         {
             this.rn = rn;
             
-            if(String.IsNullOrEmpty(dbreezePath))
+            
+            if(String.IsNullOrEmpty(dbreezePath) || rn.nodeSettings.InMemoryEntity)
                 db = new DBreezeEngine(new DBreezeConfiguration { Storage = DBreezeConfiguration.eStorage.MEMORY });
             else
                 db = new DBreezeEngine(dbreezePath);
@@ -405,7 +406,7 @@ namespace Raft
             using (var t = db.GetTransaction())
             {
                 
-                if(req.StateLogEntryId == 0 && req.StateLogEntryTerm == 0)
+                if(req.StateLogEntryId == 0)// && req.StateLogEntryTerm == 0)
                 {
                     if (rn.nodeSettings.DelayedPersistenceIsActive && sleCache.Count > 0)
                     {
@@ -469,7 +470,8 @@ namespace Raft
                     {
                         reForward = false;
                         foreach (var el in t.SelectForwardFromTo<byte[], byte[]>(tblStateLogEntry,
-                            new byte[] { 1 }.ToBytes(req.StateLogEntryId, req.StateLogEntryTerm), true,
+                            //new byte[] { 1 }.ToBytes(req.StateLogEntryId, req.StateLogEntryTerm), true,
+                            new byte[] { 1 }.ToBytes(req.StateLogEntryId, ulong.MinValue), true,
                             new byte[] { 1 }.ToBytes(ulong.MaxValue, ulong.MaxValue), true).Take(2))
                         {
                             cnt++;
@@ -491,7 +493,8 @@ namespace Raft
                     {
                         ulong toAdd = (ulong)cnt;
                         foreach (var el in t.SelectForwardFromTo<byte[], byte[]>(tblStateLogEntry,
-                            new byte[] { 1 }.ToBytes(req.StateLogEntryId + toAdd, req.StateLogEntryTerm), true,
+                            //new byte[] { 1 }.ToBytes(req.StateLogEntryId + toAdd, req.StateLogEntryTerm), true,
+                            new byte[] { 1 }.ToBytes(req.StateLogEntryId + toAdd, ulong.MinValue), true,
                             new byte[] { 1 }.ToBytes(ulong.MaxValue, ulong.MaxValue), true).Take(2))
                         {
                             cnt++;

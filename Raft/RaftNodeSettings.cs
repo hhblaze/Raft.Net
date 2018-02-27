@@ -14,14 +14,10 @@ namespace Raft
         }
 
         /// <summary>
-        /// 
+        /// First entity must be always default (it will be automatically changed on default)
+        /// the others must be unique
         /// </summary>
-        public string EntityName = "default";
-
-        /// <summary>
-        /// In-Memory if empty
-        /// </summary>
-        public string DBreezePath = "";
+        public string EntityName = "default";        
 
         /// <summary>
         /// Leader heartbeat interval in ms.
@@ -33,6 +29,15 @@ namespace Raft
         public uint DelayedPersistenceMs = 1000 * 10;
 
         public bool DelayedPersistenceIsActive = false;
+
+        /// <summary>
+        /// Is completely handeled in-memory
+        /// </summary>
+        public bool InMemoryEntity = false;
+        /// <summary>
+        /// Only in case if it is an InMemoryEntity it can ask to get sync (after long sleep) starting from latest leader index/term
+        /// </summary>
+        public bool InMemoryEntityStartSyncFromLatestEntity = false;
 
         /// <summary>
         /// in ms.
