@@ -57,7 +57,7 @@ namespace Raft
         /// <summary>
         /// Node settings
         /// </summary>
-        RaftNodeSettings nodeSettings = null;
+        internal RaftNodeSettings nodeSettings = null;
         IWarningLog Log = null;
         object lock_Operations = new object();        
         internal TimeMaster TM = null;
@@ -76,6 +76,10 @@ namespace Raft
         /// We stop this timer only in case if become leader, and starting if loosing leadership.       
         /// </summary>
         ulong LeaderHeartbeat_TimerId = 0;
+        /// <summary>
+        /// 
+        /// </summary>
+        ulong Delayedpersistence_TimerId = 0;
         /// <summary>
         /// 
         /// </summary>
@@ -137,15 +141,14 @@ namespace Raft
             if (log == null)
                 throw new Exception("ILog is not supplied");
             Log = log;
-            this.OnCommit = OnCommit;
-            //Starting time master
-            this.TM = new TimeMaster(log);
-            NodeStateLog = new StateLog(dbreezePath, this);            
-
             Sender = raftSender;
             nodeSettings = settings;
+            this.OnCommit = OnCommit;
 
-            //redirector = new RedirectHandler(this);
+            //Starting time master
+            this.TM = new TimeMaster(log);
+            //Starting state logger
+            NodeStateLog = new StateLog(dbreezePath, this);            
         }
 
         int disposed = 0;
@@ -198,6 +201,9 @@ namespace Raft
                 SetNodeFollower();
 
                 IsRunning = true;
+
+                if(nodeSettings.DelayedPersistenceIsActive)
+                    RunDelayedPersistenceTimer();
             }
                         
         }
@@ -223,9 +229,13 @@ namespace Raft
                 RemoveElectionTimer();
                 RemoveLeaderHeartbeatWaitingTimer();
                 RemoveLeaderTimer();
-
+                RemoveDelayedPersistenceTimer();
+                
                 this.NodeState = eNodeState.Follower;
+
                 this.NodeStateLog.LeaderSynchronizationIsActive = false;
+                this.NodeStateLog.FlushSleCache();
+                
 
                 VerbosePrint("Node {0} state is {1}", NodeAddress.NodeAddressId,this.NodeState);
 
@@ -469,6 +479,21 @@ namespace Raft
             {                
                 this.TM.RemoveEvent(this.Leader_TimerId);
                 this.Leader_TimerId = 0;
+            }
+        }
+
+        void RunDelayedPersistenceTimer()
+        {
+            if (Delayedpersistence_TimerId == 0)
+                Delayedpersistence_TimerId = this.TM.FireEventEach(nodeSettings.DelayedPersistenceMs, (o)=> { this.NodeStateLog?.FlushSleCache(); }, null, false);
+        }
+
+        void RemoveDelayedPersistenceTimer()
+        {
+            if (this.Delayedpersistence_TimerId > 0)
+            {
+                this.TM.RemoveEvent(this.Delayedpersistence_TimerId);
+                this.Delayedpersistence_TimerId = 0;
             }
         }
 
@@ -913,6 +938,7 @@ namespace Raft
 
                         //Node becomes a Leader
                         this.NodeState = eNodeState.Leader;
+                        this.NodeStateLog.FlushSleCache();
                         this.NodeStateLog.ClearLogAcceptance();
                         this.NodeStateLog.ClearLogEntryForDistribution();
 

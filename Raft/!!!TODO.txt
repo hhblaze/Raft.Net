@@ -1,7 +1,8 @@
 ﻿
-!!! - Balance in memory mode: don't send whole history
+!!! - TcpRaftNode can support many instances of RafNode among all connected peers, each entity can be configured separately 
+	(memory/memory with no history/persistent/persistent delayed)
 !!! - send commands to woke up follower in a bigger block (not one by one)
-!!! - State log constructor, if no dbreeze path - in-memory mode via settings
+
 
 
 !!! - DONE

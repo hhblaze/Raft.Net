@@ -30,7 +30,8 @@ namespace Raft.RaftEmulator
             {
                 VerboseRaft = true,
                 //VerboseRaft = false,
-                VerboseTransport = false
+                VerboseTransport = false,
+                DelayedPersistenceIsActive = true
             };
                         
             for(int i = 0;i< nodesQuantity;i++)

@@ -20,6 +20,10 @@ namespace Raft
         public uint LeaderHeartbeatMs = 1000 * 5;
         //public uint LeaderHeartbeatMs = 1000 * 5;
 
+        public uint DelayedPersistenceMs = 1000 * 10;
+
+        public bool DelayedPersistenceIsActive = false;
+
         /// <summary>
         /// in ms.
         /// </summary>
