@@ -178,10 +178,10 @@ namespace _NodeTest
                 }
             }
 
-            rn = new TcpRaftNode(eps, dbreeze, Convert.ToInt32(args[1]),
+            rn = new TcpRaftNode(eps, new List<RaftNodeSettings> { rn_settings }, dbreeze, Convert.ToInt32(args[1]),
                            (data) => {
                                Console.WriteLine($"wow committed");
-                           }, log, rn_settings);
+                           }, log );
 
             rn.Start();
 

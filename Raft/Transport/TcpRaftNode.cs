@@ -14,17 +14,17 @@ namespace Raft.Transport
 {
     public class TcpRaftNode: IEmulatedNode, IDisposable
     {
-        internal RaftNodeSettings rn_settings = new RaftNodeSettings();
+        //internal RaftNodeSettings rn_settings = new RaftNodeSettings();
         internal IWarningLog log = null;
         internal int port = 0;
-        internal RaftNode rn = null;
+        internal Dictionary<string, RaftNode> raftNodes = new Dictionary<string, RaftNode>();
         internal TcpSpider spider = null;
         internal List<TcpClusterEndPoint> clusterEndPoints = new List<TcpClusterEndPoint>();  //init clusterEndPoints creating 1-N connection
         
         
-        public TcpRaftNode(List<TcpClusterEndPoint> clusterEndPoints, string dbreezePath, int port = 4250, Action<byte[]> OnCommit = null, IWarningLog log = null,RaftNodeSettings rn_settings = null)
+        public TcpRaftNode(List<TcpClusterEndPoint> clusterEndPoints, List<RaftNodeSettings> raftNodes, string dbreezePath, int port = 4250, Action<byte[]> OnCommit = null, IWarningLog log = null)
         {
-            this.rn_settings = rn_settings ?? new RaftNodeSettings();
+            //this.rn_settings = rn_settings ?? new RaftNodeSettings();
 
             this.log = log;
             this.port = port;
@@ -37,21 +37,38 @@ namespace Raft.Transport
                
                 //this.clusterEndPoints.AddRange(clusterEndPoints.SerializeProtobuf().DeserializeProtobuf<List<TcpClusterEndPoint>>());
             }
-            spider = new TcpSpider(this);          
+            spider = new TcpSpider(this);
 
-            rn = new RaftNode(this.rn_settings, dbreezePath, this.spider, this.log, OnCommit);
-            
+            bool firstNode = true;
+            foreach(var rn_settings in raftNodes)
+            {
+                if (firstNode)
+                {
+                    rn_settings.EntityName = "default";
+                    firstNode = false;
+                }
+
+                var rn = new RaftNode(rn_settings ?? new RaftNodeSettings(), dbreezePath, this.spider, this.log, OnCommit);
+             
 #if DEBUG
-            rn.Verbose = rn_settings.VerboseRaft;          //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   DEBUG PURPOSES
+                rn.Verbose = rn_settings.VerboseRaft;          //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   DEBUG PURPOSES
 #endif
-            rn.SetNodesQuantityInTheCluster((uint)this.clusterEndPoints.Count);             //!!!!!!!!!!!!  ENABLE 1 for debug, make it dynamic (but not less then 3 if not DEBUG)
-            rn.NodeAddress.NodeAddressId = port; //for debug/emulation purposes
+                rn.SetNodesQuantityInTheCluster((uint)this.clusterEndPoints.Count);             //!!!!!!!!!!!!  ENABLE 1 for debug, make it dynamic (but not less then 3 if not DEBUG)
+                rn.NodeAddress.NodeAddressId = port; //for debug/emulation purposes
 
-            rn.NodeAddress.NodeUId = Guid.NewGuid().ToByteArray().Substring(8, 8).To_Int64_BigEndian();
+                rn.NodeAddress.NodeUId = Guid.NewGuid().ToByteArray().Substring(8, 8).To_Int64_BigEndian();
 
-            
-            rn.NodeStart();
-            
+                this.raftNodes[rn_settings.EntityName] = rn;
+
+                rn.NodeStart();
+            }
+        }
+
+        internal RaftNode GetNodeByEntityName(string entityName)
+        {
+            RaftNode rn = null;
+            raftNodes.TryGetValue(entityName, out rn);
+            return rn;
         }
 
         public void EmulationStart()
@@ -108,14 +125,20 @@ namespace Raft.Transport
             spider.SendToAllFreeMessage("test");
         }
 
-        public void EmulationSetValue(byte[] data)
+        public void EmulationSetValue(byte[] data, string entityName="default")
         {
-            rn.AddLogEntry(data);          
+            RaftNode rn = null;
+            if(this.raftNodes.TryGetValue(entityName, out rn))
+                rn.AddLogEntry(data);          
         }
 
-        public AddLogEntryResult AddLogEntry(byte[] data)
+        public AddLogEntryResult AddLogEntry(byte[] data, string entityName = "default")
         {
-            return rn.AddLogEntry(data);
+            RaftNode rn = null;
+            if (this.raftNodes.TryGetValue(entityName, out rn))
+                return rn.AddLogEntry(data);
+
+            return new AddLogEntryResult { AddResult = AddLogEntryResult.eAddLogEntryResult.NODE_NOT_FOUND_BY_NAME };
         }
 
 
@@ -146,11 +169,12 @@ namespace Raft.Transport
 
             try
             {
-                if (rn != null)
+                foreach (var rn in this.raftNodes)
                 {
-                    rn.Dispose();
-                    rn = null;
+                    rn.Value.Dispose();
                 }
+
+                this.raftNodes.Clear();
             }
             catch (Exception ex)
             {

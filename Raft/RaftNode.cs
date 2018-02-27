@@ -1245,7 +1245,7 @@ namespace Raft
             Log.Log(new WarningLogEntry() { Description ="not implemented" });
         }
 
-        public void EmulationSetValue(byte[] data)
+        public void EmulationSetValue(byte[] data, string entityName="default")
         {
             this.AddLogEntry(data);
         }

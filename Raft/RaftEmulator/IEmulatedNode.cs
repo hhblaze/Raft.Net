@@ -18,6 +18,6 @@ namespace Raft
         //Emulation node sends to all greeting
         void EmulationSendToAll();
 
-        void EmulationSetValue(byte[] data);
+        void EmulationSetValue(byte[] data, string entityName = "default");
     }
 }

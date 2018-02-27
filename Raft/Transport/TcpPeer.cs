@@ -31,7 +31,7 @@ namespace Raft.Transport
                 return;
             }
 
-            trn.rn.TM.FireEventEach(10000, (o) => 
+            trn.GetNodeByEntityName("default").TM.FireEventEach(10000, (o) => 
             {
 
                 if (Handshake == null)
@@ -111,7 +111,7 @@ namespace Raft.Transport
                     case 1: //Handshake
                             
                         Handshake = TcpMsgHandshake.BiserDecode(data);
-                        if (trn.rn.NodeAddress.NodeUId != this.Handshake.NodeUID)
+                        if (trn.GetNodeByEntityName("default").NodeAddress.NodeUId != this.Handshake.NodeUID)
                         {
                             //trn.log.Log(new WarningLogEntry()
                             //{
@@ -130,7 +130,8 @@ namespace Raft.Transport
                         
                         Task.Run(() =>
                         {
-                            trn.rn.IncomingSignalHandler(this.na, msg.RaftSignalType, msg.Data);
+                            trn.GetNodeByEntityName(msg.EntityName)
+                                .IncomingSignalHandler(this.na, msg.RaftSignalType, msg.Data);
                         });
                         return;
                     case 3: //Handshake ACK
@@ -152,7 +153,7 @@ namespace Raft.Transport
                             trn.log.Log(new WarningLogEntry()
                             {
                                 LogType = WarningLogEntry.eLogType.DEBUG,
-                                Description = $"{trn.port} ({trn.rn.NodeState})> peer {na.NodeAddressId} sent: { Tcpmsg.MsgType }"
+                                Description = $"{trn.port} ({trn.GetNodeByEntityName("default").NodeState})> peer {na.NodeAddressId} sent: { Tcpmsg.MsgType }"
                             });
                         }
                         return;

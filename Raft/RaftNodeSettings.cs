@@ -14,6 +14,16 @@ namespace Raft
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        public string EntityName = "default";
+
+        /// <summary>
+        /// In-Memory if empty
+        /// </summary>
+        public string DBreezePath = "";
+
+        /// <summary>
         /// Leader heartbeat interval in ms.
         /// !!!!!!!!!!!!! Note that via Leader heartbeat are 
         /// </summary>

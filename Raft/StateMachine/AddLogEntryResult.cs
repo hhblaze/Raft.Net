@@ -25,7 +25,8 @@ namespace Raft
             /// <summary>
             /// If cluster didn't determine a leader yet
             /// </summary>
-            NO_LEADER_YET
+            NO_LEADER_YET,
+            NODE_NOT_FOUND_BY_NAME
         }
 
         public AddLogEntryResult()

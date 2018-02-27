@@ -23,13 +23,16 @@ namespace Raft.Transport
                 
         public byte[] Data { get; set; }
 
-        public Biser.Encoder BiserEncoder(Biser.Encoder existingEncoder = null)
+        public string EntityName { get; set; } = "default";
+
+    public Biser.Encoder BiserEncoder(Biser.Encoder existingEncoder = null)
         {
             Biser.Encoder enc = new Biser.Encoder(existingEncoder);
 
             enc
             .Add((int)RaftSignalType)
             .Add(Data)
+            .Add(EntityName)
             ;
             return enc;
         }
@@ -56,6 +59,7 @@ namespace Raft.Transport
 
             m.RaftSignalType = (eRaftSignalType)decoder.GetInt();
             m.Data = decoder.GetByteArray();
+            m.EntityName = decoder.GetString();
 
             return m;
         }

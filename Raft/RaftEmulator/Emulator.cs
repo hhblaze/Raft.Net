@@ -24,7 +24,7 @@ namespace Raft.RaftEmulator
 
 
 
-            TcpRaftNode rn = null;
+            TcpRaftNode trn = null;
 
             rn_settings = new RaftNodeSettings()
             {
@@ -42,21 +42,21 @@ namespace Raft.RaftEmulator
                 lock (sync_nodes)
                 {
                     //S:\temp\RaftDbr
-                    rn = new TcpRaftNode(eps, @"D:\Temp\RaftDBreeze\node" + (4250 + i), 4250 + i,
+                    trn = new TcpRaftNode(eps, new List<RaftNodeSettings> { rn_settings }, @"D:\Temp\RaftDBreeze\node" + (4250 + i), 4250 + i,
                             (data) => {
                                 Console.WriteLine($"wow committed");
-                            }, this, rn_settings);
+                            }, this);
 
                     //rn = new TcpRaftNode(eps, @"S:\temp\RaftDbr\node" + (4250 + i), 4250 + i,
                     //       (data) => {
                     //           Console.WriteLine($"wow committed");
                     //       }, this, rn_settings);
            
-                    nodes.Add(rn.rn.NodeAddress.NodeAddressId, rn);
+                    nodes.Add(trn.GetNodeByEntityName("default").NodeAddress.NodeAddressId, trn);
                     
                 }
 
-                rn.Start();
+                trn.Start();
 
                 //new Thread(() =>
                 //{
@@ -179,14 +179,14 @@ namespace Raft.RaftEmulator
                         return;
                     node = null;
 
-                    TcpRaftNode rn = null;
+                    TcpRaftNode trn = null;
 
                     lock (sync_nodes)
                     {
-                        rn = new TcpRaftNode(eps, @"D:\Temp\RaftDBreeze\node"+ nodeId, nodeId, (data) => { Console.WriteLine($"wow committed"); }, this, rn_settings);
-                        nodes[rn.rn.NodeAddress.NodeAddressId] = rn;
+                        trn = new TcpRaftNode(eps, new List<RaftNodeSettings> { rn_settings }, @"D:\Temp\RaftDBreeze\node"+ nodeId, nodeId, (data) => { Console.WriteLine($"wow committed"); }, this);
+                        nodes[trn.GetNodeByEntityName("default").NodeAddress.NodeAddressId] = trn;
                     }
-                    rn.Start();
+                    trn.Start();
                 }
                 else
                 {
@@ -241,7 +241,7 @@ namespace Raft.RaftEmulator
 
         #region "IRaftComSender"
 
-        public void SetValue(byte[] data)
+        public void SetValue(byte[] data, string entityName="default")
         {
          
             Task.Run(() =>
@@ -254,13 +254,13 @@ namespace Raft.RaftEmulator
 
                     if (nodes.First().Value is TcpRaftNode)
                     {
-                        var leader = nodes.Where(r => ((TcpRaftNode)r.Value).rn != null && ((TcpRaftNode)r.Value).rn.IsRunning && ((TcpRaftNode)r.Value).rn.NodeState == RaftNode.eNodeState.Leader)
+                        var leader = nodes.Where(r => ((TcpRaftNode)r.Value).GetNodeByEntityName(entityName) != null && ((TcpRaftNode)r.Value).GetNodeByEntityName(entityName).IsRunning && ((TcpRaftNode)r.Value).GetNodeByEntityName(entityName).NodeState == RaftNode.eNodeState.Leader)
                         .Select(r => (TcpRaftNode)r.Value).FirstOrDefault();
 
                         if (leader == null)
                             return;
 
-                        leader.rn.AddLogEntry(data);
+                        leader.AddLogEntry(data, entityName);
                     }
                     else
                     {

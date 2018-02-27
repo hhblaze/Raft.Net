@@ -107,7 +107,7 @@ namespace Raft.Transport
             _sync.EnterWriteLock();
             try
             {
-                if (peer.Handshake.NodeUID == trn.rn.NodeAddress.NodeUId)   //Self disconnect
+                if (peer.Handshake.NodeUID == trn.GetNodeByEntityName("default").NodeAddress.NodeUId)   //Self disconnect
                 {
                  
                     trn.clusterEndPoints.Where(r => r.EndPointSID == peer.EndPointSID)
@@ -121,7 +121,7 @@ namespace Raft.Transport
                 if (!Peers.ContainsKey(peer.EndPointSID))
                 {                 
 
-                    if(handshake && trn.rn.NodeAddress.NodeUId > peer.Handshake.NodeUID)
+                    if(handshake && trn.GetNodeByEntityName("default").NodeAddress.NodeUId > peer.Handshake.NodeUID)
                     {
                         //trn.log.Log(new WarningLogEntry()
                         //{
@@ -160,7 +160,7 @@ namespace Raft.Transport
                             new byte[] { 00, 03 }, (new TcpMsgHandshake()
                             {
                                 NodeListeningPort = trn.port,
-                                NodeUID = trn.rn.NodeAddress.NodeUId,
+                                NodeUID = trn.GetNodeByEntityName("default").NodeAddress.NodeUId,
                             }).SerializeBiser())
                         );
                     }
@@ -201,7 +201,7 @@ namespace Raft.Transport
         public async Task Handshake()        
         {
             await HandshakeTo(trn.clusterEndPoints);
-            trn.rn.TM.FireEventEach(3000, RetestConnections, null, false);
+            trn.GetNodeByEntityName("default").TM.FireEventEach(3000, RetestConnections, null, false);
         }
 
         async Task HandshakeTo(List<TcpClusterEndPoint> clusterEndPoints)        
@@ -225,7 +225,7 @@ namespace Raft.Transport
                     el.Peer.Write(cSprot1Parser.GetSprot1Codec(new byte[] { 00, 01 }, (new TcpMsgHandshake()                    
                     {
                         NodeListeningPort = trn.port,
-                        NodeUID = trn.rn.NodeAddress.NodeUId, //Generated GUID on Node start                        
+                        NodeUID = trn.GetNodeByEntityName("default").NodeAddress.NodeUId, //Generated GUID on Node start                        
                     }).SerializeBiser()));
                 }
                 catch (Exception ex)
@@ -267,7 +267,7 @@ namespace Raft.Transport
         {
             try
             {
-                if (!trn.rn.IsRunning)
+                if (!trn.GetNodeByEntityName("default").IsRunning)
                     return;
 
                 List<TcpPeer> peers = GetPeers();
