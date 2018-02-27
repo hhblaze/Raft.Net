@@ -38,7 +38,8 @@ namespace Raft
         /// <summary>
         /// Main table that stores logs
         /// </summary>
-        const string tblStateLogEntry = "RaftTbl_StateLogEntry";
+        string tblStateLogEntry = "RaftTbl_StateLogEntry";
+
         ///// <summary>
         ///// Leader only. Stores logs before being distributed.
         ///// </summary>
@@ -107,6 +108,9 @@ namespace Raft
                 db = new DBreezeEngine(new DBreezeConfiguration { Storage = DBreezeConfiguration.eStorage.MEMORY });
             else
                 db = new DBreezeEngine(dbreezePath);
+
+            if (rn.nodeSettings.EntityName != "default")
+                tblStateLogEntry += "_" + rn.nodeSettings.EntityName;
 
             using (var t = db.GetTransaction())
             {
@@ -771,10 +775,7 @@ namespace Raft
                     List<byte[]> lstCommited = new List<byte[]>();
 
                     using (var t = db.GetTransaction())
-                    {
-                        // t.SynchronizeTables(tblStateLogEntry, tblAppendLogEntry);
-                        //t.SynchronizeTables(tblStateLogEntry);
-
+                    {                       
                         //Gathering all not commited entries that are bigger than latest committed index
                         t.ValuesLazyLoadingIsOn = false;
                         foreach (var el in t.SelectForwardFromTo<byte[], byte[]>(tblStateLogEntry,

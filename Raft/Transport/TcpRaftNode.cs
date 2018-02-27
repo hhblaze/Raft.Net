@@ -22,7 +22,7 @@ namespace Raft.Transport
         internal List<TcpClusterEndPoint> clusterEndPoints = new List<TcpClusterEndPoint>();  //init clusterEndPoints creating 1-N connection
         
         
-        public TcpRaftNode(List<TcpClusterEndPoint> clusterEndPoints, List<RaftNodeSettings> raftNodes, string dbreezePath, int port = 4250, Action<byte[]> OnCommit = null, IWarningLog log = null)
+        public TcpRaftNode(List<TcpClusterEndPoint> clusterEndPoints, List<RaftNodeSettings> raftNodes, string dbreezePath, int port = 4250, Action<string, ulong, byte[]> OnCommit = null, IWarningLog log = null)
         {
             //this.rn_settings = rn_settings ?? new RaftNodeSettings();
 

@@ -134,9 +134,9 @@ namespace Raft
         /// <summary>
         /// Supplied via constructor. Will be called and supply
         /// </summary>
-        Action<byte[]> OnCommit = null;
+        Action<string, ulong, byte[]> OnCommit = null;
 
-        public RaftNode(RaftNodeSettings settings, string dbreezePath, IRaftComSender raftSender, IWarningLog log, Action<byte[]> OnCommit=null)
+        public RaftNode(RaftNodeSettings settings, string dbreezePath, IRaftComSender raftSender, IWarningLog log, Action<string, ulong, byte[]> OnCommit =null)
         {
             if (log == null)
                 throw new Exception("ILog is not supplied");
@@ -485,7 +485,8 @@ namespace Raft
         void RunDelayedPersistenceTimer()
         {
             if (Delayedpersistence_TimerId == 0)
-                Delayedpersistence_TimerId = this.TM.FireEventEach(nodeSettings.DelayedPersistenceMs, (o)=> { this.NodeStateLog?.FlushSleCache(); }, null, false);
+                Delayedpersistence_TimerId = this.TM.FireEventEach(nodeSettings.DelayedPersistenceMs, (o)=> {
+                    lock (lock_Operations) { this.NodeStateLog?.FlushSleCache(); } }, null, false);
         }
 
         void RemoveDelayedPersistenceTimer()
@@ -615,8 +616,15 @@ namespace Raft
                 {
                     //We don't have previous to this log and need new index request   
                     //VerbosePrint($"{NodeAddress.NodeAddressId}>  in sync 1 ");
-                    this.SyncronizeWithLeader();
-                    return;
+                    if (nodeSettings.InMemoryEntity && nodeSettings.InMemoryEntityStartSyncFromLatestEntity && this.NodeStateLog.LastAppliedIndex == 0)
+                    {
+                        //helps newly starting mode with specific InMemory parameters get only latest command for the entity
+                    }
+                    else
+                    {
+                        this.SyncronizeWithLeader();
+                        return;
+                    }
                 }                
             }          
 
@@ -776,6 +784,7 @@ namespace Raft
                 req = new StateLogEntryRequest()
                 {
                     StateLogEntryId = this.LeaderHeartbeat.LastStateLogCommittedIndex == 0 ? 0 : this.LeaderHeartbeat.LastStateLogCommittedIndex-1
+                   // StateLogEntryId = this.LeaderHeartbeat.LastStateLogCommittedIndex == 0 ? 0 : this.LeaderHeartbeat.LastStateLogCommittedIndex
                     //StateLogEntryTerm = this.LeaderHeartbeat.LastStateLogCommittedIndexTerm
                 };
             }
@@ -1227,7 +1236,7 @@ namespace Raft
                     
                     try
                     {
-                        this.OnCommit(sle.Data);
+                        this.OnCommit(nodeSettings.EntityName, sle.Index, sle.Data);
                     }
                     catch (Exception ex)
                     {

@@ -31,7 +31,10 @@ namespace Raft.RaftEmulator
                 VerboseRaft = true,
                 //VerboseRaft = false,
                 VerboseTransport = false,
-                DelayedPersistenceIsActive = true
+
+                //DelayedPersistenceIsActive = true,
+                InMemoryEntity = true,
+                InMemoryEntityStartSyncFromLatestEntity = true
             };
                         
             for(int i = 0;i< nodesQuantity;i++)
@@ -43,9 +46,7 @@ namespace Raft.RaftEmulator
                 {
                     //S:\temp\RaftDbr
                     trn = new TcpRaftNode(eps, new List<RaftNodeSettings> { rn_settings }, @"D:\Temp\RaftDBreeze\node" + (4250 + i), 4250 + i,
-                            (data) => {
-                                Console.WriteLine($"wow committed");
-                            }, this);
+                            (entityName, index, data) => { Console.WriteLine($"wow committed {entityName}/{index}"); }, this);
 
                     //rn = new TcpRaftNode(eps, @"S:\temp\RaftDbr\node" + (4250 + i), 4250 + i,
                     //       (data) => {
@@ -109,7 +110,7 @@ namespace Raft.RaftEmulator
 
             for (int i = 0; i < nodesQuantity; i++)
             {
-                rn = new RaftNode(rn_settings, @"D:\Temp\RaftDBreeze\node" + (4250 + i), this, this, (data)=> { });
+                rn = new RaftNode(rn_settings, @"D:\Temp\RaftDBreeze\node" + (4250 + i), this, this, (entityName, index, data) => {  });
                 rn.Verbose = true;
                 rn.SetNodesQuantityInTheCluster((uint)nodesQuantity);
                 rn.NodeAddress.NodeAddressId = i + 1;
@@ -183,7 +184,7 @@ namespace Raft.RaftEmulator
 
                     lock (sync_nodes)
                     {
-                        trn = new TcpRaftNode(eps, new List<RaftNodeSettings> { rn_settings }, @"D:\Temp\RaftDBreeze\node"+ nodeId, nodeId, (data) => { Console.WriteLine($"wow committed"); }, this);
+                        trn = new TcpRaftNode(eps, new List<RaftNodeSettings> { rn_settings }, @"D:\Temp\RaftDBreeze\node"+ nodeId, nodeId, (entityName, index, data) => { Console.WriteLine($"wow committed {entityName}/{index}"); }, this);
                         nodes[trn.GetNodeByEntityName("default").NodeAddress.NodeAddressId] = trn;
                     }
                     trn.Start();

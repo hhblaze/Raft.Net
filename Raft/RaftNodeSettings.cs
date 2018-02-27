@@ -21,17 +21,19 @@ namespace Raft
 
         /// <summary>
         /// Leader heartbeat interval in ms.
-        /// !!!!!!!!!!!!! Note that via Leader heartbeat are 
         /// </summary>
         public uint LeaderHeartbeatMs = 1000 * 5;
         //public uint LeaderHeartbeatMs = 1000 * 5;
 
         public uint DelayedPersistenceMs = 1000 * 10;
 
+        /// <summary>
+        /// Speeds up processing on HDD's will flush changes on disk onces per DelayedPersistenceMs for the non InMemoryEntity
+        /// </summary>
         public bool DelayedPersistenceIsActive = false;
 
         /// <summary>
-        /// Is completely handeled in-memory
+        /// Is completely handled in-memory
         /// </summary>
         public bool InMemoryEntity = false;
         /// <summary>
