@@ -6,31 +6,7 @@
 Implementation of the RAFT consensus algorithm among TCP peers with disk or memory persistence<br />.NET / dotnet / netstandard /netcore<br />
 
 ----
-Implementation is in progress (polishing the code).
-
-Though, it already works: 
- - Checkout Revision 26
- - make console app as a start up one in VS studio
- - Depends on [DBreeze](https://github.com/hhblaze/DBreeze) and integrated into it [Biser.NET](https://github.com/hhblaze/Biser).
- - Run
- - after leader is elected (in console) type several times "set 1"
-   It will create several new log entries in all test nodes.
- - stop one or two nodes:  "stop 4250" / "stop 4251". There are 5 testing nodes from 4250-4254 (these are also tcp listening ports).
- - Create new entries: type several times "set 1", to make log difference among running and stopped nodes. 
- - Start node(s): "start 4250". Observe how values are replicated among started nodes.
- - "set 1" to add new entry(ies), observe how they are in tact committed among all nodes.
- - "test 4250" - shows peer connections from client 4250.
- 
- Current test stores log data in DBreeze memory mode, it is possible to change it on real disk mode 
- inside Raft.Net/Raft/StateMachine/StateLog.cs, switching
- 
-  db = new DBreezeEngine(new DBreezeConfiguration { Storage = DBreezeConfiguration.eStorage.MEMORY });
-  //db = new DBreezeEngine(dbreezePath);
-  
-  and setting dbreezePath for each node inside Raft/RaftEmulator/Emulator.cs
-  like rn = new TcpRaftNode(eps, @"D:\Temp\RaftDBreeze\node" + (4250 + i), 4250 + i, this, rn_settings);  
- 
- ![image](https://user-images.githubusercontent.com/486781/35967718-0953e122-0cc2-11e8-8fa7-cd91d8295511.png)
+[Documentation](https://docs.google.com/document/d/e/2PACX-1vQYWpDD6L20CSBR4QTlpP2SJDEKcj6VRP-ZI3t_wQ93c3OS96Wk8ojvAFNo3zwYaiz7VUi5EF34JJhZ/pub) is in progress.
  
  hhblaze@gmail.com
  
