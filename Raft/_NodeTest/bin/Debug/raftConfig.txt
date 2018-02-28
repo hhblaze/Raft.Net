@@ -20,6 +20,7 @@ VerboseTransport: false
 DelayedPersistenceIsActive: true
 InMemoryEntity: false
 InMemoryEntityStartSyncFromLatestEntity: false
+DelayedPersistenceMs: 10000
 
 Entity: inMemory1
 VerboseRaft: true
@@ -27,4 +28,3 @@ VerboseTransport: true
 DelayedPersistenceIsActive: false
 InMemoryEntity: true
 InMemoryEntityStartSyncFromLatestEntity: false
-DelayedPersistenceMs: 10000
