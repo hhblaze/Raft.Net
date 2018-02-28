@@ -3,7 +3,7 @@
 [![NuGet Badge](https://buildstats.info/nuget/Raft)](https://www.nuget.org/packages/Raft/)
 [![Image of Build](https://img.shields.io/badge/Powered%20by-tiesky.com-1883F5.svg)](http://tiesky.com)
 
-Implementation of the RAFT consensus algorithm among TCP peers with disk or memory data persistence.<br />.NET / dotnet / netstandard /netcore<br />
+Implementation of the [RAFT](https://raft.github.io/) consensus algorithm among TCP peers with disk or memory data persistence.<br />.NET / dotnet / netstandard /netcore<br />
 
 ----
 
