@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -72,6 +73,105 @@ namespace Raft.Transport
                 rn.NodeStart();
             }
         }
+
+        public static TcpRaftNode GetFromConfig(int configVersion, string configuration, string dbreeze,int port, IWarningLog log, Func<string, ulong, byte[], bool> OnCommit)
+        {
+            try
+            {
+                TcpRaftNode rn = null;
+
+                var rn_settings = new RaftNodeSettings()
+                {
+                    EntityName = "default",
+                    VerboseRaft = false,
+                    VerboseTransport = false
+                };
+
+                string[] sev;
+                List<TcpClusterEndPoint> eps = new List<TcpClusterEndPoint>();
+
+                List<RaftNodeSettings> rnSettings = new List<RaftNodeSettings>();
+                string entityName = "";
+
+                StringReader strReader = new StringReader(configuration);
+
+                //foreach (var el in strReader.ReadLine)
+                while(true)
+                {
+                    var el = strReader.ReadLine();
+                    if (el == null)
+                        break;
+
+                    var se = el.Split(new char[] { ':' });
+                    if (se.Length < 2)
+                        continue;
+                    switch (se[0].Trim().ToLower())
+                    {
+                        case "endpoint":
+                            sev = se[1].Split(new char[] { ',' });
+                            eps.Add(new TcpClusterEndPoint() { Host = sev[0].Trim(), Port = Convert.ToInt32(sev[1].Trim()) });
+                            break;
+                        //case "dbreeze":
+                        //    dbreeze = String.Join(":",se.Skip(1));
+                        //    break;
+                        case "entity":
+                            entityName = se[1].Trim();
+                            if (entityName.ToLower().Equals("default"))
+                                continue;
+                            //flushing default entity and starting new one
+                            if (String.IsNullOrEmpty(entityName))
+                                throw new Exception("Raft.Net: configuration entity name must not be empty and must be unique among other entities");
+                            rnSettings.Add(rn_settings);
+                            rn_settings = new RaftNodeSettings { EntityName = entityName };
+                            break;
+                        case "verboseraft":
+                            if (se[1].Trim().ToLower().Equals("true"))
+                                rn_settings.VerboseRaft = true;
+                            break;
+                        case "verbosetransport":
+                            if (se[1].Trim().ToLower().Equals("true"))
+                                rn_settings.VerboseTransport = true;
+                            break;
+                        case "delayedpersistenceisactive":
+                            if (se[1].Trim().ToLower().Equals("true"))
+                                rn_settings.DelayedPersistenceIsActive = true;
+                            break;
+                        case "delayedpersistencems":
+                            rn_settings.DelayedPersistenceMs = Convert.ToUInt32(se[1].Trim());
+                            break;
+                        case "inmemoryentity":
+                            if (se[1].Trim().ToLower().Equals("true"))
+                                rn_settings.InMemoryEntity = true;
+                            break;
+                        case "inmemoryentitystartsyncfromlatestentity":
+                            if (se[1].Trim().ToLower().Equals("true"))
+                                rn_settings.InMemoryEntityStartSyncFromLatestEntity = true;
+                            break;
+
+
+                    }//DelayedPersistenceMs
+                }
+
+                rnSettings.Add(rn_settings);
+
+
+                rn = new TcpRaftNode(eps, rnSettings, dbreeze,
+                    OnCommit,
+                    port, log);
+
+                return rn;
+
+                //rn.Start();                
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        
+
+
 
         internal void PeerIsDisconnected(string endpointsid)
         {

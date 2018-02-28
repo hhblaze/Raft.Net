@@ -28,7 +28,7 @@ namespace _NodeTest
         static void Main(string[] args)
         {
             log = new Logger();
-            tm = new TimeMaster(log);
+            //tm = new TimeMaster(log);
 
             if (args.Length > 0)
             {
@@ -146,80 +146,13 @@ namespace _NodeTest
             var configLines = System.IO.File.ReadAllLines(args[2]);
             
 
+
            TcpRaftNode rn = null;
 
-            var rn_settings = new RaftNodeSettings()
-            {
-                EntityName = "default",
-                VerboseRaft = false,                
-                VerboseTransport = false
-            };
-
-            string[] sev;
-            List<TcpClusterEndPoint> eps = new List<TcpClusterEndPoint>();
+            rn = TcpRaftNode.GetFromConfig(1, System.IO.File.ReadAllText(args[2]), 
+                dbreeze, Convert.ToInt32(args[1]), log,
+                (entName, index, data) => { Console.WriteLine($"wow committed {entName}/{index}"); return true; });
             
-            List<RaftNodeSettings> rnSettings = new List<RaftNodeSettings>();            
-            string entityName = "";
-
-            foreach (var el in configLines)
-            {
-                var se = el.Split(new char[] { ':' });
-                if (se.Length < 2)
-                    continue;
-                switch(se[0].Trim().ToLower())
-                {
-                    case "endpoint":
-                        sev = se[1].Split(new char[] { ',' });
-                        eps.Add(new TcpClusterEndPoint() { Host = sev[0].Trim(), Port = Convert.ToInt32(sev[1].Trim()) });
-                        break;
-                    //case "dbreeze":
-                    //    dbreeze = String.Join(":",se.Skip(1));
-                    //    break;
-                    case "entity":
-                        entityName = se[1].Trim();
-                        if (entityName.ToLower().Equals("default"))
-                            continue;
-                        //flushing default entity and starting new one
-                        if (String.IsNullOrEmpty(entityName))
-                            throw new Exception("Raft.Net: configuration entity name must not be empty and must be unique among other entities");                        
-                        rnSettings.Add(rn_settings);
-                        rn_settings = new RaftNodeSettings { EntityName = entityName };
-                        break;
-                    case "verboseraft":
-                        if (se[1].Trim().ToLower().Equals("true"))
-                            rn_settings.VerboseRaft = true;
-                        break;
-                    case "verbosetransport":
-                        if (se[1].Trim().ToLower().Equals("true"))
-                            rn_settings.VerboseTransport = true;
-                        break;
-                    case "delayedpersistenceisactive":
-                        if (se[1].Trim().ToLower().Equals("true"))
-                            rn_settings.DelayedPersistenceIsActive = true;
-                        break;
-                    case "delayedpersistencems":
-                        rn_settings.DelayedPersistenceMs = Convert.ToUInt32(se[1].Trim());
-                        break;
-                    case "inmemoryentity":
-                        if (se[1].Trim().ToLower().Equals("true"))
-                            rn_settings.InMemoryEntity = true;
-                        break;
-                    case "inmemoryentitystartsyncfromlatestentity":
-                        if (se[1].Trim().ToLower().Equals("true"))
-                            rn_settings.InMemoryEntityStartSyncFromLatestEntity = true;
-                        break;
-                    
-
-                }//DelayedPersistenceMs
-            }
-
-            rnSettings.Add(rn_settings);
-                            
-
-            rn = new TcpRaftNode(eps, rnSettings, dbreeze,
-                (entName, index, data) => { Console.WriteLine($"wow committed {entName}/{index}"); return true; },
-                Convert.ToInt32(args[1]),log );
-
             rn.Start();
 
             AddLogEntryResult addRes = null;
