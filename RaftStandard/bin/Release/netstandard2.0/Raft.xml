@@ -1,0 +1,1077 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Raft</name>
+    </assembly>
+    <members>
+        <member name="P:Raft.CandidateRequest.TermId">
+            <summary>
+            
+            </summary>    
+        </member>
+        <member name="P:Raft.CandidateRequest.LastLogId">
+            <summary>
+            
+            </summary>        
+        </member>
+        <member name="P:Raft.CandidateRequest.LastTermId">
+            <summary>
+            
+            </summary>        
+        </member>
+        <member name="P:Raft.LeaderHeartbeat.LeaderTerm">
+            <summary>
+            Leader's current Term
+            </summary>        
+        </member>
+        <member name="P:Raft.LeaderHeartbeat.StateLogLatestTerm">
+            <summary>
+            Latest inserted into Leader State Log Term
+            </summary>        
+        </member>
+        <member name="P:Raft.LeaderHeartbeat.StateLogLatestIndex">
+            <summary>
+            Latest inserted into Leader State Log ID
+            </summary>        
+        </member>
+        <member name="P:Raft.LeaderHeartbeat.LastStateLogCommittedIndex">
+            <summary>
+            Leader includes LastCommitted Index, Followers must apply if it's bigger then theirs
+            </summary>        
+        </member>
+        <member name="P:Raft.LeaderHeartbeat.LastStateLogCommittedIndexTerm">
+            <summary>
+            Leader includes LastCommitted Term, Followers must apply if it's bigger then theirs
+            </summary>        
+        </member>
+        <member name="P:Raft.StateLogEntryApplied.StateLogEntryId">
+            <summary>
+            
+            </summary>        
+        </member>
+        <member name="P:Raft.StateLogEntryApplied.StateLogEntryTerm">
+            <summary>
+            
+            </summary>        
+        </member>
+        <member name="P:Raft.StateLogEntryRedirectRequest.Data">
+            <summary>
+            
+            </summary>   
+        </member>
+        <member name="T:Raft.StateLogEntryRequest">
+            <summary>
+            Comes from the Follower to Leader in time of state log synchronization
+            </summary>    
+        </member>
+        <member name="P:Raft.StateLogEntryRequest.StateLogEntryId">
+            <summary>
+            Id of the State log, which Leader must send to the Follower
+            </summary>        
+        </member>
+        <member name="P:Raft.StateLogEntrySuggestion.LeaderTerm">
+            <summary>
+            Current leader TermId, must be always included
+            </summary> 
+        </member>
+        <member name="P:Raft.VoteOfCandidate.TermId">
+            <summary>
+            
+            </summary>       
+        </member>
+        <member name="P:Raft.VoteOfCandidate.VoteType">
+            <summary>
+            
+            </summary>        
+        </member>
+        <member name="T:Raft.RaftNode">
+            <summary>
+            Main class. Initiate and Run.
+            </summary>
+        </member>
+        <member name="F:Raft.RaftNode.LastVotedTermId">
+            <summary>
+            Last term this node has voted
+            </summary>
+        </member>
+        <member name="F:Raft.RaftNode.Sender">
+            <summary>
+            Communication interface
+            </summary>
+        </member>
+        <member name="F:Raft.RaftNode.nodeSettings">
+            <summary>
+            Node settings
+            </summary>
+        </member>
+        <member name="F:Raft.RaftNode.Election_TimerId">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="F:Raft.RaftNode.LeaderHeartbeat_TimerId">
+            <summary>
+            We stop this timer only in case if become leader, and starting if loosing leadership.       
+            </summary>
+        </member>
+        <member name="F:Raft.RaftNode.Delayedpersistence_TimerId">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="F:Raft.RaftNode.Leader_TimerId">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="F:Raft.RaftNode.LeaderLogResend_TimerId">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="F:Raft.RaftNode.NodeTerm">
+            <summary>
+            Current node Term
+            </summary>
+        </member>
+        <member name="F:Raft.RaftNode.NodeStateLog">
+            <summary>
+            Node StateLog
+            </summary>
+        </member>
+        <member name="F:Raft.RaftNode.NodeAddress">
+            <summary>
+            Address of the current node
+            </summary>
+        </member>
+        <member name="F:Raft.RaftNode.LeaderNodeAddress">
+            <summary>
+            In case if current node is not Leader. It holds leader address
+            </summary>
+        </member>
+        <member name="F:Raft.RaftNode.LeaderHeartbeatArrivalTime">
+            <summary>
+            Received Current leader heartbeat time
+            </summary>
+        </member>
+        <member name="F:Raft.RaftNode.Verbose">
+            <summary>
+            If makes Debug outputs
+            </summary>
+        </member>
+        <member name="F:Raft.RaftNode.IsRunning">
+            <summary>
+            Is node started 
+            </summary>
+        </member>
+        <member name="F:Raft.RaftNode.LeaderHeartbeat">
+            <summary>
+            Latest heartbeat from leader, can be null on start
+            </summary>
+        </member>
+        <member name="F:Raft.RaftNode.OnCommit">
+            <summary>
+            Supplied via constructor. Will be called and supply
+            </summary>
+        </member>
+        <member name="M:Raft.RaftNode.#ctor(Raft.RaftNodeSettings,System.String,Raft.IRaftComSender,Raft.IWarningLog,System.Func{System.String,System.UInt64,System.Byte[],System.Boolean})">
+            <summary>
+            
+            </summary>
+            <param name="settings"></param>
+            <param name="dbreezePath"></param>
+            <param name="raftSender"></param>
+            <param name="log"></param>
+            <param name="OnCommit"></param>
+        </member>
+        <member name="M:Raft.RaftNode.Dispose">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:Raft.RaftNode.SetNodesQuantityInTheCluster(System.UInt32)">
+            <summary>
+            We need this value to calculate majority while leader election
+            </summary>
+        </member>
+        <member name="M:Raft.RaftNode.NodeStart">
+            <summary>
+            Starts the node
+            </summary>
+        </member>
+        <member name="M:Raft.RaftNode.VerbosePrint(System.String,System.Object[])">
+            <summary>
+            
+            </summary>
+            <param name="format"></param>
+            <param name="args"></param>
+        </member>
+        <member name="M:Raft.RaftNode.NodeStop">
+            <summary>
+            Stops the node
+            </summary>
+        </member>
+        <member name="M:Raft.RaftNode.LeaderHeartbeatTimeout(System.Object)">
+            <summary>
+            If this action works, it can mean that Node can give a bid to be the candidate after specified time interval
+            Starts Election timer only in case if it's not running yet
+            </summary>
+            <param name="userToken"></param>
+        </member>
+        <member name="P:Raft.RaftNode.LeaderNode">
+            <summary>
+            Returns Leader node address
+            </summary>
+        </member>
+        <member name="M:Raft.RaftNode.ElectionTimeout(System.Object)">
+            <summary>
+            Time to become a candidate
+            </summary>
+            <param name="userToken"></param>
+        </member>
+        <member name="M:Raft.RaftNode.IncomingSignalHandler(Raft.NodeAddress,Raft.eRaftSignalType,System.Byte[])">
+            <summary>
+            
+            </summary>
+            <param name="address">Address of the node who sent the signal</param>
+            <param name="signalType"></param>
+            <param name="data"></param>
+        </member>
+        <member name="M:Raft.RaftNode.RunElectionTimer">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:Raft.RaftNode.RunLeaderHeartbeatWaitingTimer">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:Raft.RaftNode.RunLeaderTimer">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:Raft.RaftNode.RemoveLeaderTimer">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:Raft.RaftNode.RemoveElectionTimer">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:Raft.RaftNode.RemoveLeaderHeartbeatWaitingTimer">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:Raft.RaftNode.ParseStateLogEntryRequest(Raft.NodeAddress,System.Byte[])">
+            <summary>
+            Only for Leader.
+            Follower requests new Log Entry Index from the Leader and Leader answers to the Follower
+            </summary>
+            <param name="address"></param>
+            <param name="data"></param>
+        </member>
+        <member name="M:Raft.RaftNode.ParseStateLogEntrySuggestion(Raft.NodeAddress,System.Byte[])">
+            <summary>
+            Only for Follower
+             Is called from tryCatch and in lock
+            </summary>
+            <param name="address"></param>
+            <param name="data"></param>
+        </member>
+        <member name="M:Raft.RaftNode.SetNodeFollower">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:Raft.RaftNode.ParseLeaderHeartbeat(Raft.NodeAddress,System.Byte[])">
+            <summary>
+            Is called from lock_Operations and try catch
+            </summary>
+            <param name="address"></param>
+            <param name="data"></param>
+        </member>
+        <member name="M:Raft.RaftNode.SyncronizeWithLeader(System.Boolean)">
+            <summary>
+            Is called from tryCatch and lock.
+            Synchronizes starting from last committed value
+            </summary>
+            <param name="stateLogEntryId"></param>        
+        </member>
+        <member name="M:Raft.RaftNode.CompareCurrentTermWithIncoming(System.UInt64)">
+            <summary>
+            All data which comes, brings TermId, if incoming TermId is bigger then current,
+            Node updates its current termId toincoming Id and step back to the follower (if it was not).
+            For vote and candidate requests
+            
+            Must be called from lock_Operations only
+            </summary>
+            <param name="incomingTermId"></param>
+        </member>
+        <member name="M:Raft.RaftNode.ParseCandidateRequest(Raft.NodeAddress,System.Byte[])">
+            <summary>
+            Is called from tryCatch and in lock
+            </summary>
+            <param name="data"></param>
+        </member>
+        <member name="M:Raft.RaftNode.PeerIsDisconnected(System.String)">
+            <summary>
+            Removing from voting and from accepted entity
+            </summary>
+            <param name="endpointsid"></param>
+        </member>
+        <member name="M:Raft.RaftNode.ParseVoteOfCandidate(Raft.NodeAddress,System.Byte[])">
+            <summary>
+            Node receives answer votes (to become Leader) from other nodes.
+            Is called from tryCatch and in lock
+            </summary>
+            <param name="data"></param>
+        </member>
+        <member name="M:Raft.RaftNode.ParseStateLogRedirectRequest(Raft.NodeAddress,System.Byte[])">
+            <summary>
+            called from lock try..catch
+            </summary>
+            <param name="address"></param>
+            <param name="data"></param>
+        </member>
+        <member name="M:Raft.RaftNode.ParseStateLogEntryAccepted(Raft.NodeAddress,System.Byte[])">
+            <summary>
+            Leader receives accepted Log
+            </summary>
+            <param name="address"></param>
+            <param name="data"></param>
+        </member>
+        <member name="M:Raft.RaftNode.ApplyLogEntry">
+            <summary>
+            Is called from lock_operations
+            Tries to apply new entry, must be called from lock
+            </summary>
+        </member>
+        <member name="M:Raft.RaftNode.AddLogEntry(System.Byte[])">
+            <summary>
+            Leader and followers via redirect. (later callback info for followers is needed)
+            </summary>
+            <param name="data"></param>
+            <param name="logEntryExternalId"></param>
+            <returns></returns>
+        </member>
+        <member name="F:Raft.RaftNodeSettings.EntityName">
+            <summary>
+            First entity must be always default (it will be automatically changed on default)
+            the others must be unique
+            </summary>
+        </member>
+        <member name="F:Raft.RaftNodeSettings.LeaderHeartbeatMs">
+            <summary>
+            Leader heartbeat interval in ms.
+            </summary>
+        </member>
+        <member name="F:Raft.RaftNodeSettings.DelayedPersistenceIsActive">
+            <summary>
+            Speeds up processing on HDD's will flush changes on disk onces per DelayedPersistenceMs for the non InMemoryEntity
+            </summary>
+        </member>
+        <member name="F:Raft.RaftNodeSettings.InMemoryEntity">
+            <summary>
+            Is completely handled in-memory
+            </summary>
+        </member>
+        <member name="F:Raft.RaftNodeSettings.InMemoryEntityStartSyncFromLatestEntity">
+            <summary>
+            Only in case if it is an InMemoryEntity it can ask to get sync (after long sleep) starting from latest leader index/term
+            </summary>
+        </member>
+        <member name="F:Raft.RaftNodeSettings.ElectionTimeoutMinMs">
+            <summary>
+            in ms.
+            </summary>
+        </member>
+        <member name="F:Raft.RaftNodeSettings.ElectionTimeoutMaxMs">
+            <summary>
+            in ms.
+            </summary>
+        </member>
+        <member name="F:Raft.RaftNodeSettings.LeaderLogResendIntervalMs">
+            <summary>
+            If leader doesn't receive COMMIT on log-entry within interval it tries to resend it.
+            </summary>
+        </member>
+        <member name="F:Raft.RaftNodeSettings.RaftNodeIdExternalForEmulator">
+            <summary>
+            Exceptionally for emulators
+            </summary>
+        </member>
+        <member name="F:Raft.RaftNodeSettings.InitialQuantityOfRaftNodesInTheCluster">
+            <summary>
+            Initial value for calculating majority
+            </summary>
+        </member>
+        <member name="F:Raft.RaftNodeSettings.VerboseRaft">
+            <summary>
+            Log Raft debug info
+            </summary>
+        </member>
+        <member name="F:Raft.RaftNodeSettings.VerboseTransport">
+            <summary>
+            Log Transport debug info
+            </summary>
+        </member>
+        <member name="F:Raft.eRaftSignalType.LeaderHearthbeat">
+            <summary>
+            Heartbeat which comes to the node from the Leader, followed by LeaderId and payload.
+            </summary>
+        </member>
+        <member name="F:Raft.eRaftSignalType.CandidateRequest">
+            <summary>
+            Heartbeat which comes from the node who want to become a candidate (previous known LeaderId+1)
+            </summary>
+        </member>
+        <member name="F:Raft.eRaftSignalType.VoteOfCandidate">
+            <summary>
+            Answer on Vote of the candidate request
+            </summary>
+        </member>
+        <member name="F:Raft.eRaftSignalType.StateLogEntryRequest">
+            <summary>
+            Follower requests new State Log Entry from the Leader
+            </summary>
+        </member>
+        <member name="F:Raft.eRaftSignalType.StateLogEntrySuggestion">
+            <summary>
+            Leader sends to the Follower requested LogEntry (and waits acceptance)
+            </summary>
+        </member>
+        <member name="F:Raft.eRaftSignalType.StateLogEntryAccepted">
+            <summary>
+            Sent by Follower to Leader, to acknowledge logEntry acceptance
+            </summary>
+        </member>
+        <member name="F:Raft.eRaftSignalType.StateLogRedirectRequest">
+            <summary>
+            Follower redirects a StateLogEntry from the connected client and expects StateLogRedirectResponse 
+            </summary>
+        </member>
+        <member name="F:Raft.AddLogEntryResult.eAddLogEntryResult.LOG_ENTRY_IS_CACHED">
+            <summary>
+            Cached to be accepted by majority, but can be rejected in some cases... in any case, client connected to the node waits, until majority confirms save of the LogEntry
+            </summary>
+        </member>
+        <member name="F:Raft.AddLogEntryResult.eAddLogEntryResult.NODE_NOT_A_LEADER">
+            <summary>
+            If current node is not a leader, then LeaderAddress must be filled
+            </summary>
+        </member>
+        <member name="F:Raft.AddLogEntryResult.eAddLogEntryResult.ERROR_OCCURED">
+            <summary>
+            If unexpected error occured
+            </summary>
+        </member>
+        <member name="F:Raft.AddLogEntryResult.eAddLogEntryResult.NO_LEADER_YET">
+            <summary>
+            If cluster didn't determine a leader yet, but command is cached to be sent and set on timer
+            </summary>
+        </member>
+        <member name="P:Raft.AddLogEntryResult.LeaderAddress">
+            <summary>
+            If AddResult is NODE_NOT_A_LEADER
+            </summary>
+        </member>
+        <member name="P:Raft.StateLog.StateLogEntryAcceptance.Index">
+            <summary>
+            StateLogEntry Index
+            </summary>
+        </member>
+        <member name="P:Raft.StateLog.StateLogEntryAcceptance.Term">
+            <summary>
+            StateLogEntry Term
+            </summary>
+        </member>
+        <member name="F:Raft.StateLog.tblStateLogEntry">
+            <summary>
+            Main table that stores logs
+            </summary>
+        </member>
+        <member name="F:Raft.StateLog.LastBusinessLogicCommittedIndex">
+            <summary>
+            Holds last committed State Log Index.
+            If node is leader it sets it, if follower it comes with the Leader's heartbeat
+            </summary>
+        </member>
+        <member name="F:Raft.StateLog.LastCommittedIndex">
+            <summary>
+            Holds last committed State Log Index.
+            If node is leader it sets it, if follower it comes with the Leader's heartbeat
+            </summary>
+        </member>
+        <member name="F:Raft.StateLog.LastCommittedIndexTerm">
+            <summary>
+            Holds last committed State Log Term.
+            If node is leader it sets it, if follower it comes with the Leader's heartbeat
+            </summary>
+        </member>
+        <member name="F:Raft.StateLog.LastAppliedIndex">
+            <summary>
+            For leaders
+            Applied entry is a majority of servers can be from previous term. 
+            It will have the same index as LastCommitted only in case if on majority of servers will be stored at least one entry from current term. Docu.
+            </summary>
+        </member>
+        <member name="F:Raft.StateLog.StateLogId">
+            <summary>
+            Monotonically grown StateLog Index.
+            
+            </summary>
+        </member>
+        <member name="F:Raft.StateLog.LeaderSynchronizationIsActive">
+            <summary>
+            Follower part. State Log synchro with Leader.
+            Indicates that synchronization request was sent to Leader
+            </summary>
+        </member>
+        <member name="F:Raft.StateLog.LeaderSynchronizationRequestWasSent">
+            <summary>
+            Follower part. State Log synchro with Leader.
+            Registers DateTime when synchronization request was sent.
+            Until timeout (LeaderSynchronizationTimeOut normally 1 minute)- no more requests 
+            </summary>
+        </member>
+        <member name="F:Raft.StateLog.LeaderSynchronizationTimeOut">
+            <summary>
+            Follower part. State Log synchro with Leader.
+            </summary>
+        </member>
+        <member name="F:Raft.StateLog.dStateLogEntryAcceptance">
+            <summary>
+            Only for the Leader.
+            Key is StateLogEntryId, Value contains information about how many nodes accepted LogEntry
+            </summary>
+        </member>
+        <member name="M:Raft.StateLog.Dispose">
+            <summary>
+            Secured by RaftNode
+            </summary>
+        </member>
+        <member name="M:Raft.StateLog.GetNextLogEntryToBeDistributed">
+            <summary>
+            Returns null if nothing to distribute
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="F:Raft.StateLog.qDistribution">
+            <summary>
+            Leader only.Stores logs before being distributed.
+            </summary>
+        </member>
+        <member name="M:Raft.StateLog.AddStateLogEntryForDistribution(System.Byte[])">
+            <summary>
+            Is called from lock_operations
+            Adds to silo table, until is moved to log table.
+            This table can be cleared up on start
+            returns concatenated term+index inserted identifier
+            </summary>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Raft.StateLog.ClearLogEntryForDistribution">
+            <summary>
+            When Node is selected as leader it is cleared
+            </summary>
+        </member>
+        <member name="M:Raft.StateLog.AddNextEntryToStateLogByLeader">
+            <summary>
+            under lock_operations
+            Copyies from distribution silo table and puts in StateLog table       
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Raft.StateLog.SetLastCommittedIndexFromLeader(Raft.LeaderHeartbeat)">
+            <summary>
+            under lock_operations
+            only for followers
+            </summary>
+            <param name="lhb"></param>
+            <returns>will return false if node needs synchronization from LastCommittedIndex/Term</returns>
+        </member>
+        <member name="M:Raft.StateLog.ClearStateLogStartingFromCommitted">
+            <summary>
+            +
+            Only Follower makes it. Clears its current Log
+            Clearing 
+            </summary>
+            <param name="logEntryId"></param>       
+        </member>
+        <member name="M:Raft.StateLog.BusinessLogicIsApplied(System.UInt64)">
+            <summary>
+            under lock_operation control
+            </summary>
+            <param name="index"></param>
+        </member>
+        <member name="M:Raft.StateLog.GetNextStateLogEntrySuggestionFromRequested(Raft.StateLogEntryRequest)">
+            <summary>
+            +
+            Can be null.
+            Must be called inside of operation lock.
+            </summary>
+            <param name="logEntryId"></param>
+            <param name="LeaderTerm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Raft.StateLog.GetEntryByIndexTerm(System.UInt64,System.UInt64)">
+            <summary>
+            +
+            Get Term by EntryLogIndex. Returns First element false if not found, Second - Term (if found).
+            Must be called inside of operation lock.
+            </summary>
+            <param name="logId"></param>
+            <returns>first element true if exists</returns>
+        </member>
+        <member name="M:Raft.StateLog.GetCommitedEntryByIndex(System.UInt64)">
+            <summary>
+            +
+            Must be called inside of operation lock.
+            </summary>
+            <param name="logEntryId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Raft.StateLog.AddToLogFollower(Raft.StateLogEntrySuggestion)">
+            <summary>
+            
+            </summary>
+            <param name="suggestion"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Raft.StateLog.EntryIsAccepted(Raft.NodeAddress,System.UInt32,Raft.StateLogEntryApplied)">
+            <summary>
+            +
+            Only Leader's proc.
+            Accepts entry return true if Committed
+            </summary>
+            <param name="majorityNumber"></param>
+            <param name="LogId"></param>
+            <param name="TermId"></param>        
+        </member>
+        <member name="M:Raft.StateLog.ClearLogAcceptance">
+            <summary>
+            +
+            When node becomes a Leader, it clears acceptance log
+            </summary>
+        </member>
+        <member name="P:Raft.StateLogEntry.Term">
+            <summary>
+            
+            </summary>        
+        </member>
+        <member name="P:Raft.StateLogEntry.Index">
+            <summary>
+            
+            </summary>        
+        </member>
+        <member name="P:Raft.StateLogEntry.Data">
+            <summary>
+            
+            </summary>        
+        </member>
+        <member name="P:Raft.StateLogEntry.IsCommitted">
+            <summary>
+            If value is committed by Leader
+            </summary>        
+        </member>
+        <member name="F:Raft.StateLogEntry.PreviousStateLogId">
+            <summary>
+            Out of protobuf
+            </summary>        
+        </member>
+        <member name="F:Raft.StateLogEntry.PreviousStateLogTerm">
+            <summary>
+            Out of protobuf
+            </summary>        
+        </member>
+        <member name="F:Raft.TimeMaster.MinimalIntervalInMs">
+            <summary>
+            Sets minimal elapsed interval in ms. Default is 30 ms.
+            </summary>
+        </member>
+        <member name="M:Raft.TimeMaster.FireEventEach(System.UInt32,System.Action{System.Object},System.Object,System.Boolean,System.String)">
+            <summary>
+            Will call "action" and supplies to it "userToken" in "milliseconds"
+            </summary>
+            <param name="milliseconds"></param>
+            <param name="fireAnObject"></param>
+            <param name="repeatOnce"></param>
+            <returns>returns ID of the created event; If 0 - then mistake</returns>
+        </member>
+        <member name="M:Raft.TimeMaster.RecalculateTimer">
+            <summary>
+            Must be called ONLY from _sync
+            </summary>
+        </member>
+        <member name="M:Raft.TimeMaster.RemoveEvent(System.UInt64)">
+            <summary>
+            
+            </summary>
+            <param name="eventId"></param>
+        </member>
+        <member name="T:Raft.IRaftComReceiver">
+            <summary>
+            Receiver of incoming messages concerning RAFT protocol
+            </summary>
+        </member>
+        <member name="M:Raft.IRaftComReceiver.IncomingSignalHandler(Raft.NodeAddress,Raft.eRaftSignalType,System.Byte[])">
+            <param name="address">Address of the node-sender</param>
+            <param name="signalType"></param>
+            <param name="data"></param>
+        </member>
+        <member name="T:Raft.IRaftComSender">
+            <summary>
+            Sender of messages, concerning Raft protocol
+            </summary>
+        </member>
+        <member name="M:Raft.IRaftComSender.SendToAll(Raft.eRaftSignalType,System.Byte[],Raft.NodeAddress,System.String,System.Boolean)">
+            <summary>
+            
+            </summary>
+            <param name="signalType"></param>
+            <param name="data"></param>
+            <param name="senderNodeAddress"></param>
+            <param name="entityName"></param>
+            <param name="highPriority"></param>
+        </member>
+        <member name="M:Raft.IRaftComSender.SendTo(Raft.NodeAddress,Raft.eRaftSignalType,System.Byte[],Raft.NodeAddress,System.String)">
+            <summary>
+            
+            </summary>
+            <param name="nodeAddress"></param>
+            <param name="signalType"></param>
+            <param name="data"></param>
+            <param name="senderNodeAddress"></param>
+            <param name="entityName"></param>
+        </member>
+        <member name="T:Raft.NodeAddress">
+            <summary>
+            Node destination address
+            </summary>
+        </member>
+        <member name="P:Raft.NodeAddress.NodeAddressId">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Raft.NodeAddress.NodeUId">
+            <summary>
+            GUID, substring 4,8 converted to int64
+            Helps to resolve priority conflicts
+            </summary>
+        </member>
+        <!-- Badly formed XML comment ignored for member "T:Raft.Transport.cSprot1Parser" -->
+        <member name="F:Raft.Transport.cSprot1Parser._maxPayLoad">
+            <summary>
+            Normally must be UInt
+            </summary>
+        </member>
+        <member name="P:Raft.Transport.cSprot1Parser.MaxPayLoad">
+            <summary>
+            Restriction. Protocol supports 4 bytes data transfer inside of codec, but we can add extra restriction on maximum size inside of codec.
+            Inside of tcpServer there is also receive buffer size.
+            Default 2000000 bytes.
+            </summary>
+        </member>
+        <member name="F:Raft.Transport.cSprot1Parser.MessageQueue">
+            <summary>
+            It's a queue for incoming data
+            </summary>
+        </member>
+        <member name="F:Raft.Transport.cSprot1Parser.DestroySelf">
+            <summary>
+            In case if MaxPayLoad is overriched this will be called
+            </summary>
+        </member>
+        <member name="F:Raft.Transport.cSprot1Parser.packetParser">
+            <summary>
+            Here you will receive parsed SPROT1 codecs, Method Will be called in Async Way, but in one thread. So streaming is possible.
+            </summary>
+        </member>
+        <member name="F:Raft.Transport.cSprot1Parser.PublishDequeued">
+            <summary>
+            if this delegate is not null, parser after dequeuing procedure begins async invoke of the function and then goes on with parsing
+            </summary>
+        </member>
+        <member name="F:Raft.Transport.cSprot1Parser.DeviceShouldSendAuthorisationBytesBeforeProceedCodec">
+            <summary>
+            If device establishes a connection, this must be true, for the other device which answers it must be false, default true (as for the server)
+            </summary>
+        </member>
+        <member name="F:Raft.Transport.cSprot1Parser.ProtocolExtensionLengthV1">
+            <summary>
+            In one of versions we wanted to enhance Sprot1 with message id, like this
+            {0;0} -auth {0;0}-codec {0;0;0;0} - length of payload {0;0} - messageId {0;0;...;0} - payload
+            In this case message Id is Extension, so to th length of payload will be added ProtocolExtensionLengthV1 (2 in our case) and the whole messageId+payload will be returned
+            </summary>
+        </member>
+        <member name="F:Raft.Transport.cSprot1Parser.ToSendToParserAuthenticationBytes">
+            <summary>
+            For the server side implementer, can be interesting to get inside of the parser first authentication bytes,
+            it will be done if true second parameter for Packet Parser will be null in this case. Default is false.
+            </summary>
+        </member>
+        <member name="F:Raft.Transport.cSprot1Parser.UseBigEndian">
+            <summary>
+            By default Little Endian is used (First comes lower byte 0x01 in the end highest 0x08 = 2049)
+            </summary>
+        </member>
+        <member name="F:Raft.Transport.cSprot1Parser.newPacketSize">
+            <summary>
+            We can use maximum size of 2,147,483,647 only int not uint because we use fast substrings of bytes which can be used only with int parameter
+            </summary>
+        </member>
+        <member name="F:Raft.Transport.cSprot1Parser.dId">
+            <summary>
+            Device Id
+            </summary>
+        </member>
+        <member name="P:Raft.Transport.cSprot1Parser.MyName">
+            <summary>
+            For debugging purposes. Default is null
+            </summary>
+        </member>
+        <member name="M:Raft.Transport.cSprot1Parser.ReInitSprot">
+            <summary>
+            Reinitialize Sprot instance after disconnection. In case if you don't want to create new instance for sure.
+            Sets all technical variables back. Setting variables leaves in tact
+            </summary>
+        </member>
+        <member name="M:Raft.Transport.cSprot1Parser.GetSprot1Codec(System.Byte[],System.Byte[])">
+            <summary>
+            Returns ready for sending data in BigEndian
+            </summary>
+            <param name="codec"></param>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Raft.Transport.cSprot1Parser.GetSprot1Codec(System.Byte[],System.Byte[],System.Boolean)">
+            <summary>
+            Returns ready for sending data in different formats Big or LittleEndian
+            </summary>
+            <param name="codec"></param>
+            <param name="data"></param>
+            <param name="BigEndian"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Raft.Transport.cSprot1Parser.RPE">
+            <summary>
+            Ready Package For Sending Out
+            </summary>
+        </member>
+        <member name="F:Raft.Transport.cSprot1Parser.qrpe">
+            <summary>
+            Queue for storing Ready Packages
+            </summary>
+        </member>
+        <member name="T:Raft.Transport.BytesExtensions">
+            <summary>
+            !!! Take from DBreeze
+            </summary>
+        </member>
+        <member name="M:Raft.Transport.BytesExtensions.Concat(System.Byte[],System.Byte[])">
+            <summary>
+            Fastest Method. Works only for int-dimesional arrays only. 
+            When necessary to concat many arrays use ConcatMany
+            </summary>
+            <param name="ar1"></param>
+            <param name="ar2"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Raft.Transport.BytesExtensions.To_4_bytes_array_BigEndian(System.UInt32)">
+            <summary>
+            From Int32 to 4 bytes array with BigEndian order (highest byte first, lowest last).        
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Raft.Transport.BytesExtensions.To_4_bytes_array_LittleEndian(System.UInt32)">
+            <summary>
+            From Int32 to 4 bytes array with LittleEndian order (lowest byte first, highest last).        
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Raft.Transport.BytesExtensions.Substring(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Substring int-dimensional byte arrays
+            </summary>
+            <param name="ar"></param>
+            <param name="startIndex"></param>
+            <param name="length"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Raft.Transport.BytesExtensions.To_UInt16_BigEndian(System.Byte[])">
+            <summary>
+            From 2 bytes array which is in BigEndian order (highest byte first, lowest last) makes ushort.
+            If array not equal 2 bytes throws exception. (0 to 65,535)
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Raft.Transport.BytesExtensions.To_UInt16_LittleEndian(System.Byte[])">
+            <summary>
+            From 2 bytes array which is in LittleEndian order (lowest byte first, highest last) makes ushort.
+            If array not equal 2 bytes throws exception. (0 to 65,535)
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Raft.Transport.BytesExtensions.To_UInt32_BigEndian(System.Byte[])">
+            <summary>
+            From 4 bytes array which is in BigEndian order (highest byte first, lowest last) makes uint.
+            If array not equal 4 bytes throws exception. (0 to 4.294.967.295)
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Raft.Transport.BytesExtensions.To_UInt32_LittleEndian(System.Byte[])">
+            <summary>
+            From 4 bytes array which is in LittleEndian order (lowest byte first, highest last) makes uint.
+            If array not equal 4 bytes throws exception. (0 to 4.294.967.295)
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="P:Raft.Transport.TcpMsgHandshake.NodeUID">
+            <summary>
+            Guid generated by each node
+            </summary>        
+        </member>
+        <member name="P:Raft.Transport.TcpMsgRaft.RaftSignalType">
+            <summary>
+            from Raft.eRaftSignalType
+            </summary>      
+        </member>
+        <member name="P:Raft.Transport.TcpPeer.EndPointSID">
+            <summary>
+            Combination of remote (outgoing) ip and its local listening port
+            </summary>
+        </member>
+        <member name="M:Raft.Transport.TcpPeer.Write(System.Byte[],System.Boolean)">
+            <summary>
+            !!! Due to high priority sending, don't forget to make extra protocol in case if we want to split SPROT data on several packages
+            </summary>
+            <param name="codec"></param>
+            <param name="data"></param>
+            <param name="highPriority"></param>
+        </member>
+        <member name="M:Raft.Transport.TcpPeer.Writer">
+            <summary>
+            highPriorityQueue is served first
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Raft.Transport.TcpPeer.Dispose">
+            <summary>
+            all custom disposals via parametrical Dispose
+            </summary>
+        </member>
+        <member name="M:Raft.Transport.TcpPeer.Dispose(System.Boolean,System.Boolean)">
+            <summary>
+            
+            </summary>
+            <param name="DontRemoveFromSpider"></param>
+            <param name="calledFromDispose"></param>
+        </member>
+        <member name="T:Raft.Transport.TcpSpider">
+            <summary>
+            Spider manages connections for all listed nodes of the net
+            </summary>
+        </member>
+        <member name="M:Raft.Utils.SDictAutoIdentityLong`1.DeleteKeysLessThenTop(System.Int32,System.Int64)">
+            <summary>
+            Remove helper. Leaves only last inserted values in quantity of topX. 
+            Second param helps to balance check interval in seconds.
+            </summary>
+            <param name="topX"></param>
+            <param name="secondsCheckInterval"></param>
+        </member>
+        <member name="M:Raft.Utils.SDictAutoIdentityLong`1.Add(`0)">
+            <summary>
+            Best Method to use at here. Like Other Add Methods automatically creates key identity and returns it
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Raft.Utils.SDictionary`2">
+            <summary>
+            Syncronized Dictionary with ReaderWriterLockSlim, if smth. is not implemented or other desires implement later
+            </summary>
+            <typeparam name="TKey"></typeparam>
+            <typeparam name="TValue"></typeparam>
+        </member>
+        <member name="M:Raft.Utils.SDictionary`2.GetSafe(System.Func{System.Collections.Generic.KeyValuePair{`0,`1},System.Boolean})">
+            <summary>
+            Safely Returns List by Predicate
+            </summary>
+            <param name="predicate"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Raft.Utils.SDictionary`2.AddSafe(System.Collections.Generic.KeyValuePair{`0,`1})">
+            <summary>
+            All add method are safe here, but this returns also a value
+            //All Adds go over AddSafe
+            Enhanced functionality also for update
+            </summary>
+            <param name="pair"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Raft.Utils.SDictionary`2.Add(`0,`1)">
+            <summary>
+            Adds or updates value
+            </summary>
+            <param name="key"></param>
+            <param name="value"></param>
+        </member>
+        <member name="T:Raft.Utils.SQueue`1">
+            <summary>
+            Syncronized Queue
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:Raft.Utils.SQueue`1.Enqueue(`0)">
+            <summary>
+            
+            </summary>
+            <param name="item"></param>
+        </member>
+        <member name="M:Raft.Utils.SQueue`1.Clear">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="P:Raft.Utils.SQueue`1.Count">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:Raft.Utils.SQueue`1.Dequeue">
+            <summary>
+            Now Dequeue can be called when Queue is Empty - default (T) will be returned (so, NULL)
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:Raft.WarningLogEntry.Method">
+            <summary>
+            Full name namespace.{{class}}.method /property
+            </summary>
+        </member>
+        <member name="P:Raft.WarningLogEntry.DateTime">
+            <summary>
+            Is set automatically to now from constructor
+            </summary>
+        </member>
+        <member name="P:Raft.WarningLogEntry.LogType">
+            <summary>
+            Default is ERROR
+            </summary>
+        </member>
+    </members>
+</doc>
