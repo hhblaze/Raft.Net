@@ -209,7 +209,7 @@ namespace _NodeTest
                 rnSettings.Add(rn_settings);
 
             rn = new TcpRaftNode(eps, rnSettings, dbreeze,
-                (entityName, index, data) => { Console.WriteLine($"wow committed {entityName}/{index}"); return true; },
+                (entName, index, data) => { Console.WriteLine($"wow committed {entName}/{index}"); return true; },
                 Convert.ToInt32(args[1]),log );
 
             rn.Start();
