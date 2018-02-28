@@ -6,7 +6,8 @@
 Implementation of the RAFT consensus algorithm among TCP peers with disk or memory persistence<br />.NET / dotnet / netstandard /netcore<br />
 
 ----
-[Documentation](https://docs.google.com/document/d/e/2PACX-1vQYWpDD6L20CSBR4QTlpP2SJDEKcj6VRP-ZI3t_wQ93c3OS96Wk8ojvAFNo3zwYaiz7VUi5EF34JJhZ/pub) is in progress.
+
+ - [Documentation](https://docs.google.com/document/d/e/2PACX-1vQYWpDD6L20CSBR4QTlpP2SJDEKcj6VRP-ZI3t_wQ93c3OS96Wk8ojvAFNo3zwYaiz7VUi5EF34JJhZ/pub) (is in progress).
  
  hhblaze@gmail.com
  
