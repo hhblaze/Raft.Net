@@ -9,9 +9,7 @@ EndPoint: 127.0.0.1,4254
 //EOF GlobalConfig
 
 //Starting configs per entity
-//The word entity means that all other config until the end or next word
-//Entity will cover one raft node
-//First entity should be always with the name "default" or (or renaming will be forced to default)
+//First entity should be always with the name "default" or it will be auto-renamed to "default""
 //Raft.RaftNodeSettings
 
 Entity: default
@@ -20,7 +18,6 @@ VerboseTransport: false
 DelayedPersistenceIsActive: true
 InMemoryEntity: false
 InMemoryEntityStartSyncFromLatestEntity: false
-DelayedPersistenceMs: 10000
 
 Entity: inMemory1
 VerboseRaft: true
@@ -28,3 +25,4 @@ VerboseTransport: true
 DelayedPersistenceIsActive: false
 InMemoryEntity: true
 InMemoryEntityStartSyncFromLatestEntity: false
+DelayedPersistenceMs: 10000
