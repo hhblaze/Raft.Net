@@ -79,7 +79,8 @@ namespace Raft
         /// <summary>
         /// 
         /// </summary>
-        ulong Delayedpersistence_TimerId = 0;      
+        ulong Delayedpersistence_TimerId = 0;
+        ulong NoLeaderAddCommand_TimerId = 0;
         /// <summary>
         /// 
         /// </summary>
@@ -329,6 +330,8 @@ namespace Raft
 
                     this.NodeState = eNodeState.Candidate;
 
+                    this.LeaderNodeAddress = null;
+
                     VerbosePrint("Node {0} state is {1} _ElectionTimeout", NodeAddress.NodeAddressId, this.NodeState);
 
                     //Voting for self
@@ -509,6 +512,23 @@ namespace Raft
             {
                 this.TM.RemoveEvent(this.Delayedpersistence_TimerId);
                 this.Delayedpersistence_TimerId = 0;
+            }
+        }
+        //NoLeaderAddCommand_TimerId
+        void RunNoLeaderAddCommandTimer()
+        {
+            if (NoLeaderAddCommand_TimerId == 0)
+                NoLeaderAddCommand_TimerId = this.TM.FireEventEach(nodeSettings.NoLeaderAddCommandResendIntervalMs, (o) => {
+                    this.AddLogEntry(null);
+                }, null, false);
+        }
+
+        void RemoveNoLeaderAddCommandTimer()
+        {
+            if (this.NoLeaderAddCommand_TimerId > 0)
+            {
+                this.TM.RemoveEvent(this.NoLeaderAddCommand_TimerId);
+                this.NoLeaderAddCommand_TimerId = 0;
             }
         }
 
@@ -1182,13 +1202,15 @@ namespace Raft
             this.Sender.SendToAll(eRaftSignalType.StateLogEntrySuggestion, suggest.SerializeBiser(), this.NodeAddress, nodeSettings.EntityName);
         }
 
+        Queue<byte[]> NoLeaderCache = new Queue<byte[]>();
+
         /// <summary>
         /// Leader and followers via redirect. (later callback info for followers is needed)
         /// </summary>
         /// <param name="data"></param>
         /// <param name="logEntryExternalId"></param>
         /// <returns></returns>
-        public AddLogEntryResult AddLogEntry(byte[] data)
+        public AddLogEntryResult AddLogEntry(byte[] iData)
         {
             AddLogEntryResult res = new AddLogEntryResult();
 
@@ -1196,11 +1218,18 @@ namespace Raft
             {                
                 lock (lock_Operations)
                 {
+                    if(iData != null)
+                        NoLeaderCache.Enqueue(iData);
+
                     if (this.NodeState == eNodeState.Leader)
                     {
+                        RemoveNoLeaderAddCommandTimer();
                         //res.AddedStateLogTermIndex = this.NodeStateLog.AddStateLogEntryForDistribution(data);
-                        this.NodeStateLog.AddStateLogEntryForDistribution(data);
-                        ApplyLogEntry();
+                        while (NoLeaderCache.Count > 0)
+                        {
+                            this.NodeStateLog.AddStateLogEntryForDistribution(NoLeaderCache.Dequeue());
+                            ApplyLogEntry();
+                        }
 
                         res.LeaderAddress = this.NodeAddress;
                         res.AddResult = AddLogEntryResult.eAddLogEntryResult.LOG_ENTRY_IS_CACHED;
@@ -1208,20 +1237,27 @@ namespace Raft
                     else
                     {
                         if (this.LeaderNodeAddress == null)
-                            res.AddResult = AddLogEntryResult.eAddLogEntryResult.NO_LEADER_YET;
+                        {
+                            res.AddResult = AddLogEntryResult.eAddLogEntryResult.NO_LEADER_YET;                            
+                            RunNoLeaderAddCommandTimer();
+                        }
                         else
                         {
+                            RemoveNoLeaderAddCommandTimer();
                             res.AddResult = AddLogEntryResult.eAddLogEntryResult.NODE_NOT_A_LEADER;
                             res.LeaderAddress = this.LeaderNodeAddress;
-
+                            
                             //Redirecting only in case if there is a leader                            
-                            this.Sender.SendTo(this.LeaderNodeAddress,eRaftSignalType.StateLogRedirectRequest, 
+                            while (NoLeaderCache.Count > 0)
+                            { 
+                                this.Sender.SendTo(this.LeaderNodeAddress, eRaftSignalType.StateLogRedirectRequest,
                                 (
-                                new StateLogEntryRedirectRequest
-                                {
-                                    Data = data
-                                    //RedirectId = this.redirector.StoreRedirect(null)   //!!!!!!!!!!! Later must be enhanced by the address of connected external client
-                                }).SerializeBiser(), this.NodeAddress, nodeSettings.EntityName);
+                                    new StateLogEntryRedirectRequest
+                                    {
+                                        Data = NoLeaderCache.Dequeue()                                    
+                                    }
+                                ).SerializeBiser(), this.NodeAddress, nodeSettings.EntityName);
+                            }
                         }
 
                     }

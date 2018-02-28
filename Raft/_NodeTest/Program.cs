@@ -191,7 +191,7 @@ namespace _NodeTest
                         break;
                     case "verbosetransport":
                         if (se[1].Trim().ToLower().Equals("true"))
-                            rn_settings.VerboseRaft = true;
+                            rn_settings.VerboseTransport = true;
                         break;
                     case "delayedpersistenceisactive":
                         if (se[1].Trim().ToLower().Equals("true"))

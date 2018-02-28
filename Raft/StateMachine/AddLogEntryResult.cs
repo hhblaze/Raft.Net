@@ -23,7 +23,7 @@ namespace Raft
             /// </summary>
             ERROR_OCCURED,
             /// <summary>
-            /// If cluster didn't determine a leader yet
+            /// If cluster didn't determine a leader yet, but command is cached to be sent and set on timer
             /// </summary>
             NO_LEADER_YET,
             NODE_NOT_FOUND_BY_NAME

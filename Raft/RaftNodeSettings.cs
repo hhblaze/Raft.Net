@@ -27,6 +27,8 @@ namespace Raft
 
         public uint DelayedPersistenceMs = 1000 * 10;
 
+        public uint NoLeaderAddCommandResendIntervalMs = 1000 * 1;
+
         /// <summary>
         /// Speeds up processing on HDD's will flush changes on disk onces per DelayedPersistenceMs for the non InMemoryEntity
         /// </summary>
@@ -56,7 +58,7 @@ namespace Raft
         /// <summary>
         /// If leader doesn't receive COMMIT on log-entry within interval it tries to resend it.
         /// </summary>
-        public uint LeaderLogResendIntervalMs = 1000 * 30;
+        public uint LeaderLogResendIntervalMs = 1000 * 3;
 
         /// <summary>
         /// Exceptionally for emulators

@@ -15,8 +15,16 @@ EndPoint: 127.0.0.1,4254
 //Raft.RaftNodeSettings
 
 Entity: default
-VerboseRaft: true
+VerboseRaft: false
 VerboseTransport: false
 DelayedPersistenceIsActive: true
 InMemoryEntity: false
 InMemoryEntityStartSyncFromLatestEntity: false
+
+Entity: inMemory1
+VerboseRaft: true
+VerboseTransport: true
+DelayedPersistenceIsActive: false
+InMemoryEntity: true
+InMemoryEntityStartSyncFromLatestEntity: false
+DelayedPersistenceMs: 10000
