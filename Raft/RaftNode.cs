@@ -79,7 +79,7 @@ namespace Raft
         /// <summary>
         /// 
         /// </summary>
-        ulong Delayedpersistence_TimerId = 0;
+        ulong Delayedpersistence_TimerId = 0;      
         /// <summary>
         /// 
         /// </summary>

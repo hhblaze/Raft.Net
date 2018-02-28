@@ -30,15 +30,15 @@ namespace _NodeTest
             log = new Logger();
             tm = new TimeMaster(log);
 
-            //if (args.Length > 0)
-            //{
-            //    switch (args[0])
-            //    {
-            //        case "1":
-            //            Scenario1(args);
-            //            return;
-            //    }
-            //}
+            if (args.Length > 0)
+            {
+                switch (args[0])
+                {
+                    case "1":
+                        Scenario1(args);
+                        return;
+                }
+            }
 
 
             //UdpTester t = new UdpTester(tm, log);
@@ -193,6 +193,9 @@ namespace _NodeTest
                         if (se[1].Trim().ToLower().Equals("true"))
                             rn_settings.DelayedPersistenceIsActive = true;
                         break;
+                    case "delayedpersistencems":
+                        rn_settings.DelayedPersistenceMs = Convert.ToUInt32(se[1].Trim());
+                        break;
                     case "inmemoryentity":
                         if (se[1].Trim().ToLower().Equals("true"))
                             rn_settings.InMemoryEntity = true;
@@ -201,12 +204,13 @@ namespace _NodeTest
                         if (se[1].Trim().ToLower().Equals("true"))
                             rn_settings.InMemoryEntityStartSyncFromLatestEntity = true;
                         break;
+                    
 
-                }
+                }//DelayedPersistenceMs
             }
 
-            if (rnSettings.Count == 0)
-                rnSettings.Add(rn_settings);
+            rnSettings.Add(rn_settings);
+                            
 
             rn = new TcpRaftNode(eps, rnSettings, dbreeze,
                 (entName, index, data) => { Console.WriteLine($"wow committed {entName}/{index}"); return true; },
