@@ -178,8 +178,9 @@ namespace _NodeTest
                 }
             }
 
-            rn = new TcpRaftNode(eps, new List<RaftNodeSettings> { rn_settings }, dbreeze, Convert.ToInt32(args[1]),
-                           (entityName, index, data) => { Console.WriteLine($"wow committed {entityName}/{index}"); }, log );
+            rn = new TcpRaftNode(eps, new List<RaftNodeSettings> { rn_settings }, dbreeze,
+                (entityName, index, data) => { Console.WriteLine($"wow committed {entityName}/{index}"); },
+                Convert.ToInt32(args[1]), log );
 
             rn.Start();
 

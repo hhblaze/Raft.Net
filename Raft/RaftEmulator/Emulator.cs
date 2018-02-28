@@ -32,9 +32,10 @@ namespace Raft.RaftEmulator
                 //VerboseRaft = false,
                 VerboseTransport = false,
 
-                //DelayedPersistenceIsActive = true,
-                InMemoryEntity = true,
-                InMemoryEntityStartSyncFromLatestEntity = true
+                DelayedPersistenceIsActive = true,
+
+                //InMemoryEntity = true,
+                //InMemoryEntityStartSyncFromLatestEntity = true
             };
                         
             for(int i = 0;i< nodesQuantity;i++)
@@ -45,8 +46,9 @@ namespace Raft.RaftEmulator
                 lock (sync_nodes)
                 {
                     //S:\temp\RaftDbr
-                    trn = new TcpRaftNode(eps, new List<RaftNodeSettings> { rn_settings }, @"D:\Temp\RaftDBreeze\node" + (4250 + i), 4250 + i,
-                            (entityName, index, data) => { Console.WriteLine($"wow committed {entityName}/{index}"); }, this);
+                    trn = new TcpRaftNode(eps, new List<RaftNodeSettings> { rn_settings }, @"D:\Temp\RaftDBreeze\node" + (4250 + i),
+                        (entityName, index, data) => { Console.WriteLine($"wow committed {entityName}/{index}"); },
+                        4250 + i, this);
 
                     //rn = new TcpRaftNode(eps, @"S:\temp\RaftDbr\node" + (4250 + i), 4250 + i,
                     //       (data) => {
@@ -184,7 +186,9 @@ namespace Raft.RaftEmulator
 
                     lock (sync_nodes)
                     {
-                        trn = new TcpRaftNode(eps, new List<RaftNodeSettings> { rn_settings }, @"D:\Temp\RaftDBreeze\node"+ nodeId, nodeId, (entityName, index, data) => { Console.WriteLine($"wow committed {entityName}/{index}"); }, this);
+                        trn = new TcpRaftNode(eps, new List<RaftNodeSettings> { rn_settings }, @"D:\Temp\RaftDBreeze\node"+ nodeId,
+                            (entityName, index, data) => { Console.WriteLine($"wow committed {entityName}/{index}"); },
+                            nodeId,  this);
                         nodes[trn.GetNodeByEntityName("default").NodeAddress.NodeAddressId] = trn;
                     }
                     trn.Start();

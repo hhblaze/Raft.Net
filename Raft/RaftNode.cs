@@ -136,14 +136,14 @@ namespace Raft
         /// </summary>
         Action<string, ulong, byte[]> OnCommit = null;
 
-        public RaftNode(RaftNodeSettings settings, string dbreezePath, IRaftComSender raftSender, IWarningLog log, Action<string, ulong, byte[]> OnCommit =null)
+        public RaftNode(RaftNodeSettings settings, string dbreezePath, IRaftComSender raftSender, IWarningLog log, Action<string, ulong, byte[]> OnCommit)
         {
-            if (log == null)
-                throw new Exception("ILog is not supplied");
-            Log = log;
+
+            this.Log = log ?? throw new Exception("Raft.Net: ILog is not supplied");
+            this.OnCommit = OnCommit ?? throw new Exception("Raft.Net: OnCommit can'T be null");
+                        
             Sender = raftSender;
-            nodeSettings = settings;
-            this.OnCommit = OnCommit;
+            nodeSettings = settings;           
 
             //Starting time master
             this.TM = new TimeMaster(log);
@@ -205,7 +205,9 @@ namespace Raft
                 if(nodeSettings.DelayedPersistenceIsActive)
                     RunDelayedPersistenceTimer();
             }
-                        
+
+            //Tries to executed not yet applied by business logic entries
+            Commited();
         }
 
         /// <summary>
@@ -1208,44 +1210,51 @@ namespace Raft
 
 
         int inCommit = 0;
-
-        internal void Commited(ulong index)
-        {
-            if (this.OnCommit == null)
-                return;
-
+                
+        internal void Commited()
+        {           
             if (System.Threading.Interlocked.CompareExchange(ref inCommit, 1, 0) != 0)
                 return;
 
             Task.Run(() =>
             {
-
-                ulong i = 0;
-                StateLogEntry sle = null;
+                //ulong i = 0;
+                StateLogEntry sle = null;               
                 while (true)
                 {
                     lock (lock_Operations)
-                    {
-                        sle = this.NodeStateLog.GetCommitedEntryByIndex(index + i);
-                        if (sle == null)
+                    {                       
+                        if (this.NodeStateLog.LastCommittedIndex == this.NodeStateLog.LastBusinessLogicCommittedIndex)
+                        {
                             System.Threading.Interlocked.Exchange(ref inCommit, 0);
+                            return;
+                        }
+                        else
+                        {                            
+                            sle = this.NodeStateLog.GetCommitedEntryByIndex(this.NodeStateLog.LastBusinessLogicCommittedIndex + 1);
+                            if (sle == null)
+                            {
+                                System.Threading.Interlocked.Exchange(ref inCommit, 0);
+                                return;
+                            }
+                        }
                     }
-
-                    if (sle == null)
-                        return;
                     
                     try
                     {
                         this.OnCommit(nodeSettings.EntityName, sle.Index, sle.Data);
+                        lock (lock_Operations)
+                        {
+                            this.NodeStateLog.BusinessLogicIsApplied(sle.Index);
+                        }
                     }
                     catch (Exception ex)
                     {
                         Log.Log(new WarningLogEntry() { Exception = ex, Method = "Raft.RaftNode.Commited" });
                     }
 
-                    i++;
+                    //i++;
                 }
-
             });            
         }
         
