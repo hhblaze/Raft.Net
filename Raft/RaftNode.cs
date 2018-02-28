@@ -134,9 +134,17 @@ namespace Raft
         /// <summary>
         /// Supplied via constructor. Will be called and supply
         /// </summary>
-        Action<string, ulong, byte[]> OnCommit = null;
+        Func<string, ulong, byte[], bool> OnCommit = null;
 
-        public RaftNode(RaftNodeSettings settings, string dbreezePath, IRaftComSender raftSender, IWarningLog log, Action<string, ulong, byte[]> OnCommit)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <param name="dbreezePath"></param>
+        /// <param name="raftSender"></param>
+        /// <param name="log"></param>
+        /// <param name="OnCommit"></param>
+        public RaftNode(RaftNodeSettings settings, string dbreezePath, IRaftComSender raftSender, IWarningLog log, Func<string, ulong, byte[], bool> OnCommit)
         {
 
             this.Log = log ?? throw new Exception("Raft.Net: ILog is not supplied");
@@ -1242,10 +1250,18 @@ namespace Raft
                     
                     try
                     {
-                        this.OnCommit(nodeSettings.EntityName, sle.Index, sle.Data);
-                        lock (lock_Operations)
+                        if (this.OnCommit(nodeSettings.EntityName, sle.Index, sle.Data))
                         {
-                            this.NodeStateLog.BusinessLogicIsApplied(sle.Index);
+                            //In case if business logic commit was successful
+                            lock (lock_Operations)
+                            {
+                                this.NodeStateLog.BusinessLogicIsApplied(sle.Index);
+                            }
+                        }
+                        else
+                        {
+                            System.Threading.Thread.Sleep(500);
+                            //repeating with the same id
                         }
                     }
                     catch (Exception ex)

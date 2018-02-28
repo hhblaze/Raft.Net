@@ -406,6 +406,10 @@ namespace Raft
             
         }
 
+        /// <summary>
+        /// under lock_operation control
+        /// </summary>
+        /// <param name="index"></param>
         public void BusinessLogicIsApplied(ulong index)
         {
             LastBusinessLogicCommittedIndex = index;

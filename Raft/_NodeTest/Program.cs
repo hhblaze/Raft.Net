@@ -145,6 +145,7 @@ namespace _NodeTest
 
             var rn_settings = new RaftNodeSettings()
             {
+                EntityName = "default",
                 VerboseRaft = false,                
                 VerboseTransport = false
             };
@@ -152,6 +153,9 @@ namespace _NodeTest
             string[] sev;
             List<TcpClusterEndPoint> eps = new List<TcpClusterEndPoint>();
             string dbreeze = "";
+
+            List<RaftNodeSettings> rnSettings = new List<RaftNodeSettings>();            
+            string entityName = "";
 
             foreach (var el in configLines)
             {
@@ -164,6 +168,19 @@ namespace _NodeTest
                         sev = se[1].Split(new char[] { ',' });
                         eps.Add(new TcpClusterEndPoint() { Host = sev[0].Trim(), Port = Convert.ToInt32(sev[1].Trim()) });
                         break;
+                    case "dbreeze":
+                        dbreeze = se[1].Trim();
+                        break;
+                    case "entity":
+                        entityName = se[1].Trim();
+                        if (entityName.ToLower().Equals("default"))
+                            continue;
+                        //flushing default entity and starting new one
+                        if (String.IsNullOrEmpty(entityName))
+                            throw new Exception("Raft.Net: configuration entity name must not be empty and must be unique among other entities");                        
+                        rnSettings.Add(rn_settings);
+                        rn_settings = new RaftNodeSettings { EntityName = entityName };
+                        break;
                     case "verboseraft":
                         if (se[1].Trim().ToLower().Equals("true"))
                             rn_settings.VerboseRaft = true;
@@ -172,15 +189,28 @@ namespace _NodeTest
                         if (se[1].Trim().ToLower().Equals("true"))
                             rn_settings.VerboseRaft = true;
                         break;
-                    case "dbreeze":
-                        dbreeze = se[1].Trim();                        
+                    case "delayedpersistenceisactive":
+                        if (se[1].Trim().ToLower().Equals("true"))
+                            rn_settings.DelayedPersistenceIsActive = true;
                         break;
+                    case "inmemoryentity":
+                        if (se[1].Trim().ToLower().Equals("true"))
+                            rn_settings.InMemoryEntity = true;
+                        break;
+                    case "inmemoryentitystartsyncfromlatestentity":
+                        if (se[1].Trim().ToLower().Equals("true"))
+                            rn_settings.InMemoryEntityStartSyncFromLatestEntity = true;
+                        break;
+
                 }
             }
 
-            rn = new TcpRaftNode(eps, new List<RaftNodeSettings> { rn_settings }, dbreeze,
-                (entityName, index, data) => { Console.WriteLine($"wow committed {entityName}/{index}"); },
-                Convert.ToInt32(args[1]), log );
+            if (rnSettings.Count == 0)
+                rnSettings.Add(rn_settings);
+
+            rn = new TcpRaftNode(eps, rnSettings, dbreeze,
+                (entityName, index, data) => { Console.WriteLine($"wow committed {entityName}/{index}"); return true; },
+                Convert.ToInt32(args[1]),log );
 
             rn.Start();
 

@@ -1,0 +1,29 @@
+//Global config
+EndPoint: 127.0.0.1,4250
+EndPoint: 127.0.0.1,4251
+EndPoint: 127.0.0.1,4252
+EndPoint: 127.0.0.1,4253
+EndPoint: 127.0.0.1,4254
+//DBreeze path or empty if should act only in-memory for all entites
+DBreeze:
+
+//EOF Global config
+
+//Starting configs per entity
+//The word entity means that all other config until the end or next word
+//Entity will cover one raft node
+//First entity should be always with the name "default" or (or it will be forced to renamed to default)
+Entity: default
+VerboseRaft: true
+VerboseTransport: false
+DelayedPersistenceIsActive: true
+InMemoryEntity: false
+InMemoryEntityStartSyncFromLatestEntity: false
+
+Entity: inMemory1
+VerboseRaft: true
+VerboseTransport: false
+DelayedPersistenceIsActive: false
+InMemoryEntity: true
+InMemoryEntityStartSyncFromLatestEntity: true
+
