@@ -30,9 +30,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DBreeze, Version=1.89.2018.809, Culture=neutral, PublicKeyToken=174b57f1c155f3c6, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\DBreeze\DBreeze\bin\Release\DBreeze.dll</HintPath>
+    <Reference Include="DBreeze, Version=1.90.2018.220, Culture=neutral, PublicKeyToken=174b57f1c155f3c6, processorArchitecture=MSIL">
+      <HintPath>packages\DBreeze.1.90.0\lib\net45\DBreeze.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
