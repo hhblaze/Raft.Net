@@ -1,5 +1,9 @@
 # Raft.NET
-Implementation of the RAFT consensus algorithm among TCP peers with persistent or memory storage<br />.NET / dotnet / netstandard /netcore<br />
+[![Image of Build](https://img.shields.io/badge/License-BSD%203,%20FOSS-FC0574.svg)](https://github.com/hhblaze/Biser/blob/master/LICENSE)
+[![NuGet Badge](https://buildstats.info/nuget/Raft)](https://www.nuget.org/packages/Raft/)
+[![Image of Build](https://img.shields.io/badge/Powered%20by-tiesky.com-1883F5.svg)](http://tiesky.com)
+
+Implementation of the RAFT consensus algorithm among TCP peers with disk or memory persistence<br />.NET / dotnet / netstandard /netcore<br />
 
 ----
 Implementation is in progress (polishing the code).
