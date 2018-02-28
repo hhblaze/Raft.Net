@@ -282,7 +282,7 @@ namespace Raft.RaftEmulator
 
         }
 
-        public void SendToAll(eRaftSignalType signalType, byte[] data, NodeAddress myNodeAddress, bool highPriority = false)
+        public void SendToAll(eRaftSignalType signalType, byte[] data, NodeAddress myNodeAddress, string entityName, bool highPriority = false)
         {
             Task.Run(() =>
                 {
@@ -304,7 +304,7 @@ namespace Raft.RaftEmulator
             
         }
 
-        public void SendTo(NodeAddress nodeAddress, eRaftSignalType signalType, byte[] data, NodeAddress myNodeAddress)
+        public void SendTo(NodeAddress nodeAddress, eRaftSignalType signalType, byte[] data, NodeAddress myNodeAddress, string entityName)
         {
             Task.Run(() =>
             {

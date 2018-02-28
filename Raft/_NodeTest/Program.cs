@@ -137,7 +137,12 @@ namespace _NodeTest
                 return;
             }
 
-            Console.WriteLine($"Listening port: {args[1]}; Path to config: {args[2]}");
+            string dbreeze = "";
+            if(args.Length >= 3)
+                dbreeze = args[3];
+
+
+            Console.WriteLine($"Listening port: {args[1]}; Path to config: {args[2]}; Path to DBreeze folder: {args[3]}");
             var configLines = System.IO.File.ReadAllLines(args[2]);
             
 
@@ -152,8 +157,7 @@ namespace _NodeTest
 
             string[] sev;
             List<TcpClusterEndPoint> eps = new List<TcpClusterEndPoint>();
-            string dbreeze = "";
-
+            
             List<RaftNodeSettings> rnSettings = new List<RaftNodeSettings>();            
             string entityName = "";
 
@@ -168,9 +172,9 @@ namespace _NodeTest
                         sev = se[1].Split(new char[] { ',' });
                         eps.Add(new TcpClusterEndPoint() { Host = sev[0].Trim(), Port = Convert.ToInt32(sev[1].Trim()) });
                         break;
-                    case "dbreeze":
-                        dbreeze = se[1].Trim();
-                        break;
+                    //case "dbreeze":
+                    //    dbreeze = String.Join(":",se.Skip(1));
+                    //    break;
                     case "entity":
                         entityName = se[1].Trim();
                         if (entityName.ToLower().Equals("default"))
@@ -228,10 +232,21 @@ namespace _NodeTest
                         addRes = rn.AddLogEntry(new byte[] { 23 });
                         Console.WriteLine($"Adding: {addRes.AddResult.ToString()}");
                         break;
+                    case "set1a":
+                        addRes = rn.AddLogEntry(new byte[] { 27 },entityName: "inMemory1");
+                        Console.WriteLine($"Adding: {addRes.AddResult.ToString()}");
+                        break;
                     case "set10":
                         for (int k = 0; k < 10; k++)
                         {
                             addRes = rn.AddLogEntry(new byte[] { 23 });
+                            Console.WriteLine($"Adding: {addRes.AddResult.ToString()}");
+                        }
+                        break;
+                    case "set10a":
+                        for (int k = 0; k < 10; k++)
+                        {
+                            addRes = rn.AddLogEntry(new byte[] { 23 }, entityName: "inMemory1");
                             Console.WriteLine($"Adding: {addRes.AddResult.ToString()}");
                         }
                         break;

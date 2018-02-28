@@ -70,6 +70,12 @@ namespace Raft.Transport
             }
         }
 
+        internal void PeerIsDisconnected(string endpointsid)
+        {
+            foreach(var rn in this.raftNodes)
+                rn.Value.PeerIsDisconnected(endpointsid);
+        }
+
         internal RaftNode GetNodeByEntityName(string entityName)
         {
             RaftNode rn = null;

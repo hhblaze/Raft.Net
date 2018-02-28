@@ -69,7 +69,8 @@ namespace Raft.Transport
 
         internal void RemovePeerFromClusterEndPoints(string endpointsid)
         {
-           
+            if (String.IsNullOrEmpty(endpointsid))
+                return;
 
             _sync.EnterWriteLock();
             try
@@ -100,6 +101,8 @@ namespace Raft.Transport
             {
                 _sync.ExitWriteLock();
             }
+
+            this.trn.PeerIsDisconnected(endpointsid);
         }
 
         public void AddPeerToClusterEndPoints(TcpPeer peer, bool handshake)
@@ -296,7 +299,7 @@ namespace Raft.Transport
             }
         }
 
-        public void SendToAll(eRaftSignalType signalType, byte[] data, NodeAddress senderNodeAddress, bool highPriority = false)
+        public void SendToAll(eRaftSignalType signalType, byte[] data, NodeAddress senderNodeAddress, string entityName, bool highPriority = false)
         {
             try
             {
@@ -320,7 +323,7 @@ namespace Raft.Transport
                     
                     peer.Write(cSprot1Parser.GetSprot1Codec(new byte[] { 00, 02 },
                         (
-                            new TcpMsgRaft() { RaftSignalType = signalType, Data = data }
+                            new TcpMsgRaft() { EntityName = entityName, RaftSignalType = signalType, Data = data }
                         ).SerializeBiser()), highPriority);
                 }
             }
@@ -330,7 +333,28 @@ namespace Raft.Transport
             }
         }
 
-       
+        public void SendTo(NodeAddress nodeAddress, eRaftSignalType signalType, byte[] data, NodeAddress senderNodeAddress, string entityName)
+        {
+            try
+            {
+                TcpPeer peer = null;
+                if (Peers.TryGetValue(nodeAddress.EndPointSID, out peer))
+                {
+                    peer.Write(cSprot1Parser.GetSprot1Codec(new byte[] { 00, 02 },
+                       (
+                           new TcpMsgRaft() { EntityName = entityName, RaftSignalType = signalType, Data = data }
+                       ).SerializeBiser()));
+                }
+            }
+            catch (Exception ex)
+            {
+
+
+            }
+
+
+
+        }
 
         public void SendToAllFreeMessage(string msgType, string dataString="", byte[] data=null, NodeAddress senderNodeAddress = null)
         {
@@ -367,28 +391,7 @@ namespace Raft.Transport
            
         }
 
-        public void SendTo(NodeAddress nodeAddress, eRaftSignalType signalType, byte[] data, NodeAddress senderNodeAddress)
-        {
-            try
-            {
-                TcpPeer peer = null;
-                if (Peers.TryGetValue(nodeAddress.EndPointSID, out peer))
-                {
-                    peer.Write(cSprot1Parser.GetSprot1Codec(new byte[] { 00, 02 },
-                       (
-                           new TcpMsgRaft() { RaftSignalType = signalType, Data = data }
-                       ).SerializeBiser()));
-                }
-            }
-            catch (Exception ex)
-            {
-
-                
-            }
-            
-
-
-        }
+      
 
         
 

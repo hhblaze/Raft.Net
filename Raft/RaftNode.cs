@@ -90,7 +90,9 @@ namespace Raft
         ulong LeaderLogResend_TimerId = 0;
 
         Random rnd = new Random();
-        uint VotesQuantity = 0;   //After becoming a candidate
+        //uint VotesQuantity = 0;   //After becoming a candidate
+        HashSet<string> VotesQuantity = new HashSet<string>();
+
         uint NodesQuantityInTheCluster = 2; //We need this value to calculate majority while leader election
 
         /// <summary>
@@ -330,7 +332,9 @@ namespace Raft
                     VerbosePrint("Node {0} state is {1} _ElectionTimeout", NodeAddress.NodeAddressId, this.NodeState);
 
                     //Voting for self
-                    VotesQuantity = 1;
+                    //VotesQuantity = 1;
+                    VotesQuantity.Clear();
+
                     //Increasing local term number
                     NodeTerm++;
                     
@@ -348,7 +352,7 @@ namespace Raft
                     RunElectionTimer();
                 }
 
-                this.Sender.SendToAll(eRaftSignalType.CandidateRequest, req.SerializeBiser(), this.NodeAddress);
+                this.Sender.SendToAll(eRaftSignalType.CandidateRequest, req.SerializeBiser(), this.NodeAddress, nodeSettings.EntityName);
             }
             catch (Exception ex)
             {
@@ -381,7 +385,7 @@ namespace Raft
                 }
 
                 //VerbosePrint($"{NodeAddress.NodeAddressId} (Leader)> leader_heartbeat");
-                this.Sender.SendToAll(eRaftSignalType.LeaderHearthbeat, heartBeat.SerializeBiser(), this.NodeAddress, true);                
+                this.Sender.SendToAll(eRaftSignalType.LeaderHearthbeat, heartBeat.SerializeBiser(), this.NodeAddress, nodeSettings.EntityName, true);                
 
                 
             }
@@ -413,7 +417,7 @@ namespace Raft
                             ParseCandidateRequest(address, data);
                             break;
                         case eRaftSignalType.VoteOfCandidate:
-                            ParseVoteOfCandidate(data);
+                            ParseVoteOfCandidate(address, data);
                             break;
                         case eRaftSignalType.StateLogEntrySuggestion:
                             ParseStateLogEntrySuggestion(address, data);
@@ -575,7 +579,7 @@ namespace Raft
 
             if (suggestion != null)
             {
-                this.Sender.SendTo(address, eRaftSignalType.StateLogEntrySuggestion, suggestion.SerializeBiser(), this.NodeAddress);
+                this.Sender.SendTo(address, eRaftSignalType.StateLogEntrySuggestion, suggestion.SerializeBiser(), this.NodeAddress, nodeSettings.EntityName);
             }
             
         }
@@ -650,7 +654,7 @@ namespace Raft
             
             //this.NodeStateLog.LeaderSynchronizationIsActive = false;
 
-            this.Sender.SendTo(address, eRaftSignalType.StateLogEntryAccepted, applied.SerializeBiser(), this.NodeAddress);          
+            this.Sender.SendTo(address, eRaftSignalType.StateLogEntryAccepted, applied.SerializeBiser(), this.NodeAddress, nodeSettings.EntityName);          
         }
 
         /// <summary>
@@ -809,7 +813,7 @@ namespace Raft
 
             
 
-            this.Sender.SendTo(this.LeaderNodeAddress, eRaftSignalType.StateLogEntryRequest, req.SerializeBiser(), this.NodeAddress);
+            this.Sender.SendTo(this.LeaderNodeAddress, eRaftSignalType.StateLogEntryRequest, req.SerializeBiser(), this.NodeAddress, nodeSettings.EntityName);
         }
 
 
@@ -936,17 +940,32 @@ namespace Raft
             //VerbosePrint("Node {0} voted to node {1} as {2}  _ParseCandidateRequest", NodeAddress.NodeAddressId, address.NodeAddressId, vote.VoteType);
             VerbosePrint($"Node {NodeAddress.NodeAddressId} ({this.NodeState}) {vote.VoteType} {address.NodeAddressId}  in  _ParseCandidateRequest");
 
-            Sender.SendTo(address, eRaftSignalType.VoteOfCandidate, vote.SerializeBiser(), this.NodeAddress);
+            Sender.SendTo(address, eRaftSignalType.VoteOfCandidate, vote.SerializeBiser(), this.NodeAddress, nodeSettings.EntityName);
         }
 
+        /// <summary>
+        /// Removing from voting and from accepted entity
+        /// </summary>
+        /// <param name="endpointsid"></param>
+        internal void PeerIsDisconnected(string endpointsid)
+        {
+            lock(lock_Operations)
+            {
+                if(NodeState == eNodeState.Candidate)
+                {
+                    VotesQuantity.Remove(endpointsid);
+                }
 
+                NodeStateLog.Clear_dStateLogEntryAcceptance_PeerDisconnected(endpointsid);
+            }
+        }
 
         /// <summary>
         /// Node receives answer votes (to become Leader) from other nodes.
         /// Is called from tryCatch and in lock
         /// </summary>
         /// <param name="data"></param>
-        void ParseVoteOfCandidate(byte[] data)
+        void ParseVoteOfCandidate(NodeAddress address, byte[] data)
         {
             //Node received a node
             var vote = VoteOfCandidate.BiserDecode(data); 
@@ -961,9 +980,10 @@ namespace Raft
                 case VoteOfCandidate.eVoteType.VoteFor:
                     //Calculating if node has Majority of
                    
-                    VotesQuantity++;
+                    //VotesQuantity++;
+                    VotesQuantity.Add(address.EndPointSID);
 
-                    if (VotesQuantity >= this.GetMajorityQuantity())
+                    if ((VotesQuantity.Count + 1) >= this.GetMajorityQuantity())
                     {
                         //Majority
 
@@ -1076,7 +1096,7 @@ namespace Raft
 
             StateLogEntryApplied applied = StateLogEntryApplied.BiserDecode(data);
 
-            var res = this.NodeStateLog.EntryIsAccepted(GetMajorityQuantity(), applied);
+            var res = this.NodeStateLog.EntryIsAccepted(address, GetMajorityQuantity(), applied);
 
             if (res == StateLog.eEntryAcceptanceResult.Committed)
             {
@@ -1094,7 +1114,7 @@ namespace Raft
                     LastStateLogCommittedIndex = this.NodeStateLog.LastCommittedIndex,
                     LastStateLogCommittedIndexTerm = this.NodeStateLog.LastCommittedIndexTerm
                 };
-                this.Sender.SendToAll(eRaftSignalType.LeaderHearthbeat, heartBeat.SerializeBiser(), this.NodeAddress, true);
+                this.Sender.SendToAll(eRaftSignalType.LeaderHearthbeat, heartBeat.SerializeBiser(), this.NodeAddress, nodeSettings.EntityName, true);
                 //---------------------------------------
 
                 //this.NodeStateLog.RemoveEntryFromDistribution(applied.StateLogEntryId, applied.StateLogEntryTerm);
@@ -1159,7 +1179,7 @@ namespace Raft
 
             InLogEntrySend = true;                        
             RunLeaderLogResendTimer();
-            this.Sender.SendToAll(eRaftSignalType.StateLogEntrySuggestion, suggest.SerializeBiser(), this.NodeAddress);
+            this.Sender.SendToAll(eRaftSignalType.StateLogEntrySuggestion, suggest.SerializeBiser(), this.NodeAddress, nodeSettings.EntityName);
         }
 
         /// <summary>
@@ -1201,7 +1221,7 @@ namespace Raft
                                 {
                                     Data = data
                                     //RedirectId = this.redirector.StoreRedirect(null)   //!!!!!!!!!!! Later must be enhanced by the address of connected external client
-                                }).SerializeBiser(), this.NodeAddress);
+                                }).SerializeBiser(), this.NodeAddress, nodeSettings.EntityName);
                         }
 
                     }

@@ -16,13 +16,13 @@ namespace Raft
         {
             public StateLogEntryAcceptance()
             {
-                Quantity = 0;
+                //Quantity = 0;
             }
 
-            /// <summary>
-            /// Accepted Quantity
-            /// </summary>
-            public uint Quantity { get; set; }
+            ///// <summary>
+            ///// Accepted Quantity
+            ///// </summary>
+            //public uint Quantity { get; set; }
             /// <summary>
             /// StateLogEntry Index
             /// </summary>
@@ -32,6 +32,7 @@ namespace Raft
             /// </summary>
             public ulong Term { get; set; }
 
+            public HashSet<string> acceptedEndPoints = new HashSet<string>();
           
         }
 
@@ -180,7 +181,8 @@ namespace Raft
             
             return new StateLogEntrySuggestion()
             {
-                StateLogEntry = qDistribution.Dequeue(),
+                //StateLogEntry = qDistribution.Dequeue(),
+                StateLogEntry = qDistribution.OrderBy(r=>r.Key).First().Value,
                 LeaderTerm = rn.NodeTerm
             };            
         }
@@ -195,7 +197,8 @@ namespace Raft
         /// <summary>
         /// Leader only.Stores logs before being distributed.
         /// </summary>
-        Queue<StateLogEntry> qDistribution = new Queue<StateLogEntry>();
+        //Queue<StateLogEntry> qDistribution = new Queue<StateLogEntry>();
+        SortedDictionary<ulong, StateLogEntry> qDistribution = new SortedDictionary<ulong, StateLogEntry>();
 
         /// <summary>
         /// Is called from lock_operations
@@ -228,9 +231,13 @@ namespace Raft
                 //RedirectId = redirectId
             };
 
-            qDistribution.Enqueue(le);            
+            qDistribution.Add(le.Index, le);
+            //qDistribution.Enqueue(le);            
         }
 
+        /// <summary>
+        /// When Node is selected as leader it is cleared
+        /// </summary>
         public void ClearLogEntryForDistribution()
         {
             qDistribution.Clear();
@@ -672,17 +679,26 @@ namespace Raft
 
         }
 
+
         /// <summary>
-        /// +
-        /// Must be called inside of operation lock.
-        /// Follower only.
+        /// 
         /// </summary>
-        /// <param name="logEntry"></param>
+        /// <param name="suggestion"></param>
+        /// <returns></returns>
         public void AddToLogFollower(StateLogEntrySuggestion suggestion)
-        {
-        
+        {           
             try
             {
+
+                if (rn.nodeSettings.DelayedPersistenceIsActive)
+                {
+                    Tuple<ulong, StateLogEntry> tplSle = null;
+                    if (
+                        sleCache.TryGetValue(suggestion.StateLogEntry.Index, out tplSle)
+                        &&
+                        tplSle.Item1 == suggestion.StateLogEntry.Term)
+                        return; //we got it already
+                }
 
                 using (var t = db.GetTransaction())
                 {
@@ -691,6 +707,15 @@ namespace Raft
                                 new byte[] { 1 }.ToBytes(suggestion.StateLogEntry.Index, ulong.MinValue), true,
                                 new byte[] { 1 }.ToBytes(ulong.MaxValue, ulong.MaxValue), true,true))
                     {
+                        if(
+                            el.Key.Substring(1,8).To_UInt64_BigEndian() == suggestion.StateLogEntry.Index &&
+                            el.Key.Substring(9, 8).To_UInt64_BigEndian() == suggestion.StateLogEntry.Term
+                            )
+                        {
+                            //we got it already
+                            return;
+                        }
+
                         t.RemoveKey<byte[]>(tblStateLogEntry, el.Key);
                     }
                    
@@ -760,6 +785,13 @@ namespace Raft
                 LeaderSynchronizationIsActive = false;
         }
 
+
+        public void Clear_dStateLogEntryAcceptance_PeerDisconnected(string endpointsid)
+        {
+            foreach (var el in dStateLogEntryAcceptance)
+                el.Value.acceptedEndPoints.Remove(endpointsid);
+        }
+
         public enum eEntryAcceptanceResult
         {
             NotAccepted,
@@ -775,7 +807,7 @@ namespace Raft
         /// <param name="majorityNumber"></param>
         /// <param name="LogId"></param>
         /// <param name="TermId"></param>        
-        public eEntryAcceptanceResult EntryIsAccepted(uint majorityQuantity, StateLogEntryApplied applied)
+        public eEntryAcceptanceResult EntryIsAccepted(NodeAddress address, uint majorityQuantity, StateLogEntryApplied applied)
         {
             //If we receive acceptance signals of already Committed entries, we just ignore them
             if (applied.StateLogEntryId <= this.LastCommittedIndex)
@@ -790,22 +822,26 @@ namespace Raft
                 if (acc.Term != applied.StateLogEntryTerm)
                     return eEntryAcceptanceResult.NotAccepted;   //Came from wrong Leader probably
 
-                acc.Quantity += 1;              
+                //acc.Quantity += 1;              
+                acc.acceptedEndPoints.Add(address.EndPointSID);
             }
             else
             {
                 acc = new StateLogEntryAcceptance()
                 {
-                     Quantity = 2,  //Leader + first incoming
+                     //Quantity = 2,  //Leader + first incoming
                      Index = applied.StateLogEntryId,
                      Term = applied.StateLogEntryTerm
                 };
 
+                acc.acceptedEndPoints.Add(address.EndPointSID);
+
                 dStateLogEntryAcceptance[applied.StateLogEntryId] = acc;
             }
-            
-                     
-            if (acc.Quantity >= majorityQuantity)
+
+
+            //if (acc.Quantity >= majorityQuantity)
+            if ((acc.acceptedEndPoints.Count + 1) >= majorityQuantity)
             {
                 this.LastAppliedIndex = applied.StateLogEntryId;
                 //Removing from Dictionary
@@ -844,9 +880,10 @@ namespace Raft
                             t.Insert<byte[], byte[]>(tblStateLogEntry, new byte[] { 2 }, applied.StateLogEntryId.ToBytes(applied.StateLogEntryTerm));
                             t.Commit();
                         }
-                        
+
                         //Removing entry from command queue
                         //t.RemoveKey<byte[]>(tblAppendLogEntry, new byte[] { 1 }.ToBytes(applied.StateLogEntryTerm, applied.StateLogEntryId));                        
+                        qDistribution.Remove(applied.StateLogEntryId);
                     }
 
                     this.LastCommittedIndex = applied.StateLogEntryId;

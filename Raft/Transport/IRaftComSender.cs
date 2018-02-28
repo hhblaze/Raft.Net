@@ -11,21 +11,26 @@ namespace Raft
     /// </summary>
     public interface IRaftComSender
     {
-        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  WHEN SENDING TO ALL CHECK, THAT IT DOESN'T SEND TO ITSELF
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="signalType"></param>
         /// <param name="data"></param>
-        void SendToAll(eRaftSignalType signalType, byte[] data, NodeAddress senderNodeAddress, bool highPriority = false);
+        /// <param name="senderNodeAddress"></param>
+        /// <param name="entityName"></param>
+        /// <param name="highPriority"></param>
+        void SendToAll(eRaftSignalType signalType, byte[] data, NodeAddress senderNodeAddress, string entityName, bool highPriority = false);
+
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="nodeAddress">Address of the node, signal recipient</param>
+        /// <param name="nodeAddress"></param>
         /// <param name="signalType"></param>
         /// <param name="data"></param>
-        void SendTo(NodeAddress nodeAddress,eRaftSignalType signalType, byte[] data, NodeAddress senderNodeAddress);
+        /// <param name="senderNodeAddress"></param>
+        /// <param name="entityName"></param>
+        void SendTo(NodeAddress nodeAddress,eRaftSignalType signalType, byte[] data, NodeAddress senderNodeAddress, string entityName);
     }
 }
