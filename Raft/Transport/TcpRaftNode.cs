@@ -12,7 +12,10 @@ using DBreeze.Utils;
 
 namespace Raft.Transport
 {
-    public class TcpRaftNode: IEmulatedNode, IDisposable
+    public class TcpRaftNode: IDisposable
+#if !NETSTANDARD2_0
+        , IEmulatedNode
+#endif
     {
         //internal RaftNodeSettings rn_settings = new RaftNodeSettings();
         internal IWarningLog log = null;

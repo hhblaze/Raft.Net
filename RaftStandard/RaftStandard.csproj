@@ -1,0 +1,58 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Raft</RootNamespace>
+    <AssemblyName>Raft</AssemblyName>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>bin\Release\netstandard2.0\Raft.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Raft\IWarningLog.cs" Link="IWarningLog.cs" />
+    <Compile Include="..\Raft\Objects\CandidateRequest.cs" Link="Objects\CandidateRequest.cs" />
+    <Compile Include="..\Raft\Objects\LeaderHeartbeat.cs" Link="Objects\LeaderHeartbeat.cs" />
+    <Compile Include="..\Raft\Objects\StateLogEntryApplied.cs" Link="Objects\StateLogEntryApplied.cs" />
+    <Compile Include="..\Raft\Objects\StateLogEntryRedirectRequest.cs" Link="Objects\StateLogEntryRedirectRequest.cs" />
+    <Compile Include="..\Raft\Objects\StateLogEntryRequest.cs" Link="Objects\StateLogEntryRequest.cs" />
+    <Compile Include="..\Raft\Objects\StateLogEntrySuggestion.cs" Link="Objects\StateLogEntrySuggestion.cs" />
+    <Compile Include="..\Raft\Objects\VoteOfCandidate.cs" Link="Objects\VoteOfCandidate.cs" />
+    <Compile Include="..\Raft\RaftNode.cs" Link="RaftNode.cs" />
+    <Compile Include="..\Raft\RaftNodeSettings.cs" Link="RaftNodeSettings.cs" />
+    <Compile Include="..\Raft\RaftSignals.cs" Link="RaftSignals.cs" />
+    <Compile Include="..\Raft\StateMachine\AddLogEntryResult.cs" Link="StateMachine\AddLogEntryResult.cs" />
+    <Compile Include="..\Raft\StateMachine\StateLog.cs" Link="StateMachine\StateLog.cs" />
+    <Compile Include="..\Raft\StateMachine\StateLogEntry.cs" Link="StateMachine\StateLogEntry.cs" />
+    <Compile Include="..\Raft\TimeMaster.cs" Link="TimeMaster.cs" />
+    <Compile Include="..\Raft\Transport\IRaftComReceiver.cs" Link="Transport\IRaftComReceiver.cs" />
+    <Compile Include="..\Raft\Transport\IRaftComSender.cs" Link="Transport\IRaftComSender.cs" />
+    <Compile Include="..\Raft\Transport\NodeAddress.cs" Link="Transport\NodeAddress.cs" />
+    <Compile Include="..\Raft\Transport\SPROT1.cs" Link="Transport\SPROT1.cs" />
+    <Compile Include="..\Raft\Transport\TcpClusterEndPoint.cs" Link="Transport\TcpClusterEndPoint.cs" />
+    <Compile Include="..\Raft\Transport\TcpMsg.cs" Link="Transport\TcpMsg.cs" />
+    <Compile Include="..\Raft\Transport\TcpMsgHandshake.cs" Link="Transport\TcpMsgHandshake.cs" />
+    <Compile Include="..\Raft\Transport\TcpMsgRaft.cs" Link="Transport\TcpMsgRaft.cs" />
+    <Compile Include="..\Raft\Transport\TcpPeer.cs" Link="Transport\TcpPeer.cs" />
+    <Compile Include="..\Raft\Transport\TcpRaftNode.cs" Link="Transport\TcpRaftNode.cs" />
+    <Compile Include="..\Raft\Transport\TcpSpider.cs" Link="Transport\TcpSpider.cs" />
+    <Compile Include="..\Raft\Utils\BiserExtension.cs" Link="Utils\BiserExtension.cs" />
+    <Compile Include="..\Raft\Utils\SDictAutoIdentityLong.cs" Link="Utils\SDictAutoIdentityLong.cs" />
+    <Compile Include="..\Raft\Utils\SDictionary.cs" Link="Utils\SDictionary.cs" />
+    <Compile Include="..\Raft\Utils\SQueue.cs" Link="Utils\SQueue.cs" />
+    <Compile Include="..\Raft\WarningLogEntry.cs" Link="WarningLogEntry.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DBreeze" Version="1.90.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Objects\" />
+    <Folder Include="StateMachine\" />
+    <Folder Include="Transport\" />
+    <Folder Include="Utils\" />
+  </ItemGroup>
+
+</Project>

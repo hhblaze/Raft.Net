@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2027
+VisualStudioVersion = 15.0.27130.2036
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raft", "Raft.csproj", "{76A7C62D-B051-48E4-8B96-644B4D34079B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "_NodeTest", "_NodeTest\_NodeTest.csproj", "{7C9C8B44-3726-424C-B921-0D1216604133}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RaftStandard", "..\RaftStandard\RaftStandard.csproj", "{D8E341DB-9634-44B2-A3F1-C50E3B3DCF14}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{7C9C8B44-3726-424C-B921-0D1216604133}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7C9C8B44-3726-424C-B921-0D1216604133}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7C9C8B44-3726-424C-B921-0D1216604133}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D8E341DB-9634-44B2-A3F1-C50E3B3DCF14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D8E341DB-9634-44B2-A3F1-C50E3B3DCF14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D8E341DB-9634-44B2-A3F1-C50E3B3DCF14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D8E341DB-9634-44B2-A3F1-C50E3B3DCF14}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -30,7 +30,10 @@ namespace Raft
     /// <summary>
     /// Main class. Initiate and Run.
     /// </summary>
-    public class RaftNode : IRaftComReceiver,IDisposable, IEmulatedNode
+    public class RaftNode : IRaftComReceiver,IDisposable
+#if !NETSTANDARD2_0
+        , IEmulatedNode
+#endif
     {
         internal enum eNodeState
         {
@@ -243,7 +246,9 @@ namespace Raft
                 RemoveLeaderHeartbeatWaitingTimer();
                 RemoveLeaderTimer();
                 RemoveDelayedPersistenceTimer();
-                
+                RemoveNoLeaderAddCommandTimer();
+
+
                 this.NodeState = eNodeState.Follower;
 
                 this.NodeStateLog.LeaderSynchronizationIsActive = false;

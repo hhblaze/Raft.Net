@@ -28,6 +28,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\Raft.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="DBreeze, Version=1.90.2018.220, Culture=neutral, PublicKeyToken=174b57f1c155f3c6, processorArchitecture=MSIL">
