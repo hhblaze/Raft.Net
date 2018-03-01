@@ -1,29 +1,13 @@
-﻿using System;
+﻿/* 
+  Copyright (C) 2018 tiesky.com / Alex Solovyov
+  It's a free software for those, who think that it should be free.
+*/
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-//Implemented 15.08.2014
 
-//using DBreeze;
-//using DBreeze.Utils;
-
-//http://thesecretlivesofdata.com/raft/
-//https://www.youtube.com/watch?v=BYMOlWAAiOQ
-//When record is commited:
-/*
- https://raft.github.io/raft.pdf
-Raft
-never commits log entries from previous terms by counting
-replicas.Only log entries from the leader’s current
-term are committed by counting replicas; once an entry
-from the current term has been committed in this way,
-then all prior entries are committed
-*/
-//prior term and current term record can be considered as committed, when at least one record from CURRENT term is saved on majority of servers
-//https://docs.google.com/presentation/d/e/2PACX-1vQjS7iV8k84WSVavOTbRjQ-0nihukXxh_1l44Dy0qqSWVs3uQB9C0Xh9erLdXqDTkcH3XoKiOmt3bhI/pub?start=false&loop=false&delayms=3000&slide=id.g32ff89c1fa_0_11
-//If now term 4, record 3 (from term 2) can't be assumed as commited until record 4 (from term 4) gets its majority.
-//All previous and next indexes (including 4, term 4) can be count as commited since now.
 
 namespace Raft
 {
@@ -69,14 +53,9 @@ namespace Raft
         /// <summary>
         /// 
         /// </summary>
-        ulong Election_TimerId = 0;
-        /*
-         * It's possible that we receive higher term from another leader 
-         * (in case if this leader was disconnected for some seconds from the network, 
-         * other leader can be elected and it will definitely have higher Term, so every Leader node must be ready to it)
-        */
+        ulong Election_TimerId = 0;      
         /// <summary>
-        /// We stop this timer only in case if become leader, and starting if loosing leadership.       
+        /// Stopping this timer only in case if node becomes a leader, and starting when loosing leadership.       
         /// </summary>
         ulong LeaderHeartbeat_TimerId = 0;
         /// <summary>
@@ -273,7 +252,7 @@ namespace Raft
             {
                 lock (lock_Operations)
                 {
-                    if (NodeState == eNodeState.Leader) //Self is the leader
+                    if (NodeState == eNodeState.Leader) //me is the leader
                     {
                         RemoveLeaderHeartbeatWaitingTimer();
                         return;
@@ -439,9 +418,7 @@ namespace Raft
                         case eRaftSignalType.StateLogRedirectRequest: //Not a leader node tries to add command
                             ParseStateLogRedirectRequest(address, data);
                             break;
-                        //case eRaftSignalType.StateLogRedirectResponse: //We don't need that, if request is accepted and committed all will be notified
-                        //    ParseStateLogRedirectResponse(address, data);
-                        //    break;
+                       
                     }
                 }
             }
@@ -519,7 +496,7 @@ namespace Raft
                 this.Delayedpersistence_TimerId = 0;
             }
         }
-        //NoLeaderAddCommand_TimerId
+      
         void RunNoLeaderAddCommandTimer()
         {
             if (NoLeaderAddCommand_TimerId == 0)
@@ -822,17 +799,14 @@ namespace Raft
             {
                 req = new StateLogEntryRequest()
                 {
-                    StateLogEntryId = this.LeaderHeartbeat.LastStateLogCommittedIndex == 0 ? 0 : this.LeaderHeartbeat.LastStateLogCommittedIndex-1
-                   // StateLogEntryId = this.LeaderHeartbeat.LastStateLogCommittedIndex == 0 ? 0 : this.LeaderHeartbeat.LastStateLogCommittedIndex
-                    //StateLogEntryTerm = this.LeaderHeartbeat.LastStateLogCommittedIndexTerm
+                    StateLogEntryId = this.LeaderHeartbeat.LastStateLogCommittedIndex == 0 ? 0 : this.LeaderHeartbeat.LastStateLogCommittedIndex-1                 
                 };
             }
             else
             {
                 req = new StateLogEntryRequest()
                 {
-                    StateLogEntryId = NodeStateLog.LastCommittedIndex
-                    //StateLogEntryTerm = NodeStateLog.LastCommittedIndexTerm
+                    StateLogEntryId = NodeStateLog.LastCommittedIndex                   
                 };
             }
 
@@ -1058,56 +1032,15 @@ namespace Raft
             //StateLogEntryRedirectResponse resp = new StateLogEntryRedirectResponse(); //{ RedirectId = req.RedirectId };
 
             if (this.NodeState != eNodeState.Leader)  //Just return
-            {
-                //resp.ResponseType = StateLogEntryRedirectResponse.eResponseType.NOT_A_LEADER;
-
-                //this.Sender.SendTo(address, eRaftSignalType.StateLogRedirectResponse, resp.SerializeBiser(), this.NodeAddress);
                 return;
-            }
-
-            //resp.ResponseType = StateLogEntryRedirectResponse.eResponseType.CACHED;
-            //var redirectId = this.redirector.StoreRedirect(address); //here we must store redirect data
+            
             this.NodeStateLog.AddStateLogEntryForDistribution(req.Data);//, redirectId);
             ApplyLogEntry();
 
-            //Don't answer, committed value wil be delivered via standard channel
-            //this.Sender.SendTo(address, eRaftSignalType.StateLogRedirectResponse, resp.SerializeBiser(), this.NodeAddress);
+            //Don't answer, committed value wil be delivered via standard channel           
         }
 
-        //void ParseStateLogRedirectResponse(NodeAddress address, byte[] data)
-        //{
-        //    StateLogEntryRedirectResponse resp = StateLogEntryRedirectResponse.BiserDecode(data);
-
-        //    //var redirectInfo = this.redirector.GetRedirectByIdTerm(applied.RedirectId, applied.StateLogEntryTerm);
-        //    //if (redirectInfo != null && redirectInfo.NodeAddress != null)
-        //    //{
-        //    //    StateLogEntryRedirectResponse resp = new StateLogEntryRedirectResponse()
-        //    //    {
-        //    //        RedirectId = applied.RedirectId,
-        //    //        ResponseType = StateLogEntryRedirectResponse.eResponseType.COMMITED
-        //    //    };
-        //    //    this.Sender.SendTo(redirectInfo.NodeAddress, eRaftSignalType.StateLogRedirectResponse, resp.SerializeProtobuf(), this.NodeAddress);
-        //    //}
-
-
-
-        //    //if (this.NodeState != eNodeState.Leader)
-        //    //{
-        //    //    resp.ResponseType = StateLogEntryRedirectResponse.eResponseType.NOT_A_LEADER;
-
-        //    //    this.Sender.SendTo(address, eRaftSignalType.StateLogRedirectResponse, resp.SerializeProtobuf(), this.NodeAddress);
-        //    //    return;
-        //    //}
-
-        //    //resp.ResponseType = StateLogEntryRedirectResponse.eResponseType.CACHED;
-        //    //var redirectId = this.redirector.StoreRedirect(address); //here we must store redirect data
-        //    //var addedStateLogTermIndex = this.NodeStateLog.AddStateLogEntryForDistribution(req.Data, redirectId);
-        //    //ApplyLogEntry();
-
-        //    //this.Sender.SendTo(address, eRaftSignalType.StateLogRedirectResponse, resp.SerializeProtobuf(), this.NodeAddress);
-        //}
-
-
+      
         /// <summary>
         /// Leader receives accepted Log
         /// </summary>
@@ -1144,21 +1077,6 @@ namespace Raft
 
                 //this.NodeStateLog.RemoveEntryFromDistribution(applied.StateLogEntryId, applied.StateLogEntryTerm);
                 InLogEntrySend = false;
-
-                //We don't to send anything back, because COMMIT signal in any case will be delivered to the caller, and then caller must react
-                ////Sending back to the client information that entry is committed
-                //if (applied.RedirectId > 0)
-                //{                    
-                //    var redirectInfo = this.redirector.GetRedirectByIdTerm(applied.RedirectId, applied.StateLogEntryTerm);
-                //    if (redirectInfo != null && redirectInfo.NodeAddress != null)
-                //    {
-                //        StateLogEntryRedirectResponse resp = new StateLogEntryRedirectResponse() {
-                //            RedirectId = applied.RedirectId,
-                //            ResponseType = StateLogEntryRedirectResponse.eResponseType.COMMITED
-                //        };
-                //        this.Sender.SendTo(redirectInfo.NodeAddress, eRaftSignalType.StateLogRedirectResponse, resp.SerializeBiser(), this.NodeAddress);
-                //    }
-                //}
 
                 ApplyLogEntry();
             }
@@ -1229,7 +1147,7 @@ namespace Raft
                     if (this.NodeState == eNodeState.Leader)
                     {
                         RemoveNoLeaderAddCommandTimer();
-                        //res.AddedStateLogTermIndex = this.NodeStateLog.AddStateLogEntryForDistribution(data);
+                        
                         while (NoLeaderCache.Count > 0)
                         {
                             this.NodeStateLog.AddStateLogEntryForDistribution(NoLeaderCache.Dequeue());
@@ -1286,8 +1204,7 @@ namespace Raft
                 return;
 
             Task.Run(() =>
-            {
-                //ulong i = 0;
+            {                
                 StateLogEntry sle = null;               
                 while (true)
                 {

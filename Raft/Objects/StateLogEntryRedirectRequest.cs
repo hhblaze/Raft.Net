@@ -1,4 +1,8 @@
-﻿using System;
+﻿/* 
+  Copyright (C) 2018 tiesky.com / Alex Solovyov
+  It's a free software for those, who think that it should be free.
+*/
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,8 +23,7 @@ namespace Raft
         /// 
         /// </summary>   
         public byte[] Data { get; set; }
-                
-        //public ulong RedirectId { get; set; }
+       
 
         #region "Biser"
         public Biser.Encoder BiserEncoder(Biser.Encoder existingEncoder = null)
@@ -28,8 +31,7 @@ namespace Raft
             Biser.Encoder enc = new Biser.Encoder(existingEncoder);
 
             enc
-            .Add(Data)
-            //.Add(RedirectId)
+            .Add(Data)           
             ;
             return enc;
         }
@@ -54,9 +56,7 @@ namespace Raft
 
             StateLogEntryRedirectRequest m = new StateLogEntryRedirectRequest();  //!!!!!!!!!!!!!! change return type
 
-            m.Data = decoder.GetByteArray();
-            //m.RedirectId = decoder.GetULong();
-            
+            m.Data = decoder.GetByteArray();           
 
             return m;
         }

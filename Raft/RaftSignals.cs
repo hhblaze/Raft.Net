@@ -1,4 +1,8 @@
-﻿using System;
+﻿/* 
+  Copyright (C) 2018 tiesky.com / Alex Solovyov
+  It's a free software for those, who think that it should be free.
+*/
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,7 +17,7 @@ namespace Raft
         /// </summary>
         LeaderHearthbeat,
         /// <summary>
-        /// Heartbeat which comes from the node who want to become a candidate (previous known LeaderId+1)
+        /// Heartbeat which comes from the node who wants to become a candidate (previous known LeaderId+1)
         /// </summary>
         CandidateRequest,
         /// <summary>
@@ -37,32 +41,7 @@ namespace Raft
         /// Follower redirects a StateLogEntry from the connected client and expects StateLogRedirectResponse 
         /// </summary>
         StateLogRedirectRequest
-        ///// <summary>
-        ///// We don't need that, either request is accepted and committed (standard commitment channel) or thrown away
-        ///// Answer of the leader on StateLogRedirectRequest. Twice: first time stored if (byte[] index and term), second - commit acceptance or timeout
-        ///// </summary>
-        //StateLogRedirectResponse,
-
-
-        //THEN WAITING FOR COMMIT SIGNAL
-
-
-
-
-
-        ///// <summary>
-        ///// Nodes-followers ask Leader to send them a LogEntry 
-        ///// (
-        /////     it happens either on node start after getting LeaderHeartbeat !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!, containing current committed Log TermId and Log Index
-        /////     or
-        /////     after receiving from the Leader StateLogSuggestion (new Log Entry)
-        ///// )
-        ///// </summary>
-        //StateLogRequest
-        ///// <summary>
-        ///// Leader sends to all information that it has new command for the StateLog.
-        ///// </summary>
-        //StateLogSuggestion,
+       
     }
 
 }

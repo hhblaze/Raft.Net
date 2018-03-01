@@ -1,4 +1,8 @@
-﻿using System;
+﻿/* 
+  Copyright (C) 2018 tiesky.com / Alex Solovyov
+  It's a free software for those, who think that it should be free.
+*/
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,7 +18,7 @@ namespace Raft
         }
 
         /// <summary>
-        /// First entity must be always default (it will be automatically changed on default)
+        /// First entity must always to have name "default" (or will be automatically changed to "default")
         /// the others must be unique
         /// </summary>
         public string EntityName = "default";        
@@ -30,7 +34,7 @@ namespace Raft
         public uint NoLeaderAddCommandResendIntervalMs = 1000 * 1;
 
         /// <summary>
-        /// Speeds up processing on HDD's will flush changes on disk onces per DelayedPersistenceMs for the non InMemoryEntity
+        /// Speeds up processing events on HDD by flush changes on disk onces per DelayedPersistenceMs for the non InMemoryEntity
         /// </summary>
         public bool DelayedPersistenceIsActive = false;
 

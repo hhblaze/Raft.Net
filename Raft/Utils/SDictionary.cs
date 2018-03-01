@@ -1,4 +1,8 @@
-﻿using System;
+﻿/* 
+  Copyright (C) 2018 tiesky.com / Alex Solovyov
+  It's a free software for those, who think that it should be free.
+*/
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -46,7 +50,6 @@ namespace Raft.Utils
 
         /// <summary>
         /// All add method are safe here, but this returns also a value
-        /// //All Adds go over AddSafe
         /// Enhanced functionality also for update
         /// </summary>
         /// <param name="pair"></param>

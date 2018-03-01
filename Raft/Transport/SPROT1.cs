@@ -1,9 +1,15 @@
-﻿using System;
+﻿/* 
+  Copyright (C) 2018 tiesky.com / Alex Solovyov
+  It's a free software for those, who think that it should be free.
+*/
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using Raft.Utils;
+using DBreeze.Utils;
 
 namespace Raft.Transport
 {
@@ -54,11 +60,11 @@ namespace Raft.Transport
         public SQueue<byte[]> MessageQueue = new SQueue<byte[]>();
 
         /// <summary>
-        /// In case if MaxPayLoad is overriched this will be called
+        /// In case if MaxPayLoad is overflowed this will be called
         /// </summary>
         public Action DestroySelf = null;
         /// <summary>
-        /// Here you will receive parsed SPROT1 codecs, Method Will be called in Async Way, but in one thread. So streaming is possible.
+        /// Here will be receive parsed SPROT1 codecs
         /// </summary>
         public Action<int, byte[]> packetParser = null;
 
@@ -76,7 +82,7 @@ namespace Raft.Transport
         /// <summary>
         /// In one of versions we wanted to enhance Sprot1 with message id, like this
         /// {0;0} -auth {0;0}-codec {0;0;0;0} - length of payload {0;0} - messageId {0;0;...;0} - payload
-        /// In this case message Id is Extension, so to th length of payload will be added ProtocolExtensionLengthV1 (2 in our case) and the whole messageId+payload will be returned
+        /// In this case message Id is an Extension, where to the length of payload will be added ProtocolExtensionLengthV1 (2 in our case) and the complete messageId+payload will be returned
         /// </summary>
         public int ProtocolExtensionLengthV1 = 0;
 
@@ -155,8 +161,7 @@ namespace Raft.Transport
         /// <returns></returns>
         public static byte[] GetSprot1Codec(byte[] codec, byte[] data)
         {
-            //return codec.Concat((data ?? new byte[] { }).Length.To_4_bytes_array_BigEndian()).Concat(data);
-            return codec.Concat(((uint)(data ?? new byte[] { }).Length).To_4_bytes_array_BigEndian()).Concat(data);
+            return codec.ConcatMany(((uint)(data ?? new byte[] { }).Length).To_4_bytes_array_BigEndian(), data);
         }
 
         /// <summary>
@@ -169,19 +174,13 @@ namespace Raft.Transport
         public static byte[] GetSprot1Codec(byte[] codec, byte[] data, bool BigEndian)
         {
             if (!BigEndian)
-            {
-                //return codec.Concat((data ?? new byte[] { }).Length.To_4_bytes_array_LittleEndian()).Concat(data);
-                return codec.Concat(((uint)(data ?? new byte[] { }).Length).To_4_bytes_array_LittleEndian()).Concat(data);
-            }
+                return codec.ConcatMany(((uint)(data ?? new byte[] { }).Length).To_4_bytes_array_LittleEndian(), data);
             else
-            {
-                //return codec.Concat((data ?? new byte[] { }).Length.To_4_bytes_array_BigEndian()).Concat(data);
-                return codec.Concat(((uint)(data ?? new byte[] { }).Length).To_4_bytes_array_BigEndian()).Concat(data);
-            }
+                return codec.ConcatMany(((uint)(data ?? new byte[] { }).Length).To_4_bytes_array_BigEndian(), data);
         }
 
 
-        #region "Spreading Ready Package in Parallel One thread."
+        #region "Spreading Ready Package"
 
         bool threadIsStarted = false;
         object lock_threadIsStarted = new object();
@@ -235,8 +234,7 @@ namespace Raft.Transport
                     this.packetParser(rpe.Codec, rpe.Data);
                 }
             };
-
-            
+                        
             Task.Run(spreadAction);
 
         }
@@ -247,8 +245,8 @@ namespace Raft.Transport
 
         public void PacketAnalizator(bool recursiveSelfCall)
         {
-            //decalring finalization function, 
-            //result of function shows if we shoud stay in procedure or go out
+            //declaring finalization function, 
+            //result of function shows either we should stay in procedure or go out
             Func<bool> aFinalization = () =>
             {
                 bool leftInQueue = false;
@@ -277,23 +275,9 @@ namespace Raft.Transport
             Action<int, byte[]> aParsePackage = (codec, data) =>
             {
                 if (this.packetParser != null)
-                {
-                    //System.Threading.ThreadPool.QueueUserWorkItem(r =>
-                    //{
-                    //    this.packetParser(codec, data);
-                    //});
-
-
-                    //to avoid sprot packages "sending order" mismatch and to achieve current thread release, who makes SPROT computation, we use SpreadReadyPackage function.
-                    //It guaranties that packetParser will receive in one thread correctly sequenced SPROT packages, what gives us opprtunity of data streaming.
-
                     this.SpreadReadyPackage(codec, data);
-
-                }
             };
-
-
-
+            
 
             if (!recursiveSelfCall)
             {
@@ -310,28 +294,14 @@ namespace Raft.Transport
 
             byte[] dequeued = null;
 
-
-
             if (MessageQueue.Count > 0)
             {
                 dequeued = MessageQueue.Dequeue();
-
-
-
+                
                 //special hack for those who wants to get extra full byte incoming visible. First will be called Action, then it will be EndInvoked, then we could call Callback. but in this case 
-                //our Action makes everything, so no callBacks. More Async Examples also are in WSN_DistributedApplication.Host.cOperationExtensions.
+                //our Action makes everything, so - no callBacks.
                 if (PublishDequeued != null)
-                {
-                    ///////////////////////////////////////////   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1   WARNING, take away SYNC?
-                    //PublishDequeued(dequeued);
-                    System.Threading.Tasks.Task.Run(() => PublishDequeued(dequeued));
-                    //PublishDequeued.DoAsync<byte[]>(dequeued);
-
-                    //PublishDequeued.BeginInvoke(dequeued, r =>
-                    //{
-                    //    ((Action<byte[]>)r.AsyncState).EndInvoke(r);
-                    //}, PublishDequeued);
-                }
+                    Task.Run(() => PublishDequeued(dequeued));
 
                 if (workingArray == null)
                 {
@@ -353,14 +323,10 @@ namespace Raft.Transport
                     }
                 }
 
-                //normally this package can't be null and length must be always more then 1 here regulated by tcpServer
-
+                //normally this package can't be null and length must be always more than 1
                 if ((this.package != null && this.package.Length > this._maxPayLoad))
-                {
-                    //if (this.DestroySelf != null)
-                    //    this.DestroySelf();
+                {                   
                     this.DestroySelf?.Invoke();
-
                     return;
                 }
             }
@@ -402,8 +368,6 @@ namespace Raft.Transport
                 {
                     if (dId == -1 && DeviceShouldSendAuthorisationBytesBeforeProceedCodec)
                     {
-                        //Console.WriteLine("h1");
-
                         if (UseBigEndian)
                             dId = this.package.Substring(0, 2).To_UInt16_BigEndian();
                         else
@@ -479,18 +443,9 @@ namespace Raft.Transport
                 }
 
             }
-
-
-            //if (this.package.Length >= this.cutOff)
+            
             if (workingArrayFilled >= this.newPacketSize)
             {
-                //here no extra threads are allowed may be in packetParser itself after authorisation
-                //this.packetParser(codec, this.package.Substring(6, this.newPacketSize));
-
-                //sending codec to parser
-                //aParsePackage(codec, this.package.Substring(6, this.newPacketSize));
-                //this.package = this.package.Substring(cutOff, this.package.Length);
-
                 aParsePackage(codec, workingArray.Substring(0, this.newPacketSize));
                 workingArray = null;
                 workingArrayFilled = 0;
@@ -505,8 +460,6 @@ namespace Raft.Transport
                 {
                     if (this.package.Length > 0)
                     {
-                        //Console.WriteLine(">>> " + this.package.Substring(0, 2).ToBytesString(" ") + "   " + this.package.Substring(2, 4).ToBytesString(" "));
-                        // Console.WriteLine(">>> ");
                         this.PacketAnalizator(true);
                         return;
                     }
@@ -522,241 +475,4 @@ namespace Raft.Transport
         
     } //End of class
 
-    /// <summary>
-    /// !!! Take from DBreeze
-    /// </summary>
-    internal static class BytesExtensions
-    {
-        public static void CopyInside(this byte[] destArray, int destOffset, byte[] srcArray, int srcOffset, int quantity)
-        {
-            Buffer.BlockCopy(srcArray, srcOffset, destArray, destOffset, quantity);
-        }
-
-        /// <summary>
-        /// Fastest Method. Works only for int-dimesional arrays only. 
-        /// When necessary to concat many arrays use ConcatMany
-        /// </summary>
-        /// <param name="ar1"></param>
-        /// <param name="ar2"></param>
-        /// <returns></returns>
-        public static byte[] Concat(this byte[] ar1, byte[] ar2)
-        {
-            if (ar1 == null)
-                ar1 = new byte[] { };
-            if (ar2 == null)
-                ar2 = new byte[] { };
-
-            byte[] ret = null;
-
-            ret = new byte[ar1.Length + ar2.Length];
-
-            Buffer.BlockCopy(ar1, 0, ret, 0, ar1.Length);
-            Buffer.BlockCopy(ar2, 0, ret, ar1.Length, ar2.Length);
-
-            return ret;
-        }
-
-        /// <summary>
-        /// From Int32 to 4 bytes array with BigEndian order (highest byte first, lowest last).        
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static byte[] To_4_bytes_array_BigEndian(this uint value)
-        {
-
-            //if (!BitConverter.IsLittleEndian)
-            //{
-            //    return BitConverter.GetBytes(value);
-            //}
-            //else
-            //{
-            //    return BitConverter.GetBytes(value).Reverse().ToArray();
-            //}
-            return new byte[]
-            {
-                (byte)(value >> 24),
-                (byte)(value >> 16),
-                (byte)(value >> 8),
-                (byte) value
-            };
-        }
-
-        /// <summary>
-        /// From Int32 to 4 bytes array with LittleEndian order (lowest byte first, highest last).        
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static byte[] To_4_bytes_array_LittleEndian(this uint value)
-        {
-
-            //if (!BitConverter.IsLittleEndian)
-            //{
-            //    return BitConverter.GetBytes(value).Reverse().ToArray();
-
-            //}
-            //else
-            //{
-            //    return BitConverter.GetBytes(value);
-            //}
-
-            return new byte[]
-            {
-                (byte) value ,
-                (byte)(value >> 8),
-                (byte)(value >> 16),
-                (byte)(value >> 24),
-            };
-        }
-
-        public static byte[] Substring(this byte[] ar, int startIndex)
-        {
-            //if (ar == null)
-            //    return null;
-
-            //return substringByteArray(ar, startIndex, ar.Length);
-
-
-            int length = ar.Length;
-
-            if (ar == null)
-                return null;
-
-            if (ar.Length < 1)
-                return ar;
-
-            if (startIndex > ar.Length - 1)
-                return null;
-
-            if (startIndex + length > ar.Length)
-            {
-                //we make length till the end of array
-                length = ar.Length - startIndex;
-            }
-
-            byte[] ret = new byte[length];
-
-
-            Buffer.BlockCopy(ar, startIndex, ret, 0, length);
-
-            return ret;
-        }
-
-        /// <summary>
-        /// Substring int-dimensional byte arrays
-        /// </summary>
-        /// <param name="ar"></param>
-        /// <param name="startIndex"></param>
-        /// <param name="length"></param>
-        /// <returns></returns>
-        public static byte[] Substring(this byte[] ar, int startIndex, int length)
-        {
-            if (ar == null)
-                return null;
-
-            if (ar.Length <= 0)
-                return ar;
-
-            if (startIndex > ar.Length - 1)
-                return null;
-
-            if (startIndex + length > ar.Length)
-            {
-                //we make length till the end of array
-                length = ar.Length - startIndex;
-            }
-
-            byte[] ret = new byte[length];
-
-
-            Buffer.BlockCopy(ar, startIndex, ret, 0, length);
-
-            return ret;
-        }
-
-
-        /// <summary>
-        /// From 2 bytes array which is in BigEndian order (highest byte first, lowest last) makes ushort.
-        /// If array not equal 2 bytes throws exception. (0 to 65,535)
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static ushort To_UInt16_BigEndian(this byte[] value)
-        {
-            //if (!BitConverter.IsLittleEndian)
-            //{
-            //    return BitConverter.ToUInt16(value, 0);
-            //}
-            //else
-            //{
-            //    return BitConverter.ToUInt16(value.Reverse().ToArray(), 0);
-            //}
-            return (ushort)(value[0] << 8 | value[1]);
-        }
-
-
-        /// <summary>
-        /// From 2 bytes array which is in LittleEndian order (lowest byte first, highest last) makes ushort.
-        /// If array not equal 2 bytes throws exception. (0 to 65,535)
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static ushort To_UInt16_LittleEndian(this byte[] value)
-        {
-            //if (!BitConverter.IsLittleEndian)
-            //{
-            //    return BitConverter.ToUInt16(value.Reverse().ToArray(), 0);
-            //}
-            //else
-            //{
-            //    return BitConverter.ToUInt16(value, 0);
-            //}
-
-            return (ushort)(value[1] << 8 | value[0]);
-        }
-
-
-
-        /// <summary>
-        /// From 4 bytes array which is in BigEndian order (highest byte first, lowest last) makes uint.
-        /// If array not equal 4 bytes throws exception. (0 to 4.294.967.295)
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static uint To_UInt32_BigEndian(this byte[] value)
-        {
-            //if (!BitConverter.IsLittleEndian)
-            //{
-            //    return BitConverter.ToInt32(value, 0);
-            //}
-            //else
-            //{
-            //    return BitConverter.ToInt32(value.Reverse().ToArray(), 0);
-            //}
-
-            return (uint)(value[0] << 24 | value[1] << 16 | value[2] << 8 | value[3]);
-        }
-
-        /// <summary>
-        /// From 4 bytes array which is in LittleEndian order (lowest byte first, highest last) makes uint.
-        /// If array not equal 4 bytes throws exception. (0 to 4.294.967.295)
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static uint To_UInt32_LittleEndian(this byte[] value)
-        {
-            //if (!BitConverter.IsLittleEndian)
-            //{
-            //    return BitConverter.ToInt32(value.Reverse().ToArray(), 0);
-            //}
-            //else
-            //{
-            //    return BitConverter.ToInt32(value, 0);
-            //}
-
-            return (uint)(value[3] << 24 | value[2] << 16 | value[1] << 8 | value[0]);
-        }
-
-
-
-    }//EOC
 }

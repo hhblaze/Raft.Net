@@ -4,6 +4,6 @@
     <StartArguments>1 4250 "raftConfig.txt" "D:\Temp\RaftDBreeze\Node4250"</StartArguments>
   </PropertyGroup>
   <PropertyGroup>
-    <ProjectView>ShowAllFiles</ProjectView>
+    <ProjectView>ProjectFiles</ProjectView>
   </PropertyGroup>
 </Project>

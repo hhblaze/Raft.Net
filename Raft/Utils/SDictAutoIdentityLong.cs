@@ -1,4 +1,8 @@
-﻿using System;
+﻿/* 
+  Copyright (C) 2018 tiesky.com / Alex Solovyov
+  It's a free software for those, who think that it should be free.
+*/
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -73,7 +77,7 @@ namespace Raft.Utils
         }
 
         /// <summary>
-        /// Best Method to use at here. Like Other Add Methods automatically creates key identity and returns it
+        /// Best Method to use here. Like Other Add Methods automatically creates key identity and returns it
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>

@@ -1,4 +1,8 @@
-﻿using System;
+﻿/* 
+  Copyright (C) 2018 tiesky.com / Alex Solovyov
+  It's a free software for those, who think that it should be free.
+*/
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -30,16 +34,7 @@ namespace Raft
         public long NodeUId { get; set; }
 
         public string EndPointSID { get; set; }
-
-        ///// <summary>
-        ///// Node which represents self instance of RaftNode
-        ///// </summary>
-        //public bool IsMe = false;
-
-        ///// <summary>
-        ///// IpEndPoint of the node (used in RaftNodeUdp)
-        ///// </summary>
-        //public IPEndPoint IpEP = null;
+        
 
     }
 }

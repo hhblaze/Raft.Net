@@ -1,4 +1,8 @@
-﻿using System;
+﻿/* 
+  Copyright (C) 2018 tiesky.com / Alex Solovyov
+  It's a free software for those, who think that it should be free.
+*/
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -149,15 +153,7 @@ namespace Raft.Transport
                     if (handshake)
                     {
                         //sending back handshake ack
-
-                        //Task.Run(() => {
-                        //    //must be done from parallel so our possible dispose is not in the sync_lock
-                        //     peer.Write(new byte[] { 00, 03 }, (new TcpMsgHandshake()
-                        //    {
-                        //        NodeListeningPort = trn.port,
-                        //        NodeUID = trn.rn.NodeAddress.NodeUId,                                
-                        //    }).SerializeProtobuf());
-                        //});
+                                                
                         peer.Write(
                             cSprot1Parser.GetSprot1Codec(
                             new byte[] { 00, 03 }, (new TcpMsgHandshake()
@@ -178,10 +174,7 @@ namespace Raft.Transport
                     //});
 
                     //Sending ping on existing connection (may be it is alredy old)
-                    //Task.Run(() => {
-                    //    //must be done from parallel so our possible dispose is not in the sync_lock
-                       
-                    //});
+                   
                     Peers[peer.EndPointSID].Write(cSprot1Parser.GetSprot1Codec(new byte[] { 00, 05 }, null)); //ping
 
                     //removing incoming connection                    

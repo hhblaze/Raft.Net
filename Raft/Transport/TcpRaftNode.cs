@@ -1,4 +1,8 @@
-﻿using System;
+﻿/* 
+  Copyright (C) 2018 tiesky.com / Alex Solovyov
+  It's a free software for those, who think that it should be free.
+*/
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -17,8 +21,7 @@ namespace Raft.Transport
 #if !NETSTANDARD2_0
         , IEmulatedNode
 #endif
-    {
-        //internal RaftNodeSettings rn_settings = new RaftNodeSettings();
+    {       
         internal IWarningLog log = null;
         internal int port = 0;
         internal Dictionary<string, RaftNode> raftNodes = new Dictionary<string, RaftNode>();
@@ -76,6 +79,7 @@ namespace Raft.Transport
 
         public static TcpRaftNode GetFromConfig(int configVersion, string configuration, string dbreeze,int port, IWarningLog log, Func<string, ulong, byte[], bool> OnCommit)
         {
+            //Setip for configVersion=1
             try
             {
                 TcpRaftNode rn = null;
@@ -94,8 +98,7 @@ namespace Raft.Transport
                 string entityName = "";
 
                 StringReader strReader = new StringReader(configuration);
-
-                //foreach (var el in strReader.ReadLine)
+                                
                 while(true)
                 {
                     var el = strReader.ReadLine();
@@ -159,9 +162,7 @@ namespace Raft.Transport
                     OnCommit,
                     port, log);
 
-                return rn;
-
-                //rn.Start();                
+                return rn;         
             }
             catch (Exception ex)
             {

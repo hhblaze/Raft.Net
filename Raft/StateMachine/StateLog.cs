@@ -1,4 +1,8 @@
-﻿using System;
+﻿/* 
+  Copyright (C) 2018 tiesky.com / Alex Solovyov
+  It's a free software for those, who think that it should be free.
+*/
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -196,8 +200,7 @@ namespace Raft
 
         /// <summary>
         /// Leader only.Stores logs before being distributed.
-        /// </summary>
-        //Queue<StateLogEntry> qDistribution = new Queue<StateLogEntry>();
+        /// </summary>       
         SortedDictionary<ulong, StateLogEntry> qDistribution = new SortedDictionary<ulong, StateLogEntry>();
 
         /// <summary>
@@ -227,12 +230,11 @@ namespace Raft
                 Data = data,
                 Term = tempStateLogTerm,                
                 PreviousStateLogId = tempPrevStateLogId,
-                PreviousStateLogTerm = tempPrevStateLogTerm
-                //RedirectId = redirectId
+                PreviousStateLogTerm = tempPrevStateLogTerm               
             };
 
             qDistribution.Add(le.Index, le);
-            //qDistribution.Enqueue(le);            
+                       
         }
 
         /// <summary>
@@ -292,8 +294,7 @@ namespace Raft
             if (this.LastCommittedIndex < lhb.LastStateLogCommittedIndex)
             {
                 //Node tries to understand if it contains already this index/term, if not it will need synchronization
-                //StateLogEntry committedSle = null;
-                //List<byte[]> lstCommited = new List<byte[]>();
+                
                 ulong populateFrom = 0;
                 Tuple<ulong, StateLogEntry> sleTpl;
 
@@ -336,15 +337,7 @@ namespace Raft
 
                 if (populateFrom > 0)
                     this.rn.Commited();
-                //this.rn.Commited(populateFrom);
-
-                //if(lstCommited.Count > 0)
-                //{
-                //    //---RAISE UP COMMITTED DATA
-                //    if (this.rn.OnCommit != null)
-                //        Task.Run(() => { this.rn.OnCommit(lstCommited); });
-                //}
-
+             
             }
 
             return true;
@@ -839,8 +832,7 @@ namespace Raft
                 dStateLogEntryAcceptance[applied.StateLogEntryId] = acc;
             }
 
-
-            //if (acc.Quantity >= majorityQuantity)
+                        
             if ((acc.acceptedEndPoints.Count + 1) >= majorityQuantity)
             {
                 this.LastAppliedIndex = applied.StateLogEntryId;

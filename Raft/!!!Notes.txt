@@ -1,4 +1,4 @@
-﻿DOCUS:
+﻿DOCS:
 https://github.com/raft/raft.github.io
 https://github.com/hhblaze/Raft.Net
 
@@ -6,7 +6,10 @@ https://ramcloud.stanford.edu/wiki/download/attachments/11370504/raft.pdf
 http://raftconsensus.github.io/
 http://thesecretlivesofdata.com/raft/
 https://www.youtube.com/watch?v=YbZ3zDzDnrw
+https://docs.google.com/presentation/d/e/2PACX-1vQjS7iV8k84WSVavOTbRjQ-0nihukXxh_1l44Dy0qqSWVs3uQB9C0Xh9erLdXqDTkcH3XoKiOmt3bhI/pub?start=false&loop=false&delayms=3000&slide=id.g32ff89c1fa_0_11
+https://www.youtube.com/watch?v=BYMOlWAAiOQ
 
+//First touch 15.08.2014
 
 ------------- Typical task for RAFT fault-tolerance cluster
  - Distributed lock
@@ -15,23 +18,9 @@ https://www.youtube.com/watch?v=YbZ3zDzDnrw
  - Distributed unique ID generator
 
 
- -----------Alg: Distributed counter
-
-  - NodeClient with embedded Raft.NET sends command "Increase on 1 counter xyz" or "Increase on 1 counter xyz and get this value back"  
-  - node redirects command to the leader and receives back its ticket number (term  index)
-  - leader applies command 
-  - when command is commited nodes start to receive event with last commited index
-  - NC must be able can get all commands starting from index X (not including) up to (including) COMMITED index.
-    All nodes apply command on local nodes:
-	(increasing xyz value to 1)
-	?Return 
 
 
-
-
-
-
-
+ Extra notes.
 --------------------------------------------------------------   TRANSPORT  notes ----------------------------------------------------
 -- USE HttpClient as a webClient
 -- USE https://github.com/Code-Sharp/uHttpSharp as possible webserver (enable support keepl-alive)

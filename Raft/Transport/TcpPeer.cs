@@ -1,9 +1,15 @@
-﻿using System;
+﻿/* 
+  Copyright (C) 2018 tiesky.com / Alex Solovyov
+  It's a free software for those, who think that it should be free.
+*/
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+
+using DBreeze.Utils;
 
 namespace Raft.Transport
 {
@@ -91,7 +97,7 @@ namespace Raft.Transport
             _sprot1.DestroySelf = this.Dispose;
             _sprot1.packetParser = this.packetParser;
             //_sprot1.MessageQueue = _tcpServerClient.__IncomingDataBuffer;
-            _sprot1.MaxPayLoad = 5000000;
+            _sprot1.MaxPayLoad = 50000000; //this will be an approximate limitation for one command
             _sprot1.DeviceShouldSendAuthorisationBytesBeforeProceedCodec = false;
             _sprot1.ToSendToParserAuthenticationBytes = false;
         }
@@ -176,34 +182,7 @@ namespace Raft.Transport
             }
            
 
-            //MyPacketParser(codec, data);
-
         }
-
-        ///// <summary>
-        ///// cSprot1Parser.GetSprot1Codec(new byte[] { 00, 01 }, data);
-        ///// </summary>
-        ///// <param name="codec"></param>
-        ///// <param name="data"></param>
-        ///// <returns></returns>
-        //public async Task WriteAsync(byte[] codec, byte[] data)
-        //{
-
-        //    try
-        //    {
-        //        //!!!!!!!!!!!!!!!   here regulate big messages, giving ability to peers to breeze, sending heartbeats first by priority (if sprot allows it)
-        //        //var pd = cSprot1Parser.GetSprot1Codec(new byte[] { 00, 01 }, data);
-        //        var pd = cSprot1Parser.GetSprot1Codec(codec, data);
-
-        //        await stream.WriteAsync(pd, 0, pd.Length).ConfigureAwait(false);
-        //        await stream.FlushAsync().ConfigureAwait(false);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Dispose();
-        //    }
-
-        //}
 
 
         object lock_writer = new object();
@@ -212,7 +191,7 @@ namespace Raft.Transport
         Queue<byte[]> highPriorityQueue = new Queue<byte[]>();
 
         /// <summary>
-        /// !!! Due to high priority sending, don't forget to make extra protocol in case if we want to split SPROT data on several packages
+        /// 
         /// </summary>
         /// <param name="codec"></param>
         /// <param name="data"></param>
@@ -235,27 +214,7 @@ namespace Raft.Transport
             Task.Run(async () => { await Writer(); });
 
         }
-        //public void Write(byte[] codec, byte[] data, bool highPriority = false)
-        //{
-        //    lock(lock_writer)
-        //    {
-        //        if (highPriority)
-        //        {
-        //            highPriorityQueue.Enqueue(new Tuple<byte[], byte[]>(codec, data));
-        //        }
-        //        else
-        //        {
-        //            writerQueue.Enqueue(new Tuple<byte[], byte[]>(codec, data));
-        //        }
-        //        if (inWrite)
-        //            return;
-        //        inWrite = true;
-        //    }
-
-        //    Task.Run(async () => { await Writer(); });
-
-        //}
-
+      
         /// <summary>
         /// highPriorityQueue is served first
         /// </summary>

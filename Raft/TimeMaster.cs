@@ -1,4 +1,8 @@
-﻿using System;
+﻿/* 
+  Copyright (C) 2018 tiesky.com / Alex Solovyov
+  It's a free software for those, who think that it should be free.
+*/
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +12,9 @@ using System.Diagnostics;
 
 namespace Raft
 {
+    /// <summary>
+    /// Time master handles firing events that must be elapsed within different time intervals using only one .NET timer. 
+    /// </summary>
     public class TimeMaster:IDisposable
     {
         System.Timers.Timer tmr = new System.Timers.Timer();
@@ -119,7 +126,7 @@ namespace Raft
 
 
         /// <summary>
-        /// Will call "action" and supplies to it "userToken" in "milliseconds"
+        /// Will call "action" and supply "userToken" after "milliseconds"
         /// </summary>
         /// <param name="milliseconds"></param>
         /// <param name="fireAnObject"></param>
