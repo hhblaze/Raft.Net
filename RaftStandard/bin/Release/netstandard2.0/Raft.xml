@@ -36,12 +36,12 @@
         </member>
         <member name="P:Raft.LeaderHeartbeat.LastStateLogCommittedIndex">
             <summary>
-            Leader includes LastCommitted Index, Followers must apply if it's bigger then theirs
+            Leader includes LastCommitted Index, Followers must apply if it's bigger than theirs
             </summary>        
         </member>
         <member name="P:Raft.LeaderHeartbeat.LastStateLogCommittedIndexTerm">
             <summary>
-            Leader includes LastCommitted Term, Followers must apply if it's bigger then theirs
+            Leader includes LastCommitted Term, Followers must apply if it's bigger than theirs
             </summary>        
         </member>
         <member name="P:Raft.StateLogEntryApplied.StateLogEntryId">
@@ -111,7 +111,7 @@
         </member>
         <member name="F:Raft.RaftNode.LeaderHeartbeat_TimerId">
             <summary>
-            We stop this timer only in case if become leader, and starting if loosing leadership.       
+            Stopping this timer only in case if node becomes a leader, and starting when loosing leadership.       
             </summary>
         </member>
         <member name="F:Raft.RaftNode.Delayedpersistence_TimerId">
@@ -361,7 +361,7 @@
         </member>
         <member name="F:Raft.RaftNodeSettings.EntityName">
             <summary>
-            First entity must be always default (it will be automatically changed on default)
+            First entity must always to have name "default" (or will be automatically changed to "default")
             the others must be unique
             </summary>
         </member>
@@ -372,7 +372,7 @@
         </member>
         <member name="F:Raft.RaftNodeSettings.DelayedPersistenceIsActive">
             <summary>
-            Speeds up processing on HDD's will flush changes on disk onces per DelayedPersistenceMs for the non InMemoryEntity
+            Speeds up processing events on HDD by flush changes on disk onces per DelayedPersistenceMs for the non InMemoryEntity
             </summary>
         </member>
         <member name="F:Raft.RaftNodeSettings.InMemoryEntity">
@@ -427,7 +427,7 @@
         </member>
         <member name="F:Raft.eRaftSignalType.CandidateRequest">
             <summary>
-            Heartbeat which comes from the node who want to become a candidate (previous known LeaderId+1)
+            Heartbeat which comes from the node who wants to become a candidate (previous known LeaderId+1)
             </summary>
         </member>
         <member name="F:Raft.eRaftSignalType.VoteOfCandidate">
@@ -472,7 +472,7 @@
         </member>
         <member name="F:Raft.AddLogEntryResult.eAddLogEntryResult.NO_LEADER_YET">
             <summary>
-            If cluster didn't determine a leader yet, but command is cached to be sent and set on timer
+            If cluster hasn't a leader yet, but command is cached to be sent and timer is on
             </summary>
         </member>
         <member name="P:Raft.AddLogEntryResult.LeaderAddress">
@@ -564,7 +564,7 @@
         <member name="F:Raft.StateLog.qDistribution">
             <summary>
             Leader only.Stores logs before being distributed.
-            </summary>
+            </summary>       
         </member>
         <member name="M:Raft.StateLog.AddStateLogEntryForDistribution(System.Byte[])">
             <summary>
@@ -690,6 +690,11 @@
             Out of protobuf
             </summary>        
         </member>
+        <member name="T:Raft.TimeMaster">
+            <summary>
+            Time master handles firing events that must be elapsed within different time intervals using only one .NET timer. 
+            </summary>
+        </member>
         <member name="F:Raft.TimeMaster.MinimalIntervalInMs">
             <summary>
             Sets minimal elapsed interval in ms. Default is 30 ms.
@@ -697,7 +702,7 @@
         </member>
         <member name="M:Raft.TimeMaster.FireEventEach(System.UInt32,System.Action{System.Object},System.Object,System.Boolean,System.String)">
             <summary>
-            Will call "action" and supplies to it "userToken" in "milliseconds"
+            Will call "action" and supply "userToken" after "milliseconds"
             </summary>
             <param name="milliseconds"></param>
             <param name="fireAnObject"></param>
@@ -786,12 +791,12 @@
         </member>
         <member name="F:Raft.Transport.cSprot1Parser.DestroySelf">
             <summary>
-            In case if MaxPayLoad is overriched this will be called
+            In case if MaxPayLoad is overflowed this will be called
             </summary>
         </member>
         <member name="F:Raft.Transport.cSprot1Parser.packetParser">
             <summary>
-            Here you will receive parsed SPROT1 codecs, Method Will be called in Async Way, but in one thread. So streaming is possible.
+            Here will be receive parsed SPROT1 codecs
             </summary>
         </member>
         <member name="F:Raft.Transport.cSprot1Parser.PublishDequeued">
@@ -808,7 +813,7 @@
             <summary>
             In one of versions we wanted to enhance Sprot1 with message id, like this
             {0;0} -auth {0;0}-codec {0;0;0;0} - length of payload {0;0} - messageId {0;0;...;0} - payload
-            In this case message Id is Extension, so to th length of payload will be added ProtocolExtensionLengthV1 (2 in our case) and the whole messageId+payload will be returned
+            In this case message Id is an Extension, where to the length of payload will be added ProtocolExtensionLengthV1 (2 in our case) and the complete messageId+payload will be returned
             </summary>
         </member>
         <member name="F:Raft.Transport.cSprot1Parser.ToSendToParserAuthenticationBytes">
@@ -870,75 +875,6 @@
             Queue for storing Ready Packages
             </summary>
         </member>
-        <member name="T:Raft.Transport.BytesExtensions">
-            <summary>
-            !!! Take from DBreeze
-            </summary>
-        </member>
-        <member name="M:Raft.Transport.BytesExtensions.Concat(System.Byte[],System.Byte[])">
-            <summary>
-            Fastest Method. Works only for int-dimesional arrays only. 
-            When necessary to concat many arrays use ConcatMany
-            </summary>
-            <param name="ar1"></param>
-            <param name="ar2"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Raft.Transport.BytesExtensions.To_4_bytes_array_BigEndian(System.UInt32)">
-            <summary>
-            From Int32 to 4 bytes array with BigEndian order (highest byte first, lowest last).        
-            </summary>
-            <param name="value"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Raft.Transport.BytesExtensions.To_4_bytes_array_LittleEndian(System.UInt32)">
-            <summary>
-            From Int32 to 4 bytes array with LittleEndian order (lowest byte first, highest last).        
-            </summary>
-            <param name="value"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Raft.Transport.BytesExtensions.Substring(System.Byte[],System.Int32,System.Int32)">
-            <summary>
-            Substring int-dimensional byte arrays
-            </summary>
-            <param name="ar"></param>
-            <param name="startIndex"></param>
-            <param name="length"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Raft.Transport.BytesExtensions.To_UInt16_BigEndian(System.Byte[])">
-            <summary>
-            From 2 bytes array which is in BigEndian order (highest byte first, lowest last) makes ushort.
-            If array not equal 2 bytes throws exception. (0 to 65,535)
-            </summary>
-            <param name="value"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Raft.Transport.BytesExtensions.To_UInt16_LittleEndian(System.Byte[])">
-            <summary>
-            From 2 bytes array which is in LittleEndian order (lowest byte first, highest last) makes ushort.
-            If array not equal 2 bytes throws exception. (0 to 65,535)
-            </summary>
-            <param name="value"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Raft.Transport.BytesExtensions.To_UInt32_BigEndian(System.Byte[])">
-            <summary>
-            From 4 bytes array which is in BigEndian order (highest byte first, lowest last) makes uint.
-            If array not equal 4 bytes throws exception. (0 to 4.294.967.295)
-            </summary>
-            <param name="value"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Raft.Transport.BytesExtensions.To_UInt32_LittleEndian(System.Byte[])">
-            <summary>
-            From 4 bytes array which is in LittleEndian order (lowest byte first, highest last) makes uint.
-            If array not equal 4 bytes throws exception. (0 to 4.294.967.295)
-            </summary>
-            <param name="value"></param>
-            <returns></returns>
-        </member>
         <member name="P:Raft.Transport.TcpMsgHandshake.NodeUID">
             <summary>
             Guid generated by each node
@@ -956,7 +892,7 @@
         </member>
         <member name="M:Raft.Transport.TcpPeer.Write(System.Byte[],System.Boolean)">
             <summary>
-            !!! Due to high priority sending, don't forget to make extra protocol in case if we want to split SPROT data on several packages
+            
             </summary>
             <param name="codec"></param>
             <param name="data"></param>
@@ -995,7 +931,7 @@
         </member>
         <member name="M:Raft.Utils.SDictAutoIdentityLong`1.Add(`0)">
             <summary>
-            Best Method to use at here. Like Other Add Methods automatically creates key identity and returns it
+            Best Method to use here. Like Other Add Methods automatically creates key identity and returns it
             </summary>
             <param name="value"></param>
             <returns></returns>
@@ -1017,7 +953,6 @@
         <member name="M:Raft.Utils.SDictionary`2.AddSafe(System.Collections.Generic.KeyValuePair{`0,`1})">
             <summary>
             All add method are safe here, but this returns also a value
-            //All Adds go over AddSafe
             Enhanced functionality also for update
             </summary>
             <param name="pair"></param>

@@ -4147,6 +4147,11 @@
             In case if entity was inserted is set to true
             </summary>
         </member>
+        <member name="P:DBreeze.Objects.DBreezeObjectInsertResult`1.PtrToObject">
+            <summary>
+            Pointer to DBreezeObject, ObjectGetByFixedAddress should help to retrieve it.
+            </summary>
+        </member>
         <member name="T:DBreeze.Transactions.RandomKeySorter">
             <summary>
             Speeding up, space economy. Represents a mechanism helping to store entites into the memory, before insert or remove.
@@ -5567,7 +5572,6 @@
             
             </summary>
             <param name="decoder"></param>
-            <param name="isCollection"></param>
         </member>
         <member name="M:DBreeze.Utils.Biser.Decoder.CheckNull">
             <summary>
@@ -5601,6 +5605,24 @@
             <param name="fv"></param>
             <param name="dict"></param>
             <param name="isNullChecked"></param>
+        </member>
+        <member name="M:DBreeze.Utils.Biser.Decoder.JSGetLong">
+            <summary>
+             Javascript Biser decoder
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:DBreeze.Utils.Biser.Decoder.JSGetString">
+            <summary>
+            Javascript Biser decoder
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:DBreeze.Utils.Biser.Decoder.JSGetDouble">
+            <summary>
+             Javascript Biser decoder
+            </summary>
+            <returns></returns>
         </member>
         <member name="T:DBreeze.Utils.Biser.Encoder">
             <summary>

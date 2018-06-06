@@ -30,7 +30,7 @@
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Release\Raft.xml</DocumentationFile>
   </PropertyGroup>
-   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release-NET47|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release-NET47|AnyCPU'">
     <OutputPath>bin\Release-NET47\</OutputPath>
     <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
     <DefineConstants>TRACE</DefineConstants>
@@ -43,8 +43,8 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DBreeze, Version=1.90.2018.220, Culture=neutral, PublicKeyToken=174b57f1c155f3c6, processorArchitecture=MSIL">
-      <HintPath>packages\DBreeze.1.90.0\lib\net45\DBreeze.dll</HintPath>
+    <Reference Include="DBreeze, Version=1.91.2018.525, Culture=neutral, PublicKeyToken=174b57f1c155f3c6, processorArchitecture=MSIL">
+      <HintPath>packages\DBreeze.1.91.3\lib\net45\DBreeze.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />

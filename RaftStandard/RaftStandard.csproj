@@ -45,7 +45,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DBreeze" Version="1.90.0" />
+    <PackageReference Include="DBreeze" Version="1.91.3" />
   </ItemGroup>
 
   <ItemGroup>
