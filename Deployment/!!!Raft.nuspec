@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Raft</id>
-        <version>1.1.2</version>
+        <version>1.2.0</version>
         <title>Raft.NET dotnet consensus algorithm implementation</title>
         <authors>Alex Solovyov</authors>
         <owners>tiesky.com / Alex Solovyov</owners>
@@ -16,7 +16,7 @@
         <language>es-US</language>
         <tags>RAFT Raft.NET dotnet dbreeze netcore netstandard net framework</tags>
         <dependencies>
-            <dependency id="DBreeze" version="1.91.3" />
+            <dependency id="DBreeze" version="1.91.4" />
         </dependencies>
     </metadata>
     <files>

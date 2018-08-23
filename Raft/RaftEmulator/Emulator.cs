@@ -21,7 +21,7 @@ namespace Raft.RaftEmulator
         Dictionary<long, IEmulatedNode> nodes = new Dictionary<long, IEmulatedNode>();
         object sync_nodes = new object();
         List<TcpClusterEndPoint> eps = new List<TcpClusterEndPoint>();
-        RaftNodeSettings rn_settings = null;
+        RaftEntitySettings re_settings = null;
 
         public void StartEmulateTcpNodes(int nodesQuantity)
         {
@@ -30,7 +30,7 @@ namespace Raft.RaftEmulator
 
             TcpRaftNode trn = null;
 
-            rn_settings = new RaftNodeSettings()
+            re_settings = new RaftEntitySettings()
             {
                 VerboseRaft = true,
                 //VerboseRaft = false,
@@ -50,7 +50,7 @@ namespace Raft.RaftEmulator
                 lock (sync_nodes)
                 {
                     //S:\temp\RaftDbr
-                    trn = new TcpRaftNode(eps, new List<RaftNodeSettings> { rn_settings }, @"D:\Temp\RaftDBreeze\node" + (4250 + i),
+                    trn = new TcpRaftNode(new NodeSettings() { TcpClusterEndPoints = eps, RaftEntitiesSettings = new List<RaftEntitySettings> { re_settings } }, @"D:\Temp\RaftDBreeze\node" + (4250 + i),
                         (entityName, index, data) => { Console.WriteLine($"wow committed {entityName}/{index}"); return true; },
                         4250 + i, this);
 
@@ -109,14 +109,14 @@ namespace Raft.RaftEmulator
         {
             RaftNode rn =null;
 
-            RaftNodeSettings rn_settings = new RaftNodeSettings()
+            RaftEntitySettings re_settings = new RaftEntitySettings()
             {
                  
             };
 
             for (int i = 0; i < nodesQuantity; i++)
             {
-                rn = new RaftNode(rn_settings, @"D:\Temp\RaftDBreeze\node" + (4250 + i), this, this, (entityName, index, data) => { return true; });
+                rn = new RaftNode(re_settings, new DBreeze.DBreezeEngine(@"D:\Temp\RaftDBreeze\node" + (4250 + i)), this, this, (entityName, index, data) => { return true; });
                 rn.Verbose = true;
                 rn.SetNodesQuantityInTheCluster((uint)nodesQuantity);
                 rn.NodeAddress.NodeAddressId = i + 1;
@@ -190,7 +190,7 @@ namespace Raft.RaftEmulator
 
                     lock (sync_nodes)
                     {
-                        trn = new TcpRaftNode(eps, new List<RaftNodeSettings> { rn_settings }, @"D:\Temp\RaftDBreeze\node"+ nodeId,
+                        trn = new TcpRaftNode(new NodeSettings() { TcpClusterEndPoints = eps, RaftEntitiesSettings = new List<RaftEntitySettings> { re_settings } }, @"D:\Temp\RaftDBreeze\node"+ nodeId,
                             (entityName, index, data) => { Console.WriteLine($"wow committed {entityName}/{index}"); return true; },
                             nodeId,  this);
                         nodes[trn.GetNodeByEntityName("default").NodeAddress.NodeAddressId] = trn;

@@ -117,7 +117,7 @@ namespace Raft.Transport
                 if (peer.Handshake.NodeUID == trn.GetNodeByEntityName("default").NodeAddress.NodeUId)   //Self disconnect
                 {
                  
-                    trn.clusterEndPoints.Where(r => r.EndPointSID == peer.EndPointSID)
+                    trn.NodeSettings.TcpClusterEndPoints.Where(r => r.EndPointSID == peer.EndPointSID)
                         .FirstOrDefault().Me = true;
                                         
                     peer.Dispose(true);
@@ -196,7 +196,7 @@ namespace Raft.Transport
 
         public async Task Handshake()        
         {
-            await HandshakeTo(trn.clusterEndPoints);
+            await HandshakeTo(trn.NodeSettings.TcpClusterEndPoints);
             trn.GetNodeByEntityName("default").TM.FireEventEach(3000, RetestConnections, null, false);
         }
 
@@ -268,11 +268,11 @@ namespace Raft.Transport
 
                 List<TcpPeer> peers = GetPeers();
                 
-                if (peers.Count == trn.clusterEndPoints.Count - 1)
+                if (peers.Count == trn.NodeSettings.TcpClusterEndPoints.Count - 1)
                     return;
 
                 var list2Lookup = new HashSet<string>(peers.Select(r => r?.EndPointSID));
-                var ws = trn.clusterEndPoints.Where(r => !r.Me && (!list2Lookup.Contains(r.EndPointSID))).ToList();
+                var ws = trn.NodeSettings.TcpClusterEndPoints.Where(r => !r.Me && (!list2Lookup.Contains(r.EndPointSID))).ToList();
 
                 if (ws.Count > 0)
                 {                    

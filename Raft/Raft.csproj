@@ -43,8 +43,8 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DBreeze, Version=1.91.2018.525, Culture=neutral, PublicKeyToken=174b57f1c155f3c6, processorArchitecture=MSIL">
-      <HintPath>packages\DBreeze.1.91.3\lib\net45\DBreeze.dll</HintPath>
+    <Reference Include="DBreeze, Version=1.91.2018.822, Culture=neutral, PublicKeyToken=174b57f1c155f3c6, processorArchitecture=MSIL">
+      <HintPath>packages\DBreeze.1.91.4\lib\net45\DBreeze.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
@@ -63,6 +63,7 @@
     <Compile Include="Objects\StateLogEntryRequest.cs" />
     <Compile Include="Objects\StateLogEntrySuggestion.cs" />
     <Compile Include="RaftEmulator\IEmulatedNode.cs" />
+    <Compile Include="NodeSettings.cs" />
     <Compile Include="StateMachine\AddLogEntryResult.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -90,7 +91,7 @@
     <Compile Include="Objects\VoteOfCandidate.cs" />
     <Compile Include="RaftNode.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RaftNodeSettings.cs" />
+    <Compile Include="RaftEntitySettings.cs" />
     <Compile Include="RaftSignals.cs" />
     <Compile Include="TimeMaster.cs" />
   </ItemGroup>

@@ -51,7 +51,7 @@ namespace Raft
         //const string tblAppendLogEntry = "RaftTbl_AppendLogEntry";
         
         internal RaftNode rn = null;
-        DBreezeEngine db = null;
+        
 
         /// <summary>
         /// Holds last committed State Log Index.
@@ -110,20 +110,24 @@ namespace Raft
         ulong sleCacheTerm = 0;
         ulong sleCacheBusinessLogicIndex = 0;
 
-        public StateLog(string dbreezePath, RaftNode rn)
+        public StateLog(RaftNode rn)
         {
             this.rn = rn;
-            
-            
-            if(String.IsNullOrEmpty(dbreezePath) || rn.nodeSettings.InMemoryEntity)
-                db = new DBreezeEngine(new DBreezeConfiguration { Storage = DBreezeConfiguration.eStorage.MEMORY });
-            else
-                db = new DBreezeEngine(dbreezePath);
 
-            if (rn.nodeSettings.EntityName != "default")
-                tblStateLogEntry += "_" + rn.nodeSettings.EntityName;
+            //if (rn.nodeSettings.InMemoryEntity)
 
-            using (var t = db.GetTransaction())
+            //    if (String.IsNullOrEmpty(dbreezePath) || rn.nodeSettings.InMemoryEntity)
+            //    db = new DBreezeEngine(new DBreezeConfiguration { Storage = DBreezeConfiguration.eStorage.MEMORY });
+            //else
+            //    db = new DBreezeEngine(dbreezePath);
+
+            if (rn.entitySettings.EntityName != "default")
+                tblStateLogEntry += "_" + rn.entitySettings.EntityName;
+
+            if (rn.entitySettings.InMemoryEntity)
+                tblStateLogEntry = "mem_" + tblStateLogEntry;
+
+            using (var t = this.rn.db.GetTransaction())
             {
                 var row = t.SelectBackwardFromTo<byte[], byte[]>(tblStateLogEntry,
                     new byte[] { 1 }.ToBytes(ulong.MaxValue, ulong.MaxValue),true, 
@@ -167,11 +171,11 @@ namespace Raft
         /// </summary>
         public void Dispose()
         {
-            if(db != null)
-            {
-                db.Dispose();
-                db = null;
-            }
+            //if (db != null)
+            //{
+            //    db.Dispose();
+            //    db = null;
+            //}
         }
 
         /// <summary>
@@ -264,13 +268,13 @@ namespace Raft
             StateLogId = suggest.StateLogEntry.Index;
             StateLogTerm = suggest.StateLogEntry.Term;
 
-            if (rn.nodeSettings.DelayedPersistenceIsActive)
+            if (rn.entitySettings.DelayedPersistenceIsActive)
             {
                 sleCache[suggest.StateLogEntry.Index] = new Tuple<ulong, StateLogEntry>(suggest.StateLogEntry.Term, suggest.StateLogEntry);
             }
             else
             {
-                using (var t = db.GetTransaction())
+                using (var t = this.rn.db.GetTransaction())
                 {
                     t.Insert<byte[], byte[]>(tblStateLogEntry, new byte[] { 1 }.ToBytes(suggest.StateLogEntry.Index, suggest.StateLogEntry.Term), suggest.StateLogEntry.SerializeBiser());
                     t.Commit();
@@ -298,7 +302,7 @@ namespace Raft
                 ulong populateFrom = 0;
                 Tuple<ulong, StateLogEntry> sleTpl;
 
-                if (rn.nodeSettings.DelayedPersistenceIsActive
+                if (rn.entitySettings.DelayedPersistenceIsActive
                     &&
                     sleCache.TryGetValue(lhb.LastStateLogCommittedIndex, out sleTpl) && sleTpl.Item1 == lhb.LastStateLogCommittedIndexTerm
                     )
@@ -313,7 +317,7 @@ namespace Raft
                 }
                 else
                 {
-                    using (var t = db.GetTransaction())
+                    using (var t = this.rn.db.GetTransaction())
                     {
 
                         t.ValuesLazyLoadingIsOn = false;
@@ -357,7 +361,7 @@ namespace Raft
 
             FlushSleCache();
 
-            using (var t = db.GetTransaction())
+            using (var t = this.rn.db.GetTransaction())
             {
                 //Removing from the persisted all keys equal or bigger then suppled Log
                 foreach (var el in t.SelectForwardFromTo<byte[], byte[]>(tblStateLogEntry,
@@ -373,14 +377,14 @@ namespace Raft
 
         public void FlushSleCache()
         {
-            if (!rn.nodeSettings.DelayedPersistenceIsActive)
+            if (!rn.entitySettings.DelayedPersistenceIsActive)
                 return;
 
             if (sleCache.Count > 0 || sleCacheIndex > 0 || sleCacheTerm > 0 || sleCacheBusinessLogicIndex > 0)
             {
                 rn.VerbosePrint($"{rn.NodeAddress.NodeAddressId}> flushing: {sleCache.Count}");
 
-                using (var t = db.GetTransaction())
+                using (var t = this.rn.db.GetTransaction())
                 {
                     if (sleCache.Count > 0)
                     {
@@ -414,13 +418,13 @@ namespace Raft
         {
             LastBusinessLogicCommittedIndex = index;
 
-            if (rn.nodeSettings.DelayedPersistenceIsActive)
+            if (rn.entitySettings.DelayedPersistenceIsActive)
             {
                 sleCacheBusinessLogicIndex = index;
             }
             else
             {
-                using (var t = db.GetTransaction())
+                using (var t = this.rn.db.GetTransaction())
                 {
                     t.Insert<byte[], ulong>(tblStateLogEntry, new byte[] { 3 }, index);
                     t.Commit();
@@ -448,12 +452,12 @@ namespace Raft
             ulong prevId = 0;
             ulong prevTerm = 0;
 
-            using (var t = db.GetTransaction())
+            using (var t = this.rn.db.GetTransaction())
             {
                 
                 if(req.StateLogEntryId == 0)// && req.StateLogEntryTerm == 0)
                 {
-                    if (rn.nodeSettings.DelayedPersistenceIsActive && sleCache.Count > 0)
+                    if (rn.entitySettings.DelayedPersistenceIsActive && sleCache.Count > 0)
                     {
                         sle = sleCache.OrderBy(r => r.Key).First().Value.Item2;
                     }
@@ -495,7 +499,7 @@ namespace Raft
                     Tuple<ulong, StateLogEntry> sleTpl;
                     bool reForward = true;
 
-                    if (rn.nodeSettings.DelayedPersistenceIsActive &&
+                    if (rn.entitySettings.DelayedPersistenceIsActive &&
                         sleCache.TryGetValue(req.StateLogEntryId, out sleTpl)
                         )
                     {
@@ -598,7 +602,7 @@ namespace Raft
                 Tuple<ulong, StateLogEntry> sleTpl;
 
                 if (
-                    rn.nodeSettings.DelayedPersistenceIsActive
+                    rn.entitySettings.DelayedPersistenceIsActive
                     &&
                     sleCache.TryGetValue(logEntryId, out sleTpl) && sleTpl.Item1 == logEntryTerm
                     )
@@ -606,7 +610,7 @@ namespace Raft
                     return sleTpl.Item2;
                 }
 
-                using (var t = db.GetTransaction())
+                using (var t = this.rn.db.GetTransaction())
                 {
                     var row = t.Select<byte[], byte[]>(tblStateLogEntry, new byte[] { 1 }.ToBytes(logEntryId, logEntryTerm));
                     if (!row.Exists)
@@ -645,7 +649,7 @@ namespace Raft
                 Tuple<ulong, StateLogEntry> sleTpl;
 
                 if (
-                   rn.nodeSettings.DelayedPersistenceIsActive
+                   rn.entitySettings.DelayedPersistenceIsActive
                    &&
                    sleCache.TryGetValue(logEntryId, out sleTpl)
                    )
@@ -653,7 +657,7 @@ namespace Raft
                     return sleTpl.Item2;
                 }
                                 
-                using (var t = db.GetTransaction())
+                using (var t = this.rn.db.GetTransaction())
                 {  
                     foreach (var el in t.SelectForwardFromTo<byte[], byte[]>(tblStateLogEntry,
                                 new byte[] { 1 }.ToBytes(logEntryId, ulong.MinValue), true,
@@ -683,7 +687,7 @@ namespace Raft
             try
             {
 
-                if (rn.nodeSettings.DelayedPersistenceIsActive)
+                if (rn.entitySettings.DelayedPersistenceIsActive)
                 {
                     Tuple<ulong, StateLogEntry> tplSle = null;
                     if (
@@ -693,7 +697,7 @@ namespace Raft
                         return; //we got it already
                 }
 
-                using (var t = db.GetTransaction())
+                using (var t = this.rn.db.GetTransaction())
                 {
                     //Removing from the persisted all keys equal or bigger then supplied Log (also from other terms)
                     foreach (var el in t.SelectForwardFromTo<byte[], byte[]>(tblStateLogEntry,                                
@@ -712,7 +716,7 @@ namespace Raft
                         t.RemoveKey<byte[]>(tblStateLogEntry, el.Key);
                     }
                    
-                    if(rn.nodeSettings.DelayedPersistenceIsActive)
+                    if(rn.entitySettings.DelayedPersistenceIsActive)
                     {
                         foreach(var iel in sleCache.Where(r=>r.Key>= suggestion.StateLogEntry.Index).Select(r=>r.Key).ToList())
                             sleCache.Remove(iel);
@@ -844,7 +848,7 @@ namespace Raft
                     //Saving committed entry (all previous are automatically committed)
                     List<byte[]> lstCommited = new List<byte[]>();
 
-                    using (var t = db.GetTransaction())
+                    using (var t = this.rn.db.GetTransaction())
                     {                       
                         //Gathering all not commited entries that are bigger than latest committed index
                         t.ValuesLazyLoadingIsOn = false;
@@ -857,7 +861,7 @@ namespace Raft
 
 
                         //Setting latest commited index
-                        if (rn.nodeSettings.DelayedPersistenceIsActive)
+                        if (rn.entitySettings.DelayedPersistenceIsActive)
                         {
                             foreach (var iel in sleCache.Where(r => r.Key >= this.LastCommittedIndex + 1 && r.Value.Item1 == applied.StateLogEntryTerm))
                             {

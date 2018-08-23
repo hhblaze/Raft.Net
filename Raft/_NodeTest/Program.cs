@@ -1,4 +1,5 @@
-﻿using Raft;
+﻿using DBreeze;
+using Raft;
 using Raft.Transport;
 //using Raft.Transport.UdpServer;
 using System;
@@ -121,7 +122,6 @@ namespace _NodeTest
             }
         }
 
-        
         static void Scenario1(string[] args)
         {
             Console.WriteLine("Scenario 1 is running");
@@ -137,11 +137,10 @@ namespace _NodeTest
                 return;
             }
 
-            string dbreeze = "";
+            string dbreezePath = "";
             if(args.Length >= 3)
-                dbreeze = args[3];
-
-
+                dbreezePath = args[3];
+            
             Console.WriteLine($"Listening port: {args[1]}; Path to config: {args[2]}; Path to DBreeze folder: {args[3]}");
             var configLines = System.IO.File.ReadAllLines(args[2]);
             
@@ -149,10 +148,14 @@ namespace _NodeTest
 
            TcpRaftNode rn = null;
 
-            rn = TcpRaftNode.GetFromConfig(1, System.IO.File.ReadAllText(args[2]), 
-                dbreeze, Convert.ToInt32(args[1]), log,
-                (entName, index, data) => { Console.WriteLine($"wow committed {entName}/{index}"); return true; });
-            
+            //rn = TcpRaftNode.GetFromConfig(1, System.IO.File.ReadAllText(args[2]),
+            //    dbreezePath, Convert.ToInt32(args[1]), log,
+            //    (entName, index, data) => { Console.WriteLine($"wow committed {entName}/{index}"); return true; });
+
+            rn = TcpRaftNode.GetFromConfig(System.IO.File.ReadAllText(args[2]),
+               dbreezePath, Convert.ToInt32(args[1]), log,
+               (entName, index, data) => { Console.WriteLine($"wow committed {entName}/{index}"); return true; });
+
             rn.Start();
 
             AddLogEntryResult addRes = null;

@@ -12,7 +12,7 @@ using DBreeze.Utils;
 
 namespace Raft.Transport
 {    
-    public class TcpClusterEndPoint : Biser.IEncoder
+    public class TcpClusterEndPoint : Biser.IEncoder, Biser.IJsonEncoder
     { 
         public string Host { get; set; } = "127.0.0.1";
              
@@ -62,5 +62,48 @@ namespace Raft.Transport
 
             return m;
         }
+
+        public void BiserJsonEncode(Biser.JsonEncoder encoder)
+        {
+            encoder.Add("Host", this.Host);
+            encoder.Add("Port",this.Port);
+        }
+
+        public static TcpClusterEndPoint BiserJsonDecode(string enc = null, Biser.JsonDecoder extDecoder = null, Biser.JsonSettings settings = null) //!!!!!!!!!!!!!! change return type
+        {
+            Biser.JsonDecoder decoder = null;
+
+            if (extDecoder == null)
+            {
+                if (enc == null || String.IsNullOrEmpty(enc))
+                    return null;
+                decoder = new Biser.JsonDecoder(enc, settings);
+                if (decoder.CheckNull())
+                    return null;
+            }
+            else
+            {
+                //JSONSettings of the existing decoder will be used
+                decoder = extDecoder;
+            }
+
+            TcpClusterEndPoint m = new TcpClusterEndPoint();  //!!!!!!!!!!!!!! change return type
+            foreach (var props in decoder.GetDictionary<string>())
+            {
+                switch (props)
+                {
+                    case "Host":
+                        m.Host = decoder.GetString();
+                        break;
+                    case "Port":
+                        m.Port = decoder.GetInt();
+                        break;
+                    default:
+                        decoder.SkipValue();//MUST BE HERE
+                        break;
+                }
+            }
+            return m;
+        }//eof
     }
 }

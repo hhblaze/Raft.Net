@@ -4,6 +4,16 @@
         <name>Raft</name>
     </assembly>
     <members>
+        <member name="P:Raft.NodeSettings.RaftEntitiesSettings">
+            <summary>
+            List of Raft Entities that will use one TCP Transport to get the same state for all entites
+            </summary>
+        </member>
+        <member name="P:Raft.NodeSettings.TcpClusterEndPoints">
+            <summary>
+            Quantity of Cluster EndPoints is used to get majority of servers to Commit Entity
+            </summary>
+        </member>
         <member name="P:Raft.CandidateRequest.TermId">
             <summary>
             
@@ -84,6 +94,67 @@
             
             </summary>        
         </member>
+        <member name="F:Raft.RaftEntitySettings.EntityName">
+            <summary>
+            First entity must always to have name "default" (or will be automatically changed to "default")
+            the others must be unique
+            </summary>
+        </member>
+        <member name="F:Raft.RaftEntitySettings.LeaderHeartbeatMs">
+            <summary>
+            Leader heartbeat interval in ms.
+            </summary>
+        </member>
+        <member name="F:Raft.RaftEntitySettings.DelayedPersistenceIsActive">
+            <summary>
+            Speeds up processing events on HDD by flush changes on disk onces per DelayedPersistenceMs for the non InMemoryEntity
+            </summary>
+        </member>
+        <member name="F:Raft.RaftEntitySettings.InMemoryEntity">
+            <summary>
+            Is completely handled in-memory
+            </summary>
+        </member>
+        <member name="F:Raft.RaftEntitySettings.InMemoryEntityStartSyncFromLatestEntity">
+            <summary>
+            Only in case if it is an InMemoryEntity it can ask to get sync (after long sleep) starting from latest leader index/term
+            </summary>
+        </member>
+        <member name="F:Raft.RaftEntitySettings.ElectionTimeoutMinMs">
+            <summary>
+            in ms.
+            </summary>
+        </member>
+        <member name="F:Raft.RaftEntitySettings.ElectionTimeoutMaxMs">
+            <summary>
+            in ms.
+            </summary>
+        </member>
+        <member name="F:Raft.RaftEntitySettings.LeaderLogResendIntervalMs">
+            <summary>
+            If leader doesn't receive COMMIT on log-entry within interval it tries to resend it.
+            </summary>
+        </member>
+        <member name="F:Raft.RaftEntitySettings.RaftNodeIdExternalForEmulator">
+            <summary>
+            Exceptionally for emulators
+            </summary>
+        </member>
+        <member name="F:Raft.RaftEntitySettings.InitialQuantityOfRaftNodesInTheCluster">
+            <summary>
+            Initial value for calculating majority
+            </summary>
+        </member>
+        <member name="F:Raft.RaftEntitySettings.VerboseRaft">
+            <summary>
+            Log Raft debug info
+            </summary>
+        </member>
+        <member name="F:Raft.RaftEntitySettings.VerboseTransport">
+            <summary>
+            Log Transport debug info
+            </summary>
+        </member>
         <member name="T:Raft.RaftNode">
             <summary>
             Main class. Initiate and Run.
@@ -99,7 +170,7 @@
             Communication interface
             </summary>
         </member>
-        <member name="F:Raft.RaftNode.nodeSettings">
+        <member name="F:Raft.RaftNode.entitySettings">
             <summary>
             Node settings
             </summary>
@@ -174,7 +245,7 @@
             Supplied via constructor. Will be called and supply
             </summary>
         </member>
-        <member name="M:Raft.RaftNode.#ctor(Raft.RaftNodeSettings,System.String,Raft.IRaftComSender,Raft.IWarningLog,System.Func{System.String,System.UInt64,System.Byte[],System.Boolean})">
+        <member name="M:Raft.RaftNode.#ctor(Raft.RaftEntitySettings,DBreeze.DBreezeEngine,Raft.IRaftComSender,Raft.IWarningLog,System.Func{System.String,System.UInt64,System.Byte[],System.Boolean})">
             <summary>
             
             </summary>
@@ -358,67 +429,6 @@
             <param name="data"></param>
             <param name="logEntryExternalId"></param>
             <returns></returns>
-        </member>
-        <member name="F:Raft.RaftNodeSettings.EntityName">
-            <summary>
-            First entity must always to have name "default" (or will be automatically changed to "default")
-            the others must be unique
-            </summary>
-        </member>
-        <member name="F:Raft.RaftNodeSettings.LeaderHeartbeatMs">
-            <summary>
-            Leader heartbeat interval in ms.
-            </summary>
-        </member>
-        <member name="F:Raft.RaftNodeSettings.DelayedPersistenceIsActive">
-            <summary>
-            Speeds up processing events on HDD by flush changes on disk onces per DelayedPersistenceMs for the non InMemoryEntity
-            </summary>
-        </member>
-        <member name="F:Raft.RaftNodeSettings.InMemoryEntity">
-            <summary>
-            Is completely handled in-memory
-            </summary>
-        </member>
-        <member name="F:Raft.RaftNodeSettings.InMemoryEntityStartSyncFromLatestEntity">
-            <summary>
-            Only in case if it is an InMemoryEntity it can ask to get sync (after long sleep) starting from latest leader index/term
-            </summary>
-        </member>
-        <member name="F:Raft.RaftNodeSettings.ElectionTimeoutMinMs">
-            <summary>
-            in ms.
-            </summary>
-        </member>
-        <member name="F:Raft.RaftNodeSettings.ElectionTimeoutMaxMs">
-            <summary>
-            in ms.
-            </summary>
-        </member>
-        <member name="F:Raft.RaftNodeSettings.LeaderLogResendIntervalMs">
-            <summary>
-            If leader doesn't receive COMMIT on log-entry within interval it tries to resend it.
-            </summary>
-        </member>
-        <member name="F:Raft.RaftNodeSettings.RaftNodeIdExternalForEmulator">
-            <summary>
-            Exceptionally for emulators
-            </summary>
-        </member>
-        <member name="F:Raft.RaftNodeSettings.InitialQuantityOfRaftNodesInTheCluster">
-            <summary>
-            Initial value for calculating majority
-            </summary>
-        </member>
-        <member name="F:Raft.RaftNodeSettings.VerboseRaft">
-            <summary>
-            Log Raft debug info
-            </summary>
-        </member>
-        <member name="F:Raft.RaftNodeSettings.VerboseTransport">
-            <summary>
-            Log Transport debug info
-            </summary>
         </member>
         <member name="F:Raft.eRaftSignalType.LeaderHearthbeat">
             <summary>
@@ -915,6 +925,17 @@
             </summary>
             <param name="DontRemoveFromSpider"></param>
             <param name="calledFromDispose"></param>
+        </member>
+        <member name="M:Raft.Transport.TcpRaftNode.GetFromConfig(System.String,System.String,System.Int32,Raft.IWarningLog,System.Func{System.String,System.UInt64,System.Byte[],System.Boolean})">
+            <summary>
+            
+            </summary>
+            <param name="jsonConfiguration">json representation of Raft.NodeSettings</param>
+            <param name="dbreezePath"></param>
+            <param name="port"></param>
+            <param name="log"></param>
+            <param name="OnCommit"></param>
+            <returns></returns>
         </member>
         <member name="T:Raft.Transport.TcpSpider">
             <summary>

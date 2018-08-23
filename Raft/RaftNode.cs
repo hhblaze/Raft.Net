@@ -2,6 +2,7 @@
   Copyright (C) 2018 tiesky.com / Alex Solovyov
   It's a free software for those, who think that it should be free.
 */
+using DBreeze;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,7 +45,7 @@ namespace Raft
         /// <summary>
         /// Node settings
         /// </summary>
-        internal RaftNodeSettings nodeSettings = null;
+        internal RaftEntitySettings entitySettings = null;
         IWarningLog Log = null;
         object lock_Operations = new object();        
         internal TimeMaster TM = null;
@@ -121,6 +122,8 @@ namespace Raft
         /// </summary>
         Func<string, ulong, byte[], bool> OnCommit = null;
 
+        internal DBreezeEngine db;
+
         /// <summary>
         /// 
         /// </summary>
@@ -129,19 +132,20 @@ namespace Raft
         /// <param name="raftSender"></param>
         /// <param name="log"></param>
         /// <param name="OnCommit"></param>
-        public RaftNode(RaftNodeSettings settings, string dbreezePath, IRaftComSender raftSender, IWarningLog log, Func<string, ulong, byte[], bool> OnCommit)
+        public RaftNode(RaftEntitySettings settings, DBreezeEngine dbEngine, IRaftComSender raftSender, IWarningLog log, Func<string, ulong, byte[], bool> OnCommit)
         {
 
             this.Log = log ?? throw new Exception("Raft.Net: ILog is not supplied");
             this.OnCommit = OnCommit ?? throw new Exception("Raft.Net: OnCommit can'T be null");
+            this.db = dbEngine;
                         
             Sender = raftSender;
-            nodeSettings = settings;           
+            entitySettings = settings;           
 
             //Starting time master
             this.TM = new TimeMaster(log);
             //Starting state logger
-            NodeStateLog = new StateLog(dbreezePath, this);            
+            NodeStateLog = new StateLog(this);            
         }
 
         int disposed = 0;
@@ -161,6 +165,12 @@ namespace Raft
 
             this.NodeStateLog.Dispose();
             this.NodeStateLog = null;
+
+            //if (db != null) //Is supplied from outside
+            //{
+            //    db.Dispose();
+            //    db = null;
+            //}
         }
                 
 
@@ -195,7 +205,7 @@ namespace Raft
 
                 IsRunning = true;
 
-                if(nodeSettings.DelayedPersistenceIsActive)
+                if(entitySettings.DelayedPersistenceIsActive)
                     RunDelayedPersistenceTimer();
             }
 
@@ -258,7 +268,7 @@ namespace Raft
                         return;
                     }
 
-                    if (DateTime.Now.Subtract(this.LeaderHeartbeatArrivalTime).TotalMilliseconds < this.nodeSettings.LeaderHeartbeatMs)
+                    if (DateTime.Now.Subtract(this.LeaderHeartbeatArrivalTime).TotalMilliseconds < this.entitySettings.LeaderHeartbeatMs)
                         return; //Early to elect, we receive completely heartbeat from the leader
 
                     VerbosePrint("Node {0} LeaderHeartbeatTimeout", NodeAddress.NodeAddressId);
@@ -339,7 +349,7 @@ namespace Raft
                     RunElectionTimer();
                 }
 
-                this.Sender.SendToAll(eRaftSignalType.CandidateRequest, req.SerializeBiser(), this.NodeAddress, nodeSettings.EntityName);
+                this.Sender.SendToAll(eRaftSignalType.CandidateRequest, req.SerializeBiser(), this.NodeAddress, entitySettings.EntityName);
             }
             catch (Exception ex)
             {
@@ -372,7 +382,7 @@ namespace Raft
                 }
 
                 //VerbosePrint($"{NodeAddress.NodeAddressId} (Leader)> leader_heartbeat");
-                this.Sender.SendToAll(eRaftSignalType.LeaderHearthbeat, heartBeat.SerializeBiser(), this.NodeAddress, nodeSettings.EntityName, true);                
+                this.Sender.SendToAll(eRaftSignalType.LeaderHearthbeat, heartBeat.SerializeBiser(), this.NodeAddress, entitySettings.EntityName, true);                
 
                 
             }
@@ -440,7 +450,7 @@ namespace Raft
             if (this.Election_TimerId == 0)
             {
                 rnd.Next(System.Threading.Thread.CurrentThread.ManagedThreadId);
-                int seed = rnd.Next(nodeSettings.ElectionTimeoutMinMs, nodeSettings.ElectionTimeoutMaxMs);                
+                int seed = rnd.Next(entitySettings.ElectionTimeoutMinMs, entitySettings.ElectionTimeoutMaxMs);                
                 Election_TimerId = this.TM.FireEventEach((uint)seed, ElectionTimeout, null, true);
 
                 VerbosePrint("Node {0} RunElectionTimer {1} ms", NodeAddress.NodeAddressId, seed);
@@ -453,7 +463,7 @@ namespace Raft
         void RunLeaderHeartbeatWaitingTimer()
         {
             if (LeaderHeartbeat_TimerId == 0)
-                LeaderHeartbeat_TimerId = this.TM.FireEventEach(nodeSettings.LeaderHeartbeatMs, LeaderHeartbeatTimeout, null, false);
+                LeaderHeartbeat_TimerId = this.TM.FireEventEach(entitySettings.LeaderHeartbeatMs, LeaderHeartbeatTimeout, null, false);
         }
 
         /// <summary>
@@ -465,7 +475,7 @@ namespace Raft
             {
                 //Raising quickly one 
                 LeaderTimerElapse(null);
-                Leader_TimerId = this.TM.FireEventEach(nodeSettings.LeaderHeartbeatMs / 2, LeaderTimerElapse, null, false, "LEADER");
+                Leader_TimerId = this.TM.FireEventEach(entitySettings.LeaderHeartbeatMs / 2, LeaderTimerElapse, null, false, "LEADER");
             }
         }
 
@@ -484,7 +494,7 @@ namespace Raft
         void RunDelayedPersistenceTimer()
         {
             if (Delayedpersistence_TimerId == 0)
-                Delayedpersistence_TimerId = this.TM.FireEventEach(nodeSettings.DelayedPersistenceMs, (o)=> {
+                Delayedpersistence_TimerId = this.TM.FireEventEach(entitySettings.DelayedPersistenceMs, (o)=> {
                     lock (lock_Operations) { this.NodeStateLog?.FlushSleCache(); } }, null, false);
         }
 
@@ -500,7 +510,7 @@ namespace Raft
         void RunNoLeaderAddCommandTimer()
         {
             if (NoLeaderAddCommand_TimerId == 0)
-                NoLeaderAddCommand_TimerId = this.TM.FireEventEach(nodeSettings.NoLeaderAddCommandResendIntervalMs, (o) => {
+                NoLeaderAddCommand_TimerId = this.TM.FireEventEach(entitySettings.NoLeaderAddCommandResendIntervalMs, (o) => {
                     this.AddLogEntry(null);
                 }, null, false);
         }
@@ -518,7 +528,7 @@ namespace Raft
         {
             if (LeaderLogResend_TimerId == 0)
             {
-                LeaderLogResend_TimerId = this.TM.FireEventEach(nodeSettings.LeaderLogResendIntervalMs, LeaderLogResendTimerElapse, null, true);
+                LeaderLogResend_TimerId = this.TM.FireEventEach(entitySettings.LeaderLogResendIntervalMs, LeaderLogResendTimerElapse, null, true);
             }
         }
 
@@ -581,7 +591,7 @@ namespace Raft
 
             if (suggestion != null)
             {
-                this.Sender.SendTo(address, eRaftSignalType.StateLogEntrySuggestion, suggestion.SerializeBiser(), this.NodeAddress, nodeSettings.EntityName);
+                this.Sender.SendTo(address, eRaftSignalType.StateLogEntrySuggestion, suggestion.SerializeBiser(), this.NodeAddress, entitySettings.EntityName);
             }
             
         }
@@ -632,7 +642,7 @@ namespace Raft
                 {
                     //We don't have previous to this log and need new index request   
                     //VerbosePrint($"{NodeAddress.NodeAddressId}>  in sync 1 ");
-                    if (nodeSettings.InMemoryEntity && nodeSettings.InMemoryEntityStartSyncFromLatestEntity && this.NodeStateLog.LastAppliedIndex == 0)
+                    if (entitySettings.InMemoryEntity && entitySettings.InMemoryEntityStartSyncFromLatestEntity && this.NodeStateLog.LastAppliedIndex == 0)
                     {
                         //helps newly starting mode with specific InMemory parameters get only latest command for the entity
                     }
@@ -656,7 +666,7 @@ namespace Raft
             
             //this.NodeStateLog.LeaderSynchronizationIsActive = false;
 
-            this.Sender.SendTo(address, eRaftSignalType.StateLogEntryAccepted, applied.SerializeBiser(), this.NodeAddress, nodeSettings.EntityName);          
+            this.Sender.SendTo(address, eRaftSignalType.StateLogEntryAccepted, applied.SerializeBiser(), this.NodeAddress, entitySettings.EntityName);          
         }
 
         /// <summary>
@@ -795,7 +805,7 @@ namespace Raft
             NodeStateLog.LeaderSynchronizationRequestWasSent = DateTime.UtcNow;
 
             StateLogEntryRequest req = null;
-            if (nodeSettings.InMemoryEntity && nodeSettings.InMemoryEntityStartSyncFromLatestEntity)
+            if (entitySettings.InMemoryEntity && entitySettings.InMemoryEntityStartSyncFromLatestEntity)
             {
                 req = new StateLogEntryRequest()
                 {
@@ -812,7 +822,7 @@ namespace Raft
 
             
 
-            this.Sender.SendTo(this.LeaderNodeAddress, eRaftSignalType.StateLogEntryRequest, req.SerializeBiser(), this.NodeAddress, nodeSettings.EntityName);
+            this.Sender.SendTo(this.LeaderNodeAddress, eRaftSignalType.StateLogEntryRequest, req.SerializeBiser(), this.NodeAddress, entitySettings.EntityName);
         }
 
 
@@ -939,7 +949,7 @@ namespace Raft
             //VerbosePrint("Node {0} voted to node {1} as {2}  _ParseCandidateRequest", NodeAddress.NodeAddressId, address.NodeAddressId, vote.VoteType);
             VerbosePrint($"Node {NodeAddress.NodeAddressId} ({this.NodeState}) {vote.VoteType} {address.NodeAddressId}  in  _ParseCandidateRequest");
 
-            Sender.SendTo(address, eRaftSignalType.VoteOfCandidate, vote.SerializeBiser(), this.NodeAddress, nodeSettings.EntityName);
+            Sender.SendTo(address, eRaftSignalType.VoteOfCandidate, vote.SerializeBiser(), this.NodeAddress, entitySettings.EntityName);
         }
 
         /// <summary>
@@ -982,7 +992,7 @@ namespace Raft
                     //VotesQuantity++;
                     VotesQuantity.Add(address.EndPointSID);
 
-                    if ((VotesQuantity.Count + 1) >= this.GetMajorityQuantity())
+                    if ((VotesQuantity.Count + 1) >= this.GetMajorityQuantity())                    
                     {
                         //Majority
 
@@ -1072,7 +1082,7 @@ namespace Raft
                     LastStateLogCommittedIndex = this.NodeStateLog.LastCommittedIndex,
                     LastStateLogCommittedIndexTerm = this.NodeStateLog.LastCommittedIndexTerm
                 };
-                this.Sender.SendToAll(eRaftSignalType.LeaderHearthbeat, heartBeat.SerializeBiser(), this.NodeAddress, nodeSettings.EntityName, true);
+                this.Sender.SendToAll(eRaftSignalType.LeaderHearthbeat, heartBeat.SerializeBiser(), this.NodeAddress, entitySettings.EntityName, true);
                 //---------------------------------------
 
                 //this.NodeStateLog.RemoveEntryFromDistribution(applied.StateLogEntryId, applied.StateLogEntryTerm);
@@ -1122,7 +1132,7 @@ namespace Raft
 
             InLogEntrySend = true;                        
             RunLeaderLogResendTimer();
-            this.Sender.SendToAll(eRaftSignalType.StateLogEntrySuggestion, suggest.SerializeBiser(), this.NodeAddress, nodeSettings.EntityName);
+            this.Sender.SendToAll(eRaftSignalType.StateLogEntrySuggestion, suggest.SerializeBiser(), this.NodeAddress, entitySettings.EntityName);
         }
 
         Queue<byte[]> NoLeaderCache = new Queue<byte[]>();
@@ -1179,7 +1189,7 @@ namespace Raft
                                     {
                                         Data = NoLeaderCache.Dequeue()                                    
                                     }
-                                ).SerializeBiser(), this.NodeAddress, nodeSettings.EntityName);
+                                ).SerializeBiser(), this.NodeAddress, entitySettings.EntityName);
                             }
                         }
 
@@ -1228,7 +1238,7 @@ namespace Raft
                     
                     try
                     {
-                        if (this.OnCommit(nodeSettings.EntityName, sle.Index, sle.Data))
+                        if (this.OnCommit(entitySettings.EntityName, sle.Index, sle.Data))
                         {
                             //In case if business logic commit was successful
                             lock (lock_Operations)

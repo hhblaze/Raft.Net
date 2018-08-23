@@ -1,7 +1,7 @@
 {
   "runtimeTarget": {
     "name": ".NETStandard,Version=v2.0/",
-    "signature": "63933d9f6c0153096e7f8e6a72b7a7df54beaa20"
+    "signature": "d3ed71aa70cff20156a946070fdfe5c28b588290"
   },
   "compilationOptions": {},
   "targets": {
@@ -9,20 +9,23 @@
     ".NETStandard,Version=v2.0/": {
       "Raft/1.0.0": {
         "dependencies": {
-          "DBreeze": "1.91.3",
-          "NETStandard.Library": "2.0.1"
+          "DBreeze": "1.91.4",
+          "NETStandard.Library": "2.0.3"
         },
         "runtime": {
           "Raft.dll": {}
         }
       },
-      "DBreeze/1.91.3": {
+      "DBreeze/1.91.4": {
         "runtime": {
-          "lib/netstandard2.0/DBreeze.dll": {}
+          "lib/netstandard2.0/DBreeze.dll": {
+            "assemblyVersion": "1.91.2018.822",
+            "fileVersion": "1.91.2018.822"
+          }
         }
       },
       "Microsoft.NETCore.Platforms/1.1.0": {},
-      "NETStandard.Library/2.0.1": {
+      "NETStandard.Library/2.0.3": {
         "dependencies": {
           "Microsoft.NETCore.Platforms": "1.1.0"
         }
@@ -35,12 +38,12 @@
       "serviceable": false,
       "sha512": ""
     },
-    "DBreeze/1.91.3": {
+    "DBreeze/1.91.4": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-qOveEPnpwjmLhzMz5WT6jVGN6WKltAKgLged0k/p1sqfMn76/ue9UnSSABPfRl+NxEQptpix8qZI0DXT/wL/QQ==",
-      "path": "dbreeze/1.91.3",
-      "hashPath": "dbreeze.1.91.3.nupkg.sha512"
+      "sha512": "sha512-9V7IQId5R2o2pKMhaiepctoBfeO8rmA4sDvWiRKi0iptkQuwKP/iTHz+EuBNwLx3FuG6fz81aJiXvrdwXM4L4A==",
+      "path": "dbreeze/1.91.4",
+      "hashPath": "dbreeze.1.91.4.nupkg.sha512"
     },
     "Microsoft.NETCore.Platforms/1.1.0": {
       "type": "package",
@@ -49,12 +52,12 @@
       "path": "microsoft.netcore.platforms/1.1.0",
       "hashPath": "microsoft.netcore.platforms.1.1.0.nupkg.sha512"
     },
-    "NETStandard.Library/2.0.1": {
+    "NETStandard.Library/2.0.3": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-oA6nwv9MhEKYvLpjZ0ggSpb1g4CQViDVQjLUcDWg598jtvJbpfeP2reqwI1GLW2TbxC/Ml7xL6BBR1HmKPXlTg==",
-      "path": "netstandard.library/2.0.1",
-      "hashPath": "netstandard.library.2.0.1.nupkg.sha512"
+      "sha512": "sha512-st47PosZSHrjECdjeIzZQbzivYBJFv6P2nv4cj2ypdI204DO+vZ7l5raGMiX4eXMJ53RfOIg+/s4DHVZ54Nu2A==",
+      "path": "netstandard.library/2.0.3",
+      "hashPath": "netstandard.library.2.0.3.nupkg.sha512"
     }
   }
 }

@@ -4,6 +4,8 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Raft</RootNamespace>
     <AssemblyName>Raft</AssemblyName>
+    <AssemblyVersion>1.2.0.0</AssemblyVersion>
+    <FileVersion>1.2.0.0</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -12,6 +14,7 @@
 
   <ItemGroup>
     <Compile Include="..\Raft\IWarningLog.cs" Link="IWarningLog.cs" />
+    <Compile Include="..\Raft\NodeSettings.cs" Link="NodeSettings.cs" />
     <Compile Include="..\Raft\Objects\CandidateRequest.cs" Link="Objects\CandidateRequest.cs" />
     <Compile Include="..\Raft\Objects\LeaderHeartbeat.cs" Link="Objects\LeaderHeartbeat.cs" />
     <Compile Include="..\Raft\Objects\StateLogEntryApplied.cs" Link="Objects\StateLogEntryApplied.cs" />
@@ -19,8 +22,8 @@
     <Compile Include="..\Raft\Objects\StateLogEntryRequest.cs" Link="Objects\StateLogEntryRequest.cs" />
     <Compile Include="..\Raft\Objects\StateLogEntrySuggestion.cs" Link="Objects\StateLogEntrySuggestion.cs" />
     <Compile Include="..\Raft\Objects\VoteOfCandidate.cs" Link="Objects\VoteOfCandidate.cs" />
+    <Compile Include="..\Raft\RaftEntitySettings.cs" Link="RaftEntitySettings.cs" />
     <Compile Include="..\Raft\RaftNode.cs" Link="RaftNode.cs" />
-    <Compile Include="..\Raft\RaftNodeSettings.cs" Link="RaftNodeSettings.cs" />
     <Compile Include="..\Raft\RaftSignals.cs" Link="RaftSignals.cs" />
     <Compile Include="..\Raft\StateMachine\AddLogEntryResult.cs" Link="StateMachine\AddLogEntryResult.cs" />
     <Compile Include="..\Raft\StateMachine\StateLog.cs" Link="StateMachine\StateLog.cs" />
@@ -45,7 +48,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DBreeze" Version="1.91.3" />
+    <PackageReference Include="DBreeze" Version="1.91.4" />
   </ItemGroup>
 
   <ItemGroup>

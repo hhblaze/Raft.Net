@@ -1,1 +1,1 @@
-"%~dp0_NodeTest.exe" 1 4251 "%~dp0raftConfig.txt" "D:\Temp\RaftDBreeze\Node4251"
+"%~dp0_NodeTest.exe" 1 4251 "%~dp0raftConfigJSON.txt" "D:\Temp\RaftDBreeze\Node4251"
