@@ -56,9 +56,10 @@ namespace Raft
             }
             else
             {
-                decoder = new Biser.Decoder(extDecoder);
-                if (decoder.IsNull)
+                if (extDecoder.CheckNull())
                     return null;
+                else
+                    decoder = extDecoder;
             }
 
             StateLogEntryApplied m = new StateLogEntryApplied();  //!!!!!!!!!!!!!! change return type

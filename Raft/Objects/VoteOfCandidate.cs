@@ -60,9 +60,10 @@ namespace Raft
             }
             else
             {
-                decoder = new Biser.Decoder(extDecoder);
-                if (decoder.IsNull)
+                if (extDecoder.CheckNull())
                     return null;
+                else
+                    decoder = extDecoder;
             }
 
             VoteOfCandidate m = new VoteOfCandidate();  //!!!!!!!!!!!!!! change return type
