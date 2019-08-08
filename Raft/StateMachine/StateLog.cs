@@ -110,6 +110,9 @@ namespace Raft
         ulong sleCacheTerm = 0;
         ulong sleCacheBusinessLogicIndex = 0;
 
+
+        IndexTermDict<StateLogEntry> inMem = new IndexTermDict<StateLogEntry>();
+
         public StateLog(RaftNode rn)
         {
             this.rn = rn;
@@ -126,6 +129,12 @@ namespace Raft
 
             if (rn.entitySettings.InMemoryEntity)
                 tblStateLogEntry = "mem_" + tblStateLogEntry;
+
+            //if (rn.entitySettings.InMemoryEntity && rn.entitySettings.InMemoryEntityStartSyncFromLatestEntity)
+            //{
+            //    rn.entitySettings.DelayedPersistenceMs = 10000;
+            //    rn.entitySettings.DelayedPersistenceIsActive = true;
+            //}
 
             using (var t = this.rn.db.GetTransaction())
             {
@@ -274,10 +283,20 @@ namespace Raft
             }
             else
             {
-                using (var t = this.rn.db.GetTransaction())
+                if (rn.entitySettings.InMemoryEntity)
                 {
-                    t.Insert<byte[], byte[]>(tblStateLogEntry, new byte[] { 1 }.ToBytes(suggest.StateLogEntry.Index, suggest.StateLogEntry.Term), suggest.StateLogEntry.SerializeBiser());
-                    t.Commit();
+                    lock(inMem.Sync)
+                    {
+                        inMem.Add(suggest.StateLogEntry.Index, suggest.StateLogEntry.Term, suggest.StateLogEntry);
+                    }
+                }
+                else
+                {
+                    using (var t = this.rn.db.GetTransaction())
+                    {
+                        t.Insert<byte[], byte[]>(tblStateLogEntry, new byte[] { 1 }.ToBytes(suggest.StateLogEntry.Index, suggest.StateLogEntry.Term), suggest.StateLogEntry.SerializeBiser());
+                        t.Commit();
+                    }
                 }
             }
 
@@ -302,11 +321,23 @@ namespace Raft
                 ulong populateFrom = 0;
                 Tuple<ulong, StateLogEntry> sleTpl;
 
+                //if (rn.entitySettings.DelayedPersistenceIsActive && rn.entitySettings.InMemoryEntityStartSyncFromLatestEntity)
+                //{
+
+                //    populateFrom = this.LastCommittedIndex + 1;
+
+                //    this.LastCommittedIndex = lhb.LastStateLogCommittedIndex;
+                //    this.LastCommittedIndexTerm = lhb.LastStateLogCommittedIndexTerm;
+
+                //    sleCacheIndex = lhb.LastStateLogCommittedIndex;
+                //    sleCacheTerm = lhb.LastStateLogCommittedIndexTerm;
+                //}
+                //else 
                 if (rn.entitySettings.DelayedPersistenceIsActive
                     &&
                     sleCache.TryGetValue(lhb.LastStateLogCommittedIndex, out sleTpl) && sleTpl.Item1 == lhb.LastStateLogCommittedIndexTerm
                     )
-                {
+                {                   
                     populateFrom = this.LastCommittedIndex + 1;
 
                     this.LastCommittedIndex = lhb.LastStateLogCommittedIndex;
@@ -314,6 +345,27 @@ namespace Raft
 
                     sleCacheIndex = lhb.LastStateLogCommittedIndex;
                     sleCacheTerm = lhb.LastStateLogCommittedIndexTerm;                    
+                }
+                else if(rn.entitySettings.InMemoryEntity)
+                {
+                    lock (inMem.Sync)
+                    {
+                        if (inMem.Select(lhb.LastStateLogCommittedIndex,lhb.LastStateLogCommittedIndexTerm, out var rSle))
+                        {
+                            populateFrom = this.LastCommittedIndex + 1;
+
+                            this.LastCommittedIndex = lhb.LastStateLogCommittedIndex;
+                            this.LastCommittedIndexTerm = lhb.LastStateLogCommittedIndexTerm;
+
+                            using (var t = this.rn.db.GetTransaction())
+                            {
+                                t.Insert<byte[], byte[]>(tblStateLogEntry, new byte[] { 2 }, lhb.LastStateLogCommittedIndex.ToBytes(lhb.LastStateLogCommittedIndexTerm));
+                                t.Commit();
+                            }
+                        }
+                        else
+                            return false;
+                    }
                 }
                 else
                 {
@@ -359,6 +411,18 @@ namespace Raft
             if (LastCommittedIndex == 0 || LastCommittedIndexTerm == 0)
                 return;
 
+            if (rn.entitySettings.InMemoryEntity)
+            {
+                lock (inMem.Sync)
+                {
+                    inMem.Remove(
+                        inMem.SelectForwardFromTo(LastCommittedIndex, LastCommittedIndexTerm, false, ulong.MaxValue, ulong.MaxValue).ToList()
+                        );
+                }
+
+                return;
+            }
+            
             FlushSleCache();
 
             using (var t = this.rn.db.GetTransaction())
@@ -380,12 +444,31 @@ namespace Raft
             if (!rn.entitySettings.DelayedPersistenceIsActive)
                 return;
 
+            
+
             if (sleCache.Count > 0 || sleCacheIndex > 0 || sleCacheTerm > 0 || sleCacheBusinessLogicIndex > 0)
             {
                 rn.VerbosePrint($"{rn.NodeAddress.NodeAddressId}> flushing: {sleCache.Count}");
 
                 using (var t = this.rn.db.GetTransaction())
                 {
+
+                    //if (rn.entitySettings.InMemoryEntityStartSyncFromLatestEntity) // for InMemoryEntityStartSyncFromLatestEntity only
+                    //{
+                    //    var lastSleState = sleCache[sleCacheIndex];
+                    //    sleCache.Clear();
+                    //    sleCache[sleCacheIndex] = lastSleState;
+
+                    //    if (sleCacheIndex > 0 && sleCacheTerm > 0)
+                    //        t.Insert<byte[], byte[]>(tblStateLogEntry, new byte[] { 2 }, sleCacheIndex.ToBytes(sleCacheTerm));
+
+                    //    if (sleCacheBusinessLogicIndex > 0)
+                    //        t.Insert<byte[], ulong>(tblStateLogEntry, new byte[] { 3 }, sleCacheBusinessLogicIndex);
+
+                    //    t.Commit();
+                    //    return;
+                    //}
+
                     if (sleCache.Count > 0)
                     {
                         foreach (var el in sleCache)
@@ -461,6 +544,18 @@ namespace Raft
                     {
                         sle = sleCache.OrderBy(r => r.Key).First().Value.Item2;
                     }
+                    else if (rn.entitySettings.InMemoryEntity)
+                    {
+                        Tuple<ulong, ulong, StateLogEntry> isle = null;
+
+                        lock (inMem.Sync)
+                        {
+                            isle = inMem.SelectForwardFromTo(ulong.MinValue, ulong.MinValue,true, ulong.MaxValue, ulong.MaxValue).FirstOrDefault();
+                        }
+
+                        if (isle != null)
+                            sle = isle.Item3;
+                    }
                     else
                     {
                         var trow = t.SelectForwardFromTo<byte[], byte[]>(tblStateLogEntry,
@@ -515,6 +610,28 @@ namespace Raft
                             le.StateLogEntry = sle;
                         }
                     }
+                    else if (rn.entitySettings.InMemoryEntity)
+                    {
+                        reForward = false;
+                        lock (inMem.Sync)
+                        {
+                            foreach (var el in inMem.SelectForwardFromTo(req.StateLogEntryId, ulong.MinValue, true, ulong.MaxValue, ulong.MaxValue).Take(2))
+                            {
+                                cnt++;
+                                sle = el.Item3;
+                                if (cnt == 1)
+                                {
+                                    prevId = sle.Index;
+                                    prevTerm = sle.Term;
+                                }
+                                else
+                                {
+                                    le.StateLogEntry = sle;
+                                }
+                            }
+                        }
+                       
+                    }
                     else
                     {
                         reForward = false;
@@ -541,21 +658,45 @@ namespace Raft
                     if(cnt < 2 && reForward)
                     {
                         ulong toAdd = (ulong)cnt;
-                        foreach (var el in t.SelectForwardFromTo<byte[], byte[]>(tblStateLogEntry,
+
+                        if (rn.entitySettings.InMemoryEntity) //NOT NECESSARY HERE, because reForward only for DelayedPersistence
+                        {
+                            lock (inMem.Sync)
+                            {
+                                foreach (var el in inMem.SelectForwardFromTo(req.StateLogEntryId + toAdd, ulong.MinValue, true, ulong.MaxValue, ulong.MaxValue).Take(2))
+                                {
+                                    cnt++;
+                                    sle = el.Item3;
+                                    if (cnt == 1)
+                                    {
+                                        prevId = sle.Index;
+                                        prevTerm = sle.Term;
+                                    }
+                                    else
+                                    {
+                                        le.StateLogEntry = sle;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            foreach (var el in t.SelectForwardFromTo<byte[], byte[]>(tblStateLogEntry,
                             //new byte[] { 1 }.ToBytes(req.StateLogEntryId + toAdd, req.StateLogEntryTerm), true,
                             new byte[] { 1 }.ToBytes(req.StateLogEntryId + toAdd, ulong.MinValue), true,
                             new byte[] { 1 }.ToBytes(ulong.MaxValue, ulong.MaxValue), true).Take(2))
-                        {
-                            cnt++;
-                            sle = StateLogEntry.BiserDecode(el.Value);
-                            if (cnt == 1)
                             {
-                                prevId = sle.Index;
-                                prevTerm = sle.Term;
-                            }
-                            else
-                            {
-                                le.StateLogEntry = sle;
+                                cnt++;
+                                sle = StateLogEntry.BiserDecode(el.Value);
+                                if (cnt == 1)
+                                {
+                                    prevId = sle.Index;
+                                    prevTerm = sle.Term;
+                                }
+                                else
+                                {
+                                    le.StateLogEntry = sle;
+                                }
                             }
                         }
                     }
@@ -610,6 +751,18 @@ namespace Raft
                     return sleTpl.Item2;
                 }
 
+                if (rn.entitySettings.InMemoryEntity)
+                {
+                    StateLogEntry isle = null;
+
+                    lock (inMem.Sync)
+                    {
+                        inMem.Select(logEntryId, logEntryTerm, out isle);
+                    }
+
+                    return isle;
+                }
+
                 using (var t = this.rn.db.GetTransaction())
                 {
                     var row = t.Select<byte[], byte[]>(tblStateLogEntry, new byte[] { 1 }.ToBytes(logEntryId, logEntryTerm));
@@ -656,7 +809,22 @@ namespace Raft
                 {
                     return sleTpl.Item2;
                 }
-                                
+
+                if (rn.entitySettings.InMemoryEntity)
+                {
+                    StateLogEntry isle = null;
+
+                    lock (inMem.Sync)
+                    {
+                        foreach (var el in inMem.SelectForwardFromTo(logEntryId, ulong.MinValue, true, ulong.MaxValue, ulong.MaxValue))
+                        {
+                            return el.Item3;
+                        }
+                    }
+
+                    return isle;
+                }
+
                 using (var t = this.rn.db.GetTransaction())
                 {  
                     foreach (var el in t.SelectForwardFromTo<byte[], byte[]>(tblStateLogEntry,
@@ -697,37 +865,80 @@ namespace Raft
                         return; //we got it already
                 }
 
-                using (var t = this.rn.db.GetTransaction())
+                int pups = 0;
+
+                if (rn.entitySettings.InMemoryEntity)
                 {
-                    //Removing from the persisted all keys equal or bigger then supplied Log (also from other terms)
-                    foreach (var el in t.SelectForwardFromTo<byte[], byte[]>(tblStateLogEntry,                                
-                                new byte[] { 1 }.ToBytes(suggestion.StateLogEntry.Index, ulong.MinValue), true,
-                                new byte[] { 1 }.ToBytes(ulong.MaxValue, ulong.MaxValue), true,true))
+                    lock (inMem.Sync)
                     {
-                        if(
-                            el.Key.Substring(1,8).To_UInt64_BigEndian() == suggestion.StateLogEntry.Index &&
-                            el.Key.Substring(9, 8).To_UInt64_BigEndian() == suggestion.StateLogEntry.Term
-                            )
-                        {
-                            //we got it already
-                            return;
+                        List<Tuple<ulong, ulong, StateLogEntry>> toDelete = new List<Tuple<ulong, ulong, StateLogEntry>>();
+
+                        foreach (var el in inMem.SelectForwardFromTo(suggestion.StateLogEntry.Index, ulong.MinValue, true, ulong.MaxValue, ulong.MaxValue))
+                        {                           
+                            if (el.Item1 == suggestion.StateLogEntry.Index && el.Item2 == suggestion.StateLogEntry.Term)
+                            {
+                                if (pups > 0)
+                                {
+                                    //!!!!!!!!!!!!!!! note, to be checked, it returns, but may be it could have smth to remove before (earlier term - ulong.MinValue is used )
+                                    throw new Exception("Pups more than 0");
+                                }
+                                return;
+                            }
+
+                            toDelete.Add(el);
+                            pups++;
                         }
 
-                        t.RemoveKey<byte[]>(tblStateLogEntry, el.Key);
-                    }
-                   
-                    if(rn.entitySettings.DelayedPersistenceIsActive)
-                    {
-                        foreach(var iel in sleCache.Where(r=>r.Key>= suggestion.StateLogEntry.Index).Select(r=>r.Key).ToList())
-                            sleCache.Remove(iel);
+                        if (toDelete.Count > 0)
+                            inMem.Remove(toDelete);
 
-                        sleCache[suggestion.StateLogEntry.Index] = new Tuple<ulong, StateLogEntry>(suggestion.StateLogEntry.Term, suggestion.StateLogEntry);
+                        inMem.Add(suggestion.StateLogEntry.Index, suggestion.StateLogEntry.Term, suggestion.StateLogEntry);
                     }
-                    else
-                        t.Insert<byte[], byte[]>(tblStateLogEntry, new byte[] { 1 }.ToBytes(suggestion.StateLogEntry.Index, suggestion.StateLogEntry.Term), suggestion.StateLogEntry.SerializeBiser());
-
-                    t.Commit();
                 }
+                else
+                {
+                   
+                    using (var t = this.rn.db.GetTransaction())
+                    {
+                        //Removing from the persisted all keys equal or bigger then supplied Log (also from other terms)
+                        foreach (var el in t.SelectForwardFromTo<byte[], byte[]>(tblStateLogEntry,
+                                    new byte[] { 1 }.ToBytes(suggestion.StateLogEntry.Index, ulong.MinValue), true,
+                                    new byte[] { 1 }.ToBytes(ulong.MaxValue, ulong.MaxValue), true, true))
+                        {
+                            
+                            if (
+                                el.Key.Substring(1, 8).To_UInt64_BigEndian() == suggestion.StateLogEntry.Index &&
+                                el.Key.Substring(9, 8).To_UInt64_BigEndian() == suggestion.StateLogEntry.Term
+                                )
+                            {
+                                if(pups>0)
+                                {
+                                    //!!!!!!!!!!!!!!! note, to be checked, it returns, but may be it could have smth to remove before (earlier term - ulong.MinValue is used )
+                                    throw new Exception("Pups more than 0");
+                                }
+                                //we got it already
+                                return;
+                            }
+
+                            t.RemoveKey<byte[]>(tblStateLogEntry, el.Key);
+                            pups++;
+                        }
+
+                        if (rn.entitySettings.DelayedPersistenceIsActive)
+                        {
+                            foreach (var iel in sleCache.Where(r => r.Key >= suggestion.StateLogEntry.Index).Select(r => r.Key).ToList())
+                                sleCache.Remove(iel);
+
+                            sleCache[suggestion.StateLogEntry.Index] = new Tuple<ulong, StateLogEntry>(suggestion.StateLogEntry.Term, suggestion.StateLogEntry);
+                        }
+                        else
+                            t.Insert<byte[], byte[]>(tblStateLogEntry, new byte[] { 1 }.ToBytes(suggestion.StateLogEntry.Index, suggestion.StateLogEntry.Term), suggestion.StateLogEntry.SerializeBiser());
+
+                        t.Commit();
+                    }
+                }
+
+
 
                 rn.VerbosePrint($"{rn.NodeAddress.NodeAddressId}> AddToLogFollower (I/T): {suggestion.StateLogEntry.Index}/{suggestion.StateLogEntry.Term} -> Result:" +
                     $" { (GetEntryByIndexTerm(suggestion.StateLogEntry.Index, suggestion.StateLogEntry.Term) != null)};");
@@ -847,16 +1058,31 @@ namespace Raft
                 {
                     //Saving committed entry (all previous are automatically committed)
                     List<byte[]> lstCommited = new List<byte[]>();
-
+                    
                     using (var t = this.rn.db.GetTransaction())
-                    {                       
+                    {
                         //Gathering all not commited entries that are bigger than latest committed index
                         t.ValuesLazyLoadingIsOn = false;
-                        foreach (var el in t.SelectForwardFromTo<byte[], byte[]>(tblStateLogEntry,
-                           new byte[] { 1 }.ToBytes(this.LastCommittedIndex + 1, applied.StateLogEntryTerm), true,
-                           new byte[] { 1 }.ToBytes(ulong.MaxValue, applied.StateLogEntryTerm), true, true))
+
+                        if (rn.entitySettings.InMemoryEntity)
                         {
-                            lstCommited.Add(StateLogEntry.BiserDecode(el.Value).Data);
+                            lock (inMem.Sync)
+                            {
+                                foreach (var el in inMem.SelectForwardFromTo(this.LastCommittedIndex + 1, applied.StateLogEntryTerm, true, ulong.MaxValue, applied.StateLogEntryTerm))
+                                {
+                                    lstCommited.Add(el.Item3.Data);
+                                }
+
+                            }
+                        }
+                        else
+                        {
+                            foreach (var el in t.SelectForwardFromTo<byte[], byte[]>(tblStateLogEntry,
+                               new byte[] { 1 }.ToBytes(this.LastCommittedIndex + 1, applied.StateLogEntryTerm), true,
+                               new byte[] { 1 }.ToBytes(ulong.MaxValue, applied.StateLogEntryTerm), true, true))
+                            {
+                                lstCommited.Add(StateLogEntry.BiserDecode(el.Value).Data);
+                            }
                         }
 
 
@@ -867,7 +1093,7 @@ namespace Raft
                             {
                                 lstCommited.Add(iel.Value.Item2.Data);
                             }
-                            
+
                             sleCacheIndex = applied.StateLogEntryId;
                             sleCacheTerm = applied.StateLogEntryTerm;
                         }
@@ -881,6 +1107,8 @@ namespace Raft
                         //t.RemoveKey<byte[]>(tblAppendLogEntry, new byte[] { 1 }.ToBytes(applied.StateLogEntryTerm, applied.StateLogEntryId));                        
                         qDistribution.Remove(applied.StateLogEntryId);
                     }
+
+
 
                     this.LastCommittedIndex = applied.StateLogEntryId;
                     this.LastCommittedIndexTerm = applied.StateLogEntryTerm;
@@ -906,7 +1134,24 @@ namespace Raft
             this.dStateLogEntryAcceptance.Clear();
         }
                
-       
+       public void Debug_PrintOutInMemory()
+        {
+            if (rn.entitySettings.InMemoryEntity)
+            {
+                lock (inMem.Sync)
+                {
+                    foreach (var el in inMem.SelectForwardFromTo(ulong.MinValue, ulong.MinValue, true, ulong.MaxValue, ulong.MaxValue))
+                    {
+                        Console.WriteLine($"I: {el.Item1}; T: {el.Item2}; S: {el.Item3.IsCommitted}");
+                    }
+
+                }
+            }
+            else
+            {
+                Console.WriteLine("Debug_PrintOutInMemory failed - not InMemory entity");
+            }
+        }
 
     }
 }

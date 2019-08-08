@@ -124,13 +124,15 @@ namespace Raft
             public string Name { get; set; } = "";
         }
 
-
+       
         /// <summary>
         /// Will call "action" and supply "userToken" after "milliseconds"
         /// </summary>
         /// <param name="milliseconds"></param>
-        /// <param name="fireAnObject"></param>
+        /// <param name="action"></param>
+        /// <param name="userToken"></param>
         /// <param name="repeatOnce"></param>
+        /// <param name="eventName"></param>
         /// <returns>returns ID of the created event; If 0 - then mistake</returns>
         public ulong FireEventEach(uint milliseconds, Action<object> action, object userToken, bool repeatOnce, string eventName="")
         {

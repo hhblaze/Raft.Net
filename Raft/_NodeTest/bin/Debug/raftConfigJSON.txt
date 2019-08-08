@@ -16,8 +16,8 @@
 			"DelayedPersistenceIsActive":false,
 			"InMemoryEntity":true,
 			"InMemoryEntityStartSyncFromLatestEntity":false,
-			"VerboseRaft":true,
-			"VerboseTransport":true
+			"VerboseRaft":false,
+			"VerboseTransport":false
 		},
 		{
 			"EntityName":"ent2",
@@ -27,6 +27,15 @@
 			"InMemoryEntityStartSyncFromLatestEntity":false,
 			"VerboseRaft":false,
 			"VerboseTransport":false
+		},
+		{
+			"EntityName":"inMemory2",
+			"DelayedPersistenceMs":10000,
+			"DelayedPersistenceIsActive":false,
+			"InMemoryEntity":true,
+			"InMemoryEntityStartSyncFromLatestEntity":true,
+			"VerboseRaft":true,
+			"VerboseTransport":true
 		}
 	],
 	"TcpClusterEndPoints":

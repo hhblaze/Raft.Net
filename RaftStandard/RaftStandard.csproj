@@ -41,6 +41,7 @@
     <Compile Include="..\Raft\Transport\TcpRaftNode.cs" Link="Transport\TcpRaftNode.cs" />
     <Compile Include="..\Raft\Transport\TcpSpider.cs" Link="Transport\TcpSpider.cs" />
     <Compile Include="..\Raft\Utils\BiserExtension.cs" Link="Utils\BiserExtension.cs" />
+    <Compile Include="..\Raft\Utils\IndexTermDict.cs" Link="Utils\IndexTermDict.cs" />
     <Compile Include="..\Raft\Utils\SDictAutoIdentityLong.cs" Link="Utils\SDictAutoIdentityLong.cs" />
     <Compile Include="..\Raft\Utils\SDictionary.cs" Link="Utils\SDictionary.cs" />
     <Compile Include="..\Raft\Utils\SQueue.cs" Link="Utils\SQueue.cs" />
@@ -48,7 +49,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DBreeze" Version="1.91.5" />
+    <PackageReference Include="DBreeze" Version="1.94.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -43,8 +43,8 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DBreeze, Version=1.91.2018.823, Culture=neutral, PublicKeyToken=174b57f1c155f3c6, processorArchitecture=MSIL">
-      <HintPath>packages\DBreeze.1.91.5\lib\net45\DBreeze.dll</HintPath>
+    <Reference Include="DBreeze, Version=1.94.2019.609, Culture=neutral, PublicKeyToken=174b57f1c155f3c6, processorArchitecture=MSIL">
+      <HintPath>packages\DBreeze.1.94.0\lib\net45\DBreeze.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
@@ -80,6 +80,7 @@
     <Compile Include="Transport\TcpRaftNode.cs" />
     <Compile Include="Transport\TcpSpider.cs" />
     <Compile Include="Utils\BiserExtension.cs" />
+    <Compile Include="Utils\IndexTermDict.cs" />
     <Compile Include="Utils\SDictAutoIdentityLong.cs" />
     <Compile Include="Utils\SDictionary.cs" />
     <Compile Include="Utils\SQueue.cs" />

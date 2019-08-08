@@ -1,4 +1,5 @@
 ﻿using DBreeze;
+using DBreeze.Utils;
 using Raft;
 using Raft.Transport;
 //using Raft.Transport.UdpServer;
@@ -28,6 +29,10 @@ namespace _NodeTest
 
         static void Main(string[] args)
         {
+            //IndexTermDict<string>.test1();
+            //Console.ReadLine();
+            //return;
+
             log = new Logger();
             //tm = new TimeMaster(log);
 
@@ -156,6 +161,8 @@ namespace _NodeTest
                dbreezePath, Convert.ToInt32(args[1]), log,
                (entName, index, data) => { Console.WriteLine($"wow committed {entName}/{index}"); return true; });
 
+
+
             rn.Start();
 
             AddLogEntryResult addRes = null;
@@ -167,6 +174,14 @@ namespace _NodeTest
                     case "set1":
                         addRes = rn.AddLogEntry(new byte[] { 23 });
                         Console.WriteLine($"Adding: {addRes.AddResult.ToString()}");
+                        break;
+                    case "s2":
+                        addRes = rn.AddLogEntry(new byte[] { 23 }, entityName: "inMemory2");
+                        Console.WriteLine($"Adding: {addRes.AddResult.ToString()}");
+                        break;
+                    case "p2":
+                        rn.Debug_PrintOutInMemory(entityName: "inMemory2");
+                        //Console.WriteLine($"Adding: {addRes.AddResult.ToString()}");
                         break;
                     case "set1a":
                         addRes = rn.AddLogEntry(new byte[] { 27 },entityName: "inMemory1");

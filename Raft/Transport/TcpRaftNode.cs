@@ -277,7 +277,7 @@ namespace Raft.Transport
             try
             {
                 if(server == null)
-                    server = new TcpListener(IPAddress.Any, this.port); //to telnet dev.tiesky.com 27751
+                    server = new TcpListener(IPAddress.Any, this.port); 
 
                 server.Start();
                 
@@ -311,6 +311,8 @@ namespace Raft.Transport
             if(this.raftNodes.TryGetValue(entityName, out rn))
                 rn.AddLogEntry(data);          
         }
+
+       
 
         public AddLogEntryResult AddLogEntry(byte[] data, string entityName = "default")
         {
@@ -372,7 +374,19 @@ namespace Raft.Transport
             {
 
             }
-      
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="entityName"></param>
+        public void Debug_PrintOutInMemory(string entityName = "default")
+        {
+            RaftNode rn = null;
+            if (this.raftNodes.TryGetValue(entityName, out rn))
+                rn.Debug_PrintOutInMemory();
+        }
+
+
     }//eo class
 }//eo namespace

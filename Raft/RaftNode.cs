@@ -128,7 +128,7 @@ namespace Raft
         /// 
         /// </summary>
         /// <param name="settings"></param>
-        /// <param name="dbreezePath"></param>
+        /// <param name="dbEngine"></param>
         /// <param name="raftSender"></param>
         /// <param name="log"></param>
         /// <param name="OnCommit"></param>
@@ -1282,6 +1282,11 @@ namespace Raft
         public void EmulationSetValue(byte[] data, string entityName="default")
         {
             this.AddLogEntry(data);
+        }
+
+        public void Debug_PrintOutInMemory()
+        {
+            this.NodeStateLog.Debug_PrintOutInMemory();
         }
     }//eoc
 
