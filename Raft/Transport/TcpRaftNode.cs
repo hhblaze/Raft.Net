@@ -45,9 +45,24 @@ namespace Raft.Transport
 
             DBreezeConfiguration conf = new DBreezeConfiguration()
             {
-                DBreezeDataFolderName = dbreezePath,
-                Storage = DBreezeConfiguration.eStorage.DISK,
+                DBreezeDataFolderName = dbreezePath
             };
+
+            if (nodeSettings.RaftEntitiesSettings.Where(MyEnt => !MyEnt.InMemoryEntity).Count() == 0)
+            {
+                conf.Storage = DBreezeConfiguration.eStorage.MEMORY;
+            }
+            else
+            {
+                conf.Storage = DBreezeConfiguration.eStorage.DISK;
+            }
+            
+
+            //conf = new DBreezeConfiguration()
+            //{
+            //    DBreezeDataFolderName = dbreezePath,
+            //    Storage = DBreezeConfiguration.eStorage.DISK,
+            //};
             conf.AlternativeTablesLocations.Add("mem_*", String.Empty);
 
             dbEngine = new DBreezeEngine(conf);

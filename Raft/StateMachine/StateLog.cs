@@ -13,7 +13,7 @@ using DBreeze.Utils;
 
 namespace Raft
 {
-    
+
     internal class StateLog : IDisposable
     {
         class StateLogEntryAcceptance
@@ -37,7 +37,7 @@ namespace Raft
             public ulong Term { get; set; }
 
             public HashSet<string> acceptedEndPoints = new HashSet<string>();
-          
+
         }
 
         /// <summary>
@@ -49,9 +49,9 @@ namespace Raft
         ///// Leader only. Stores logs before being distributed.
         ///// </summary>
         //const string tblAppendLogEntry = "RaftTbl_AppendLogEntry";
-        
+
         internal RaftNode rn = null;
-        
+
 
         /// <summary>
         /// Holds last committed State Log Index.
@@ -83,7 +83,7 @@ namespace Raft
 
         public ulong PreviousStateLogId = 0;
         public ulong PreviousStateLogTerm = 0;
-        
+
         /// <summary>
         /// Follower part. State Log synchro with Leader.
         /// Indicates that synchronization request was sent to Leader
@@ -98,13 +98,13 @@ namespace Raft
         /// <summary>
         /// Follower part. State Log synchro with Leader.
         /// </summary>
-        public uint LeaderSynchronizationTimeOut = 1;        
+        public uint LeaderSynchronizationTimeOut = 1;
         /// <summary>
         /// Only for the Leader.
         /// Key is StateLogEntryId, Value contains information about how many nodes accepted LogEntry
         /// </summary>
         Dictionary<ulong, StateLogEntryAcceptance> dStateLogEntryAcceptance = new Dictionary<ulong, StateLogEntryAcceptance>();
-                
+
         SortedDictionary<ulong, Tuple<ulong, StateLogEntry>> sleCache = new SortedDictionary<ulong, Tuple<ulong, StateLogEntry>>();
         ulong sleCacheIndex = 0;
         ulong sleCacheTerm = 0;
@@ -139,7 +139,7 @@ namespace Raft
             using (var t = this.rn.db.GetTransaction())
             {
                 var row = t.SelectBackwardFromTo<byte[], byte[]>(tblStateLogEntry,
-                    new byte[] { 1 }.ToBytes(ulong.MaxValue, ulong.MaxValue),true, 
+                    new byte[] { 1 }.ToBytes(ulong.MaxValue, ulong.MaxValue), true,
                     new byte[] { 1 }.ToBytes(ulong.MinValue, ulong.MinValue), true)
                     .FirstOrDefault();
 
@@ -169,7 +169,7 @@ namespace Raft
                 var rowBL = t.Select<byte[], ulong>(tblStateLogEntry, new byte[] { 3 });
                 if (rowBL.Exists)
                 {
-                    LastBusinessLogicCommittedIndex = rowBL.Value;                  
+                    LastBusinessLogicCommittedIndex = rowBL.Value;
                 }
 
             }
@@ -195,13 +195,13 @@ namespace Raft
         {
             if (qDistribution.Count < 1)
                 return null;
-            
+
             return new StateLogEntrySuggestion()
             {
                 //StateLogEntry = qDistribution.Dequeue(),
-                StateLogEntry = qDistribution.OrderBy(r=>r.Key).First().Value,
+                StateLogEntry = qDistribution.OrderBy(r => r.Key).First().Value,
                 LeaderTerm = rn.NodeTerm
-            };            
+            };
         }
 
 
@@ -235,19 +235,19 @@ namespace Raft
 
             tempStateLogId++;
             tempStateLogTerm = rn.NodeTerm;
-            
+
 
             StateLogEntry le = new StateLogEntry()
             {
                 Index = tempStateLogId,
                 Data = data,
-                Term = tempStateLogTerm,                
+                Term = tempStateLogTerm,
                 PreviousStateLogId = tempPrevStateLogId,
-                PreviousStateLogTerm = tempPrevStateLogTerm               
+                PreviousStateLogTerm = tempPrevStateLogTerm
             };
 
             qDistribution.Add(le.Index, le);
-                       
+
         }
 
         /// <summary>
@@ -258,7 +258,7 @@ namespace Raft
             qDistribution.Clear();
         }
 
-        
+
 
         /// <summary>
         /// under lock_operations
@@ -285,7 +285,7 @@ namespace Raft
             {
                 if (rn.entitySettings.InMemoryEntity)
                 {
-                    lock(inMem.Sync)
+                    lock (inMem.Sync)
                     {
                         inMem.Add(suggest.StateLogEntry.Index, suggest.StateLogEntry.Term, suggest.StateLogEntry);
                     }
@@ -304,8 +304,8 @@ namespace Raft
 
         }
 
-        
-        
+
+
         /// <summary>
         /// under lock_operations
         /// only for followers
@@ -317,7 +317,7 @@ namespace Raft
             if (this.LastCommittedIndex < lhb.LastStateLogCommittedIndex)
             {
                 //Node tries to understand if it contains already this index/term, if not it will need synchronization
-                
+
                 ulong populateFrom = 0;
                 Tuple<ulong, StateLogEntry> sleTpl;
 
@@ -337,20 +337,20 @@ namespace Raft
                     &&
                     sleCache.TryGetValue(lhb.LastStateLogCommittedIndex, out sleTpl) && sleTpl.Item1 == lhb.LastStateLogCommittedIndexTerm
                     )
-                {                   
+                {
                     populateFrom = this.LastCommittedIndex + 1;
 
                     this.LastCommittedIndex = lhb.LastStateLogCommittedIndex;
                     this.LastCommittedIndexTerm = lhb.LastStateLogCommittedIndexTerm;
 
                     sleCacheIndex = lhb.LastStateLogCommittedIndex;
-                    sleCacheTerm = lhb.LastStateLogCommittedIndexTerm;                    
+                    sleCacheTerm = lhb.LastStateLogCommittedIndexTerm;
                 }
-                else if(rn.entitySettings.InMemoryEntity)
+                else if (rn.entitySettings.InMemoryEntity)
                 {
                     lock (inMem.Sync)
                     {
-                        if (inMem.Select(lhb.LastStateLogCommittedIndex,lhb.LastStateLogCommittedIndexTerm, out var rSle))
+                        if (inMem.Select(lhb.LastStateLogCommittedIndex, lhb.LastStateLogCommittedIndexTerm, out var rSle))
                         {
                             populateFrom = this.LastCommittedIndex + 1;
 
@@ -389,11 +389,11 @@ namespace Raft
                         else
                             return false;
                     }
-                }                
+                }
 
                 if (populateFrom > 0)
                     this.rn.Commited();
-             
+
             }
 
             return true;
@@ -422,21 +422,21 @@ namespace Raft
 
                 return;
             }
-            
+
             FlushSleCache();
 
             using (var t = this.rn.db.GetTransaction())
             {
                 //Removing from the persisted all keys equal or bigger then suppled Log
                 foreach (var el in t.SelectForwardFromTo<byte[], byte[]>(tblStateLogEntry,
-                            new byte[] { 1 }.ToBytes(LastCommittedIndex, LastCommittedIndexTerm), false,                            
+                            new byte[] { 1 }.ToBytes(LastCommittedIndex, LastCommittedIndexTerm), false,
                             new byte[] { 1 }.ToBytes(ulong.MaxValue, ulong.MaxValue), true, true))
                 {
                     t.RemoveKey<byte[]>(tblStateLogEntry, el.Key);
                 }
 
                 t.Commit();
-            }            
+            }
         }
 
         public void FlushSleCache()
@@ -444,7 +444,7 @@ namespace Raft
             if (!rn.entitySettings.DelayedPersistenceIsActive)
                 return;
 
-            
+
 
             if (sleCache.Count > 0 || sleCacheIndex > 0 || sleCacheTerm > 0 || sleCacheBusinessLogicIndex > 0)
             {
@@ -487,10 +487,10 @@ namespace Raft
                     sleCacheTerm = 0;
                     sleCacheBusinessLogicIndex = 0;
 
-                   t.Commit();
+                    t.Commit();
                 }
             }
-            
+
         }
 
         /// <summary>
@@ -519,7 +519,7 @@ namespace Raft
                     lock (inMem.Sync)
                     {
                         var removeFromIndex = inMem.GetOneIndexDownFrom(index);
-                        if(removeFromIndex > 0)
+                        if (removeFromIndex > 0)
                             inMem.Remove(inMem.SelectBackwardFromTo(removeFromIndex - 1, ulong.MaxValue, true, 0, 0).ToList());
                     }
                 }
@@ -537,8 +537,8 @@ namespace Raft
         public StateLogEntrySuggestion GetNextStateLogEntrySuggestionFromRequested(StateLogEntryRequest req)
         {
             StateLogEntrySuggestion le = new StateLogEntrySuggestion()
-            { 
-                LeaderTerm = rn.NodeTerm             
+            {
+                LeaderTerm = rn.NodeTerm
             };
 
             int cnt = 0;
@@ -548,8 +548,8 @@ namespace Raft
 
             using (var t = this.rn.db.GetTransaction())
             {
-                
-                if(req.StateLogEntryId == 0)// && req.StateLogEntryTerm == 0)
+
+                if (req.StateLogEntryId == 0)// && req.StateLogEntryTerm == 0)
                 {
                     if (rn.entitySettings.DelayedPersistenceIsActive && sleCache.Count > 0)
                     {
@@ -561,7 +561,7 @@ namespace Raft
 
                         lock (inMem.Sync)
                         {
-                            isle = inMem.SelectForwardFromTo(ulong.MinValue, ulong.MinValue,true, ulong.MaxValue, ulong.MaxValue).FirstOrDefault();
+                            isle = inMem.SelectForwardFromTo(ulong.MinValue, ulong.MinValue, true, ulong.MaxValue, ulong.MaxValue).FirstOrDefault();
                         }
 
                         if (isle != null)
@@ -576,7 +576,7 @@ namespace Raft
                         if (trow != null && trow.Exists)
                             sle = StateLogEntry.BiserDecode(trow.Value);
                     }
-                                      
+
 
                     //else
                     //{
@@ -598,7 +598,7 @@ namespace Raft
 
                         cnt = 2;
                     }
-                   
+
                 }
                 else
                 {
@@ -614,7 +614,7 @@ namespace Raft
                         prevId = sle.Index;
                         prevTerm = sle.Term;
 
-                        if(sleCache.TryGetValue(req.StateLogEntryId+1, out sleTpl))
+                        if (sleCache.TryGetValue(req.StateLogEntryId + 1, out sleTpl))
                         {
                             cnt++;
                             sle = sleTpl.Item2;
@@ -641,7 +641,7 @@ namespace Raft
                                 }
                             }
                         }
-                       
+
                     }
                     else
                     {
@@ -666,7 +666,7 @@ namespace Raft
                     }
 
 
-                    if(cnt < 2 && reForward)
+                    if (cnt < 2 && reForward)
                     {
                         ulong toAdd = (ulong)cnt;
 
@@ -711,7 +711,7 @@ namespace Raft
                             }
                         }
                     }
-                    
+
 
                     if (cnt == 2)
                     {
@@ -728,15 +728,15 @@ namespace Raft
                     }
                 }
 
-                
-                
+
+
             }
 
             //if (first)
             if (cnt != 2)
                 return null;
             return le;
-          
+
         }
 
 
@@ -793,8 +793,8 @@ namespace Raft
             {
                 throw ex;
             }
-          
-            
+
+
         }
 
         /// <summary>
@@ -806,10 +806,10 @@ namespace Raft
         public StateLogEntry GetCommitedEntryByIndex(ulong logEntryId)
         {
             try
-            {  
+            {
                 if (this.LastCommittedIndex < logEntryId)
                     return null;
-                
+
                 Tuple<ulong, StateLogEntry> sleTpl;
 
                 if (
@@ -837,12 +837,12 @@ namespace Raft
                 }
 
                 using (var t = this.rn.db.GetTransaction())
-                {  
+                {
                     foreach (var el in t.SelectForwardFromTo<byte[], byte[]>(tblStateLogEntry,
                                 new byte[] { 1 }.ToBytes(logEntryId, ulong.MinValue), true,
                                 new byte[] { 1 }.ToBytes(ulong.MaxValue, ulong.MaxValue), true, true))
                     {
-                        return StateLogEntry.BiserDecode(el.Value);                        
+                        return StateLogEntry.BiserDecode(el.Value);
                     }
                 }
 
@@ -862,7 +862,7 @@ namespace Raft
         /// <param name="suggestion"></param>
         /// <returns></returns>
         public void AddToLogFollower(StateLogEntrySuggestion suggestion)
-        {           
+        {
             try
             {
 
@@ -885,7 +885,7 @@ namespace Raft
                         List<Tuple<ulong, ulong, StateLogEntry>> toDelete = new List<Tuple<ulong, ulong, StateLogEntry>>();
 
                         foreach (var el in inMem.SelectForwardFromTo(suggestion.StateLogEntry.Index, ulong.MinValue, true, ulong.MaxValue, ulong.MaxValue))
-                        {                           
+                        {
                             if (el.Item1 == suggestion.StateLogEntry.Index && el.Item2 == suggestion.StateLogEntry.Term)
                             {
                                 if (pups > 0)
@@ -908,7 +908,7 @@ namespace Raft
                 }
                 else
                 {
-                   
+
                     using (var t = this.rn.db.GetTransaction())
                     {
                         //Removing from the persisted all keys equal or bigger then supplied Log (also from other terms)
@@ -916,13 +916,13 @@ namespace Raft
                                     new byte[] { 1 }.ToBytes(suggestion.StateLogEntry.Index, ulong.MinValue), true,
                                     new byte[] { 1 }.ToBytes(ulong.MaxValue, ulong.MaxValue), true, true))
                         {
-                            
+
                             if (
                                 el.Key.Substring(1, 8).To_UInt64_BigEndian() == suggestion.StateLogEntry.Index &&
                                 el.Key.Substring(9, 8).To_UInt64_BigEndian() == suggestion.StateLogEntry.Term
                                 )
                             {
-                                if(pups>0)
+                                if (pups > 0)
                                 {
                                     //!!!!!!!!!!!!!!! note, to be checked, it returns, but may be it could have smth to remove before (earlier term - ulong.MinValue is used )
                                     throw new Exception("Pups more than 0");
@@ -989,11 +989,11 @@ namespace Raft
                     }
                 }
 
-               
+
             }
             catch (Exception ex)
             {
-                
+
             }
 
             if (this.LastCommittedIndex < rn.LeaderHeartbeat.LastStateLogCommittedIndex)
@@ -1030,10 +1030,10 @@ namespace Raft
         {
             //If we receive acceptance signals of already Committed entries, we just ignore them
             if (applied.StateLogEntryId <= this.LastCommittedIndex)
-                return  eEntryAcceptanceResult.AlreadyAccepted;    //already accepted
+                return eEntryAcceptanceResult.AlreadyAccepted;    //already accepted
             if (applied.StateLogEntryId <= this.LastAppliedIndex)
                 return eEntryAcceptanceResult.AlreadyAccepted;    //already accepted
-                        
+
             StateLogEntryAcceptance acc = null;
 
             if (dStateLogEntryAcceptance.TryGetValue(applied.StateLogEntryId, out acc))
@@ -1048,9 +1048,9 @@ namespace Raft
             {
                 acc = new StateLogEntryAcceptance()
                 {
-                     //Quantity = 2,  //Leader + first incoming
-                     Index = applied.StateLogEntryId,
-                     Term = applied.StateLogEntryTerm
+                    //Quantity = 2,  //Leader + first incoming
+                    Index = applied.StateLogEntryId,
+                    Term = applied.StateLogEntryTerm
                 };
 
                 acc.acceptedEndPoints.Add(address.EndPointSID);
@@ -1058,7 +1058,7 @@ namespace Raft
                 dStateLogEntryAcceptance[applied.StateLogEntryId] = acc;
             }
 
-                        
+
             if ((acc.acceptedEndPoints.Count + 1) >= majorityQuantity)
             {
                 this.LastAppliedIndex = applied.StateLogEntryId;
@@ -1069,7 +1069,7 @@ namespace Raft
                 {
                     //Saving committed entry (all previous are automatically committed)
                     List<byte[]> lstCommited = new List<byte[]>();
-                    
+
                     using (var t = this.rn.db.GetTransaction())
                     {
                         //Gathering all not commited entries that are bigger than latest committed index
@@ -1144,8 +1144,8 @@ namespace Raft
         {
             this.dStateLogEntryAcceptance.Clear();
         }
-               
-       public void Debug_PrintOutInMemory()
+
+        public void Debug_PrintOutInMemory()
         {
             if (rn.entitySettings.InMemoryEntity)
             {

@@ -192,6 +192,8 @@ namespace Raft
 
                 }
             }
+            catch (System.ObjectDisposedException)
+            {}
             catch (Exception ex) 
             {
                 Log.Log(new WarningLogEntry() { Exception = ex, Method = "Raft.TimeMaster.RecalculateTimer" });
