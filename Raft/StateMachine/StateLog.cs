@@ -670,28 +670,28 @@ namespace Raft
                     {
                         ulong toAdd = (ulong)cnt;
 
-                        if (rn.entitySettings.InMemoryEntity) //NOT NECESSARY HERE, because reForward only for DelayedPersistence
-                        {
-                            lock (inMem.Sync)
-                            {
-                                foreach (var el in inMem.SelectForwardFromTo(req.StateLogEntryId + toAdd, ulong.MinValue, true, ulong.MaxValue, ulong.MaxValue).Take(2))
-                                {
-                                    cnt++;
-                                    sle = el.Item3;
-                                    if (cnt == 1)
-                                    {
-                                        prevId = sle.Index;
-                                        prevTerm = sle.Term;
-                                    }
-                                    else
-                                    {
-                                        le.StateLogEntry = sle;
-                                    }
-                                }
-                            }
-                        }
-                        else
-                        {
+                        //if (rn.entitySettings.InMemoryEntity) //NOT NECESSARY HERE, because reForward only for DelayedPersistence
+                        //{
+                        //    lock (inMem.Sync)
+                        //    {
+                        //        foreach (var el in inMem.SelectForwardFromTo(req.StateLogEntryId + toAdd, ulong.MinValue, true, ulong.MaxValue, ulong.MaxValue).Take(2))
+                        //        {
+                        //            cnt++;
+                        //            sle = el.Item3;
+                        //            if (cnt == 1)
+                        //            {
+                        //                prevId = sle.Index;
+                        //                prevTerm = sle.Term;
+                        //            }
+                        //            else
+                        //            {
+                        //                le.StateLogEntry = sle;
+                        //            }
+                        //        }
+                        //    }
+                        //}
+                        //else
+                        //{
                             foreach (var el in t.SelectForwardFromTo<byte[], byte[]>(tblStateLogEntry,
                             //new byte[] { 1 }.ToBytes(req.StateLogEntryId + toAdd, req.StateLogEntryTerm), true,
                             new byte[] { 1 }.ToBytes(req.StateLogEntryId + toAdd, ulong.MinValue), true,
@@ -709,7 +709,7 @@ namespace Raft
                                     le.StateLogEntry = sle;
                                 }
                             }
-                        }
+                       // }
                     }
 
 
@@ -829,6 +829,9 @@ namespace Raft
                     {
                         foreach (var el in inMem.SelectForwardFromTo(logEntryId, ulong.MinValue, true, ulong.MaxValue, ulong.MaxValue))
                         {
+                            if (el.Item3.FakeEntry)
+                                continue;
+
                             return el.Item3;
                         }
                     }
@@ -1143,6 +1146,14 @@ namespace Raft
         public void ClearLogAcceptance()
         {
             this.dStateLogEntryAcceptance.Clear();
+        }
+
+        public void AddFakePreviousRecordForInMemoryLatestEntity(ulong prevIndex, ulong prevTerm)
+        {
+            lock (inMem.Sync)
+            {
+                inMem.Add(prevIndex,prevTerm,new StateLogEntry { Data = null, FakeEntry = true, Index = prevIndex, Term = prevTerm });
+            }
         }
 
         public void Debug_PrintOutInMemory()

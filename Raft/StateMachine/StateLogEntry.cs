@@ -50,7 +50,10 @@ namespace Raft
         public ulong PreviousStateLogTerm = 0;
 
         //public ulong RedirectId = 0;
-
+        /// <summary>
+        /// Not for Biser, used for "InMemoryEntityStartSyncFromLatestEntity":true only
+        /// </summary>
+        public bool FakeEntry = false;
 
         #region "Biser"
         public Biser.Encoder BiserEncoder(Biser.Encoder existingEncoder = null)

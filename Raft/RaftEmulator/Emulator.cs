@@ -51,7 +51,7 @@ namespace Raft.RaftEmulator
                 {
                     //S:\temp\RaftDbr
                     trn = new TcpRaftNode(new NodeSettings() { TcpClusterEndPoints = eps, RaftEntitiesSettings = new List<RaftEntitySettings> { re_settings } }, @"D:\Temp\RaftDBreeze\node" + (4250 + i),
-                        (entityName, index, data) => { Console.WriteLine($"wow committed {entityName}/{index}"); return true; },
+                        (entityName, index, data) => { Console.WriteLine($"wow committed {entityName}/{index}; DataLen: {(data == null ? -1 : data.Length)}"); return true; },
                         4250 + i, this);
 
                     //rn = new TcpRaftNode(eps, @"S:\temp\RaftDbr\node" + (4250 + i), 4250 + i,
@@ -191,7 +191,7 @@ namespace Raft.RaftEmulator
                     lock (sync_nodes)
                     {
                         trn = new TcpRaftNode(new NodeSettings() { TcpClusterEndPoints = eps, RaftEntitiesSettings = new List<RaftEntitySettings> { re_settings } }, @"D:\Temp\RaftDBreeze\node"+ nodeId,
-                            (entityName, index, data) => { Console.WriteLine($"wow committed {entityName}/{index}"); return true; },
+                            (entityName, index, data) => { Console.WriteLine($"wow committed {entityName}/{index}; DataLen: {(data == null ? -1 : data.Length)}"); return true; },
                             nodeId,  this);
                         nodes[trn.GetNodeByEntityName("default").NodeAddress.NodeAddressId] = trn;
                     }

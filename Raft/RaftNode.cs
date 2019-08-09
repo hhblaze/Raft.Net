@@ -645,6 +645,9 @@ namespace Raft
                     if (entitySettings.InMemoryEntity && entitySettings.InMemoryEntityStartSyncFromLatestEntity && this.NodeStateLog.LastAppliedIndex == 0)
                     {
                         //helps newly starting mode with specific InMemory parameters get only latest command for the entity
+
+                        this.NodeStateLog.AddFakePreviousRecordForInMemoryLatestEntity(suggest.StateLogEntry.PreviousStateLogId, suggest.StateLogEntry.PreviousStateLogTerm);
+
                     }
                     else
                     {
@@ -806,10 +809,13 @@ namespace Raft
 
             StateLogEntryRequest req = null;
             if (entitySettings.InMemoryEntity && entitySettings.InMemoryEntityStartSyncFromLatestEntity)
-            {
+            {                
                 req = new StateLogEntryRequest()
                 {
-                    StateLogEntryId = this.LeaderHeartbeat.LastStateLogCommittedIndex == 0 ? 0 : this.LeaderHeartbeat.LastStateLogCommittedIndex-1                 
+
+                     StateLogEntryId = this.LeaderHeartbeat.LastStateLogCommittedIndex == 0 ? 0 : this.LeaderHeartbeat.LastStateLogCommittedIndex-1                 
+                    //StateLogEntryId = this.LeaderHeartbeat.LastStateLogCommittedIndex == 0 ? 0 : 
+                    //this.LeaderHeartbeat.LastStateLogCommittedIndex - (ulong)(this.LeaderHeartbeat.LastStateLogCommittedIndex > 1 ? 2 : 1)
                 };
             }
             else

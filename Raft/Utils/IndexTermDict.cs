@@ -17,7 +17,7 @@ namespace Raft
     internal class IndexTermDict<TValue>
     {
         /// <summary>
-        /// Each function call must inside the lock(instance.Sync) construction
+        /// Each function call must be inside the lock(instance.Sync) construction
         /// </summary>
         public object Sync = new object();
         SortedDictionary<ulong, SortedDictionary<ulong, TValue>> d = new SortedDictionary<ulong, SortedDictionary<ulong, TValue>>();
