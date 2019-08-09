@@ -137,6 +137,20 @@ namespace Raft
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public ulong GetOneIndexDownFrom(ulong index)
+        {
+            foreach (var el1 in d.Where(r => r.Key < index).OrderByDescending(r => r.Key))
+            {
+                return el1.Key;
+            }
+            return 0;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="startIndex"></param>
         /// <param name="startTerm"></param>
         /// <param name="includeEndTerm"></param>

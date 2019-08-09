@@ -512,6 +512,17 @@ namespace Raft
                     t.Insert<byte[], ulong>(tblStateLogEntry, new byte[] { 3 }, index);
                     t.Commit();
                 }
+
+                //For all nodes removing unnecessary index history for InMemoryEntityStartSyncFromLatestEntity
+                if (rn.entitySettings.InMemoryEntity && rn.entitySettings.InMemoryEntityStartSyncFromLatestEntity)
+                {
+                    lock (inMem.Sync)
+                    {
+                        var removeFromIndex = inMem.GetOneIndexDownFrom(index);
+                        if(removeFromIndex > 0)
+                            inMem.Remove(inMem.SelectBackwardFromTo(removeFromIndex - 1, ulong.MaxValue, true, 0, 0).ToList());
+                    }
+                }
             }
         }
 
