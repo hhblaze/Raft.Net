@@ -23,7 +23,12 @@ namespace Raft
         /// 
         /// </summary>   
         public byte[] Data { get; set; }
-       
+
+        /// <summary>
+        /// Used for determining cancellation of AppendLogEntryAsync by the non-leader node
+        /// </summary>
+        public byte[] ExternalID { get; set; }
+
 
         #region "Biser"
         public Biser.Encoder BiserEncoder(Biser.Encoder existingEncoder = null)
@@ -31,7 +36,8 @@ namespace Raft
             Biser.Encoder enc = new Biser.Encoder(existingEncoder);
 
             enc
-            .Add(Data)           
+            .Add(Data)
+            .Add(ExternalID)
             ;
             return enc;
         }
@@ -57,7 +63,8 @@ namespace Raft
 
             StateLogEntryRedirectRequest m = new StateLogEntryRedirectRequest();  //!!!!!!!!!!!!!! change return type
 
-            m.Data = decoder.GetByteArray();           
+            m.Data = decoder.GetByteArray();
+            m.ExternalID = decoder.GetByteArray();
 
             return m;
         }

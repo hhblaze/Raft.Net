@@ -29,6 +29,7 @@ namespace _NodeTest
 
         static void Main(string[] args)
         {
+          
             //IndexTermDict<string>.test1();
             //Console.ReadLine();
             //return;
@@ -179,6 +180,9 @@ namespace _NodeTest
                         addRes = rn.AddLogEntry(new byte[] { 23 }, entityName: "inMemory2");
                         Console.WriteLine($"Adding: {addRes.AddResult.ToString()}");
                         break;
+                    case "s3":
+                        TestAsyncCall(rn);
+                        break;
                     case "p2":
                         rn.Debug_PrintOutInMemory(entityName: "inMemory2");
                         //Console.WriteLine($"Adding: {addRes.AddResult.ToString()}");
@@ -204,6 +208,14 @@ namespace _NodeTest
                 }
             }
             
+        }//eof
+
+        static async void TestAsyncCall(TcpRaftNode rn)
+        {
+            Console.WriteLine($"Command is sent...");
+            var res = await rn.AddLogEntryAsync(new byte[] { 27 }, entityName: "inMemory2");
+            Console.WriteLine($"Applied as OK:{res}");
         }
-    }
-}
+
+    }//eoc
+}//eon

@@ -338,6 +338,63 @@ namespace Raft.Transport
             return new AddLogEntryResult { AddResult = AddLogEntryResult.eAddLogEntryResult.NODE_NOT_FOUND_BY_NAME };
         }
 
+        public async Task<bool> AddLogEntryAsync(byte[] data, string entityName = "default", int timeoutMs = 20000)
+        {
+            if (System.Threading.Interlocked.Read(ref disposed) == 1)
+                return false;
+
+            RaftNode rn = null;
+            if (this.raftNodes.TryGetValue(entityName, out rn))
+            {
+                //Generating externalId
+                var msgId = AsyncResponseHandler.GetMessageId();
+                var msgIdStr = msgId.ToBytesString();
+                var resp = new ResponseCrate();
+                resp.TimeoutsMs = timeoutMs; //enable for amre
+                                             //resp.TimeoutsMs = Int32.MaxValue; //using timeout of the wait handle (not the timer), enable for mre
+
+                //resp.Init_MRE();
+                resp.Init_AMRE();
+
+                AsyncResponseHandler.df[msgIdStr] = resp;
+
+                var aler = rn.AddLogEntry(data,msgId);
+
+                switch(aler.AddResult)
+                {
+                    case AddLogEntryResult.eAddLogEntryResult.ERROR_OCCURED:
+                    case AddLogEntryResult.eAddLogEntryResult.NO_LEADER_YET:
+
+                        resp.Dispose_MRE();
+                        AsyncResponseHandler.df.TryRemove(msgIdStr, out resp);
+
+                        return false;
+                    case AddLogEntryResult.eAddLogEntryResult.LOG_ENTRY_IS_CACHED:
+                    case AddLogEntryResult.eAddLogEntryResult.NODE_NOT_A_LEADER:
+
+                        //async waiting
+                        await resp.amre.WaitAsync();    //enable for amre
+
+                        resp.Dispose_MRE();
+
+                        if (AsyncResponseHandler.df.TryRemove(msgIdStr, out resp))
+                        {
+                            if (resp.IsRespOk)
+                                return true;
+
+                            //return new Tuple<bool, byte[]>(true, resp.res); //???? returning externalId or even nothing
+                        }
+
+                        break;
+                    
+                }
+            }
+
+            //return new AddLogEntryResult { AddResult = AddLogEntryResult.eAddLogEntryResult.NODE_NOT_FOUND_BY_NAME };
+            //return new Tuple<bool, byte[]>(false, null);
+            return true;
+        }
+
 
         long disposed = 0;
         public bool Disposed

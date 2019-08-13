@@ -223,8 +223,9 @@ namespace Raft
         /// returns concatenated term+index inserted identifier
         /// </summary>
         /// <param name="data"></param>
+        /// <param name="externalID">if set up must be returned in OnCommitted to notify that command is executed</param>
         /// <returns></returns>
-        public void AddStateLogEntryForDistribution(byte[] data)//, ulong redirectId=0)
+        public void AddStateLogEntryForDistribution(byte[] data, byte[] externalID = null)
         {
             /*
              * Only nodes of the current term can be distributed
@@ -243,7 +244,8 @@ namespace Raft
                 Data = data,
                 Term = tempStateLogTerm,
                 PreviousStateLogId = tempPrevStateLogId,
-                PreviousStateLogTerm = tempPrevStateLogTerm
+                PreviousStateLogTerm = tempPrevStateLogTerm,
+                ExternalID = externalID
             };
 
             qDistribution.Add(le.Index, le);

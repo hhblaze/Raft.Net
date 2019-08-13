@@ -13,6 +13,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\Raft\Async\AsyncManualResetEvent.cs" Link="Async\AsyncManualResetEvent.cs" />
+    <Compile Include="..\Raft\Async\AsyncResponseHandler.cs" Link="Async\AsyncResponseHandler.cs" />
+    <Compile Include="..\Raft\Async\ResponseCrate.cs" Link="Async\ResponseCrate.cs" />
+    <Compile Include="..\Raft\Async\WaitHandleAsyncFactory.cs" Link="Async\WaitHandleAsyncFactory.cs" />
+    <Compile Include="..\Raft\IndexTermDict.cs" Link="IndexTermDict.cs" />
     <Compile Include="..\Raft\IWarningLog.cs" Link="IWarningLog.cs" />
     <Compile Include="..\Raft\NodeSettings.cs" Link="NodeSettings.cs" />
     <Compile Include="..\Raft\Objects\CandidateRequest.cs" Link="Objects\CandidateRequest.cs" />
@@ -41,7 +46,6 @@
     <Compile Include="..\Raft\Transport\TcpRaftNode.cs" Link="Transport\TcpRaftNode.cs" />
     <Compile Include="..\Raft\Transport\TcpSpider.cs" Link="Transport\TcpSpider.cs" />
     <Compile Include="..\Raft\Utils\BiserExtension.cs" Link="Utils\BiserExtension.cs" />
-    <Compile Include="..\Raft\Utils\IndexTermDict.cs" Link="Utils\IndexTermDict.cs" />
     <Compile Include="..\Raft\Utils\SDictAutoIdentityLong.cs" Link="Utils\SDictAutoIdentityLong.cs" />
     <Compile Include="..\Raft\Utils\SDictionary.cs" Link="Utils\SDictionary.cs" />
     <Compile Include="..\Raft\Utils\SQueue.cs" Link="Utils\SQueue.cs" />
@@ -53,6 +57,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Async\" />
     <Folder Include="Objects\" />
     <Folder Include="StateMachine\" />
     <Folder Include="Transport\" />

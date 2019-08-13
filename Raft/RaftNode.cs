@@ -2,13 +2,13 @@
   Copyright (C) 2018 tiesky.com / Alex Solovyov
   It's a free software for those, who think that it should be free.
 */
-using DBreeze;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using DBreeze;
+using DBreeze.Utils;
 
 namespace Raft
 {
@@ -1050,7 +1050,7 @@ namespace Raft
             if (this.NodeState != eNodeState.Leader)  //Just return
                 return;
             
-            this.NodeStateLog.AddStateLogEntryForDistribution(req.Data);//, redirectId);
+            this.NodeStateLog.AddStateLogEntryForDistribution(req.Data, req.ExternalID);//, redirectId);
             ApplyLogEntry();
 
             //Don't answer, committed value wil be delivered via standard channel           
@@ -1141,7 +1141,8 @@ namespace Raft
             this.Sender.SendToAll(eRaftSignalType.StateLogEntrySuggestion, suggest.SerializeBiser(), this.NodeAddress, entitySettings.EntityName);
         }
 
-        Queue<byte[]> NoLeaderCache = new Queue<byte[]>();
+        //Tuple of iData and externalId of that data (formed by node to receive info back that this command is added)
+        Queue<Tuple<byte[],byte[]>> NoLeaderCache = new Queue<Tuple<byte[], byte[]>>();
 
         /// <summary>
         /// Leader and followers via redirect. (later callback info for followers is needed)
@@ -1149,7 +1150,7 @@ namespace Raft
         /// <param name="data"></param>
         /// <param name="logEntryExternalId"></param>
         /// <returns></returns>
-        public AddLogEntryResult AddLogEntry(byte[] iData)
+        public AddLogEntryResult AddLogEntry(byte[] iData, byte[] externalId = null)
         {
             AddLogEntryResult res = new AddLogEntryResult();
 
@@ -1158,7 +1159,7 @@ namespace Raft
                 lock (lock_Operations)
                 {
                     if(iData != null)
-                        NoLeaderCache.Enqueue(iData);
+                        NoLeaderCache.Enqueue(new Tuple<byte[], byte[]>(iData, externalId));
 
                     if (this.NodeState == eNodeState.Leader)
                     {
@@ -1166,7 +1167,8 @@ namespace Raft
                         
                         while (NoLeaderCache.Count > 0)
                         {
-                            this.NodeStateLog.AddStateLogEntryForDistribution(NoLeaderCache.Dequeue());
+                            var nlc = NoLeaderCache.Dequeue();
+                            this.NodeStateLog.AddStateLogEntryForDistribution(nlc.Item1, nlc.Item2);
                             ApplyLogEntry();
                         }
 
@@ -1188,12 +1190,14 @@ namespace Raft
                             
                             //Redirecting only in case if there is a leader                            
                             while (NoLeaderCache.Count > 0)
-                            { 
+                            {
+                                var nlc = NoLeaderCache.Dequeue();
                                 this.Sender.SendTo(this.LeaderNodeAddress, eRaftSignalType.StateLogRedirectRequest,
-                                (
+                                ( 
                                     new StateLogEntryRedirectRequest
                                     {
-                                        Data = NoLeaderCache.Dequeue()                                    
+                                        Data = nlc.Item1,
+                                        ExternalID = nlc.Item2
                                     }
                                 ).SerializeBiser(), this.NodeAddress, entitySettings.EntityName);
                             }
@@ -1244,12 +1248,22 @@ namespace Raft
                     
                     try
                     {
+                        
+
                         if (this.OnCommit(entitySettings.EntityName, sle.Index, sle.Data))
                         {
                             //In case if business logic commit was successful
                             lock (lock_Operations)
                             {
                                 this.NodeStateLog.BusinessLogicIsApplied(sle.Index);
+                            }
+
+                            //Notifying Async AddLog
+                            if (sle.ExternalID != null && AsyncResponseHandler.df.TryGetValue(sle.ExternalID.ToBytesString(), out var responseCrate))
+                            {
+                                responseCrate.IsRespOk = true;
+                                responseCrate.res = sle.ExternalID;
+                                responseCrate.Set_MRE();
                             }
                         }
                         else
@@ -1261,6 +1275,14 @@ namespace Raft
                     catch (Exception ex)
                     {
                         Log.Log(new WarningLogEntry() { Exception = ex, Method = "Raft.RaftNode.Commited" });
+
+                        //Notifying Async AddLog
+                        if (sle.ExternalID != null && AsyncResponseHandler.df.TryGetValue(sle.ExternalID.ToBytesString(), out var responseCrate))
+                        {
+                            responseCrate.IsRespOk = false;
+                            responseCrate.res = sle.ExternalID;
+                            responseCrate.Set_MRE();
+                        }
                     }
 
                     //i++;

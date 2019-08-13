@@ -18,6 +18,9 @@ namespace Raft
             Term = 0;
             Index = 0;
             IsCommitted = false;
+            PreviousStateLogId = 0;
+            PreviousStateLogTerm = 0;
+
         }
 
         /// <summary>
@@ -41,22 +44,29 @@ namespace Raft
         public bool IsCommitted { get; set; }
 
         /// <summary>
-        /// Out of protobuf
+        /// 
         /// </summary>        
-        public ulong PreviousStateLogId = 0;
+        public ulong PreviousStateLogId { get; set; }
         /// <summary>
-        /// Out of protobuf
+        /// 
         /// </summary>        
-        public ulong PreviousStateLogTerm = 0;
+        public ulong PreviousStateLogTerm { get; set; } 
 
         //public ulong RedirectId = 0;
+
         /// <summary>
-        /// Not for Biser, used for "InMemoryEntityStartSyncFromLatestEntity":true only
+        /// Out of Biser
+        /// Used for "InMemoryEntityStartSyncFromLatestEntity":true only
         /// </summary>
         public bool FakeEntry = false;
 
-        #region "Biser"
-        public Biser.Encoder BiserEncoder(Biser.Encoder existingEncoder = null)
+        /// <summary>
+        /// Used for determining cancellation of AppendLogEntryAsync by the non-leader node
+        /// </summary>
+        public byte[] ExternalID { get; set; }
+
+    #region "Biser"
+    public Biser.Encoder BiserEncoder(Biser.Encoder existingEncoder = null)
         {
             Biser.Encoder enc = new Biser.Encoder(existingEncoder);
 
@@ -66,12 +76,13 @@ namespace Raft
             .Add(Data)
             .Add(IsCommitted)
             .Add(PreviousStateLogId)
-            .Add(PreviousStateLogTerm)          
+            .Add(PreviousStateLogTerm)
+            .Add(ExternalID)
             ;
             return enc;
         }
 
-        public static StateLogEntry BiserDecode(byte[] enc = null, Biser.Decoder extDecoder = null) //!!!!!!!!!!!!!! change return type
+        public static StateLogEntry BiserDecode(byte[] enc = null, Biser.Decoder extDecoder = null)
         {
             Biser.Decoder decoder = null;
             if (extDecoder == null)
@@ -90,14 +101,15 @@ namespace Raft
                     decoder = extDecoder;
             }
 
-            StateLogEntry m = new StateLogEntry();  //!!!!!!!!!!!!!! change return type
+            StateLogEntry m = new StateLogEntry();  
 
             m.Term = decoder.GetULong();
             m.Index = decoder.GetULong();
             m.Data = decoder.GetByteArray();
             m.IsCommitted = decoder.GetBool();
             m.PreviousStateLogId = decoder.GetULong();
-            m.PreviousStateLogTerm = decoder.GetULong();         
+            m.PreviousStateLogTerm = decoder.GetULong();            
+            m.ExternalID = decoder.GetByteArray();
 
             return m;
         }
