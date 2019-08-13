@@ -4,6 +4,164 @@
         <name>Raft</name>
     </assembly>
     <members>
+        <member name="F:Raft.ResponseCrate.mre">
+            <summary>
+            Not SLIM version must be used (it works faster for longer delay which RPCs are)
+            </summary>
+        </member>
+        <member name="M:Raft.ResponseCrate.Init_AMRE">
+            <summary>
+            Works faster with timer than WaitOneAsync
+            </summary>
+        </member>
+        <member name="M:Raft.ResponseCrate.WaitOneAsync(System.Int32)">
+            <summary>
+            Works slower than amre (AsyncManualResetEvent) with the timer
+            </summary>
+            <param name="timeouts"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Raft.WaitHandleAsyncFactory">
+            <summary>
+            Provides interop utilities for <see cref="T:System.Threading.WaitHandle"/> types.
+            </summary>
+        </member>
+        <member name="M:Raft.WaitHandleAsyncFactory.FromWaitHandle(System.Threading.WaitHandle)">
+            <summary>
+            Wraps a <see cref="T:System.Threading.WaitHandle"/> with a <see cref="T:System.Threading.Tasks.Task"/>. When the <see cref="T:System.Threading.WaitHandle"/> is signalled, the returned <see cref="T:System.Threading.Tasks.Task"/> is completed. If the handle is already signalled, this method acts synchronously.
+            </summary>
+            <param name="handle">The <see cref="T:System.Threading.WaitHandle"/> to observe.</param>
+        </member>
+        <member name="M:Raft.WaitHandleAsyncFactory.FromWaitHandle(System.Threading.WaitHandle,System.TimeSpan)">
+            <summary>
+            Wraps a <see cref="T:System.Threading.WaitHandle"/> with a <see cref="T:System.Threading.Tasks.Task`1"/>. If the <see cref="T:System.Threading.WaitHandle"/> is signalled, the returned task is completed with a <c>true</c> result. If the observation times out, the returned task is completed with a <c>false</c> result. If the handle is already signalled or the timeout is zero, this method acts synchronously.
+            </summary>
+            <param name="handle">The <see cref="T:System.Threading.WaitHandle"/> to observe.</param>
+            <param name="timeout">The timeout after which the <see cref="T:System.Threading.WaitHandle"/> is no longer observed.</param>
+        </member>
+        <member name="M:Raft.WaitHandleAsyncFactory.FromWaitHandle(System.Threading.WaitHandle,System.Threading.CancellationToken)">
+            <summary>
+            Wraps a <see cref="T:System.Threading.WaitHandle"/> with a <see cref="T:System.Threading.Tasks.Task`1"/>. If the <see cref="T:System.Threading.WaitHandle"/> is signalled, the returned task is (successfully) completed. If the observation is cancelled, the returned task is cancelled. If the handle is already signalled or the cancellation token is already cancelled, this method acts synchronously.
+            </summary>
+            <param name="handle">The <see cref="T:System.Threading.WaitHandle"/> to observe.</param>
+            <param name="token">The cancellation token that cancels observing the <see cref="T:System.Threading.WaitHandle"/>.</param>
+        </member>
+        <member name="T:Raft.WaitHandleAsyncFactory.TaskConstants">
+            <summary>
+            Provides completed task constants.
+            </summary>
+        </member>
+        <member name="P:Raft.WaitHandleAsyncFactory.TaskConstants.BooleanTrue">
+            <summary>
+            A task that has been completed with the value <c>true</c>.
+            </summary>
+        </member>
+        <member name="P:Raft.WaitHandleAsyncFactory.TaskConstants.BooleanFalse">
+            <summary>
+            A task that has been completed with the value <c>false</c>.
+            </summary>
+        </member>
+        <member name="P:Raft.WaitHandleAsyncFactory.TaskConstants.Int32Zero">
+            <summary>
+            A task that has been completed with the value <c>0</c>.
+            </summary>
+        </member>
+        <member name="P:Raft.WaitHandleAsyncFactory.TaskConstants.Int32NegativeOne">
+            <summary>
+            A task that has been completed with the value <c>-1</c>.
+            </summary>
+        </member>
+        <member name="P:Raft.WaitHandleAsyncFactory.TaskConstants.Canceled">
+            <summary>
+            A task that has been canceled.
+            </summary>
+        </member>
+        <member name="T:Raft.WaitHandleAsyncFactory.TaskConstants`1">
+            <summary>
+            Provides completed task constants.
+            </summary>
+            <typeparam name="T">The type of the task result.</typeparam>
+        </member>
+        <member name="P:Raft.WaitHandleAsyncFactory.TaskConstants`1.Default">
+            <summary>
+            A task that has been completed with the default value of <typeparamref name="T"/>.
+            </summary>
+        </member>
+        <member name="T:Raft.IndexTermDict`1">
+            <summary>
+            Access to each function via lock(instance.Sync)
+            </summary>
+            <typeparam name="TValue"></typeparam>
+        </member>
+        <member name="F:Raft.IndexTermDict`1.Sync">
+            <summary>
+            Each function call must be inside the lock(instance.Sync) construction
+            </summary>
+        </member>
+        <member name="M:Raft.IndexTermDict`1.Add(System.UInt64,System.UInt64,`0)">
+            <summary>
+            
+            </summary>
+            <param name="index"></param>
+            <param name="term"></param>
+            <param name="val"></param>
+        </member>
+        <member name="M:Raft.IndexTermDict`1.Remove(System.UInt64,System.UInt64)">
+            <summary>
+            
+            </summary>
+            <param name="index"></param>
+            <param name="term"></param>
+        </member>
+        <member name="M:Raft.IndexTermDict`1.Remove(System.Collections.Generic.List{System.Tuple{System.UInt64,System.UInt64,`0}})">
+            <summary>
+            Collect argument from SelectForwardFromTo.ToList() or SelectBackwardFromTo.ToList(), Item3 is not used inside
+            </summary>
+            <param name="remove"></param>
+        </member>
+        <member name="M:Raft.IndexTermDict`1.Select(System.UInt64,System.UInt64,`0@)">
+            <summary>
+            
+            </summary>
+            <param name="index"></param>
+            <param name="term"></param>
+            <param name="val"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Raft.IndexTermDict`1.SelectForwardFromTo(System.UInt64,System.UInt64,System.Boolean,System.UInt64,System.UInt64)">
+            <summary>
+            
+            </summary>
+            <param name="startIndex"></param>
+            <param name="startTerm"></param>
+            <param name="includeStartTerm"></param>
+            <param name="endIndex"></param>
+            <param name="endTerm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Raft.IndexTermDict`1.GetOneIndexDownFrom(System.UInt64)">
+            <summary>
+            
+            </summary>
+            <param name="index"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Raft.IndexTermDict`1.SelectBackwardFromTo(System.UInt64,System.UInt64,System.Boolean,System.UInt64,System.UInt64)">
+            <summary>
+            
+            </summary>
+            <param name="startIndex"></param>
+            <param name="startTerm"></param>
+            <param name="includeEndTerm"></param>
+            <param name="endIndex"></param>
+            <param name="endTerm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Raft.IndexTermDict`1.test1">
+            <summary>
+            
+            </summary>
+        </member>
         <member name="P:Raft.NodeSettings.RaftEntitiesSettings">
             <summary>
             List of Raft Entities that will use one TCP Transport to get the same state for all entites
@@ -68,6 +226,11 @@
             <summary>
             
             </summary>   
+        </member>
+        <member name="P:Raft.StateLogEntryRedirectRequest.ExternalID">
+            <summary>
+            Used for determining cancellation of AppendLogEntryAsync by the non-leader node
+            </summary>
         </member>
         <member name="T:Raft.StateLogEntryRequest">
             <summary>
@@ -250,7 +413,7 @@
             
             </summary>
             <param name="settings"></param>
-            <param name="dbreezePath"></param>
+            <param name="dbEngine"></param>
             <param name="raftSender"></param>
             <param name="log"></param>
             <param name="OnCommit"></param>
@@ -422,7 +585,7 @@
             Tries to apply new entry, must be called from lock
             </summary>
         </member>
-        <member name="M:Raft.RaftNode.AddLogEntry(System.Byte[])">
+        <member name="M:Raft.RaftNode.AddLogEntry(System.Byte[],System.Byte[])">
             <summary>
             Leader and followers via redirect. (later callback info for followers is needed)
             </summary>
@@ -576,7 +739,7 @@
             Leader only.Stores logs before being distributed.
             </summary>       
         </member>
-        <member name="M:Raft.StateLog.AddStateLogEntryForDistribution(System.Byte[])">
+        <member name="M:Raft.StateLog.AddStateLogEntryForDistribution(System.Byte[],System.Byte[])">
             <summary>
             Is called from lock_operations
             Adds to silo table, until is moved to log table.
@@ -584,6 +747,7 @@
             returns concatenated term+index inserted identifier
             </summary>
             <param name="data"></param>
+            <param name="externalID">if set up must be returned in OnCommitted to notify that command is executed</param>
             <returns></returns>
         </member>
         <member name="M:Raft.StateLog.ClearLogEntryForDistribution">
@@ -690,15 +854,26 @@
             If value is committed by Leader
             </summary>        
         </member>
-        <member name="F:Raft.StateLogEntry.PreviousStateLogId">
+        <member name="P:Raft.StateLogEntry.PreviousStateLogId">
             <summary>
-            Out of protobuf
+            
             </summary>        
         </member>
-        <member name="F:Raft.StateLogEntry.PreviousStateLogTerm">
+        <member name="P:Raft.StateLogEntry.PreviousStateLogTerm">
             <summary>
-            Out of protobuf
+            
             </summary>        
+        </member>
+        <member name="F:Raft.StateLogEntry.FakeEntry">
+            <summary>
+            Out of Biser
+            Used for "InMemoryEntityStartSyncFromLatestEntity":true only
+            </summary>
+        </member>
+        <member name="P:Raft.StateLogEntry.ExternalID">
+            <summary>
+            Used for determining cancellation of AppendLogEntryAsync by the non-leader node
+            </summary>
         </member>
         <member name="T:Raft.TimeMaster">
             <summary>
@@ -715,8 +890,10 @@
             Will call "action" and supply "userToken" after "milliseconds"
             </summary>
             <param name="milliseconds"></param>
-            <param name="fireAnObject"></param>
+            <param name="action"></param>
+            <param name="userToken"></param>
             <param name="repeatOnce"></param>
+            <param name="eventName"></param>
             <returns>returns ID of the created event; If 0 - then mistake</returns>
         </member>
         <member name="M:Raft.TimeMaster.RecalculateTimer">
@@ -936,6 +1113,12 @@
             <param name="log"></param>
             <param name="OnCommit"></param>
             <returns></returns>
+        </member>
+        <member name="M:Raft.Transport.TcpRaftNode.Debug_PrintOutInMemory(System.String)">
+            <summary>
+            
+            </summary>
+            <param name="entityName"></param>
         </member>
         <member name="T:Raft.Transport.TcpSpider">
             <summary>

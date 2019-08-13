@@ -1,7 +1,7 @@
 {
   "runtimeTarget": {
     "name": ".NETStandard,Version=v2.0/",
-    "signature": "17eefe27404faafa5ede66df2e3c8695085ce65a"
+    "signature": "bca2dbee1d2f76bd3bccd58ae366fcdc0d4c24f7"
   },
   "compilationOptions": {},
   "targets": {
@@ -9,18 +9,18 @@
     ".NETStandard,Version=v2.0/": {
       "Raft/1.0.0": {
         "dependencies": {
-          "DBreeze": "1.91.5",
+          "DBreeze": "1.94.0",
           "NETStandard.Library": "2.0.3"
         },
         "runtime": {
           "Raft.dll": {}
         }
       },
-      "DBreeze/1.91.5": {
+      "DBreeze/1.94.0": {
         "runtime": {
           "lib/netstandard2.0/DBreeze.dll": {
-            "assemblyVersion": "1.91.2018.822",
-            "fileVersion": "1.91.2018.822"
+            "assemblyVersion": "1.94.2019.609",
+            "fileVersion": "1.94.2019.609"
           }
         }
       },
@@ -38,17 +38,17 @@
       "serviceable": false,
       "sha512": ""
     },
-    "DBreeze/1.91.5": {
+    "DBreeze/1.94.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-42G6x9oBJF85/4dEo5GXianlZGrt95/HD5xqveF3Z//5z7Va66gaKykwdCGIYMaH6vdNku1dTCA6T8n8+xzlsw==",
-      "path": "dbreeze/1.91.5",
-      "hashPath": "dbreeze.1.91.5.nupkg.sha512"
+      "sha512": "sha512-sBW322+n/HvwOJDcQCYE40SmGr4w3zjNtLd48ILK0vX1ppThhUj74b4kTF7P6CuC+86XUKyoC0BuSm2sF/1m7g==",
+      "path": "dbreeze/1.94.0",
+      "hashPath": "dbreeze.1.94.0.nupkg.sha512"
     },
     "Microsoft.NETCore.Platforms/1.1.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-kz0PEW2lhqygehI/d6XsPCQzD7ff7gUJaVGPVETX611eadGsA3A877GdSlU0LRVMCTH/+P3o2iDTak+S08V2+A==",
+      "sha512": "sha512-UtDHKBeUyO/1Gj/i9BkLs1a5mQFyoUJwzsJVKjgwXYK4/35oO71Fgin2o/WJSnG7uyTfxCKNcekyjjmWdC1B3g==",
       "path": "microsoft.netcore.platforms/1.1.0",
       "hashPath": "microsoft.netcore.platforms.1.1.0.nupkg.sha512"
     },

@@ -145,7 +145,10 @@ namespace Raft
             //Starting time master
             this.TM = new TimeMaster(log);
             //Starting state logger
-            NodeStateLog = new StateLog(this);            
+            NodeStateLog = new StateLog(this);
+
+            //Adding AddLogEntryAsync cleanup
+            this.TM.FireEventEach(10000, AsyncResponseHandler.ResponseCrateCleanUp, null, false);
         }
 
         int disposed = 0;
@@ -172,7 +175,9 @@ namespace Raft
             //    db = null;
             //}
         }
-                
+
+       
+
 
         /// <summary>
         /// We need this value to calculate majority while leader election

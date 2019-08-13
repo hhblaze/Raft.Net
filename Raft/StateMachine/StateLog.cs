@@ -1001,7 +1001,8 @@ namespace Raft
 
             }
 
-            if (this.LastCommittedIndex < rn.LeaderHeartbeat.LastStateLogCommittedIndex)
+            //if (this.LastCommittedIndex < rn.LeaderHeartbeat.LastStateLogCommittedIndex)
+            if (rn.LeaderHeartbeat != null && this.LastCommittedIndex < rn.LeaderHeartbeat.LastStateLogCommittedIndex)
             {
                 rn.SyncronizeWithLeader(true);
             }

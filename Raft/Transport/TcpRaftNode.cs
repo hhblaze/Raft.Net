@@ -362,13 +362,7 @@ namespace Raft.Transport
 
                 switch(aler.AddResult)
                 {
-                    case AddLogEntryResult.eAddLogEntryResult.ERROR_OCCURED:
-                    case AddLogEntryResult.eAddLogEntryResult.NO_LEADER_YET:
-
-                        resp.Dispose_MRE();
-                        AsyncResponseHandler.df.TryRemove(msgIdStr, out resp);
-
-                        return false;
+                 
                     case AddLogEntryResult.eAddLogEntryResult.LOG_ENTRY_IS_CACHED:
                     case AddLogEntryResult.eAddLogEntryResult.NODE_NOT_A_LEADER:
 
@@ -381,18 +375,23 @@ namespace Raft.Transport
                         {
                             if (resp.IsRespOk)
                                 return true;
-
-                            //return new Tuple<bool, byte[]>(true, resp.res); //???? returning externalId or even nothing
                         }
 
                         break;
-                    
+                    default:
+                    //case AddLogEntryResult.eAddLogEntryResult.ERROR_OCCURED:
+                    //case AddLogEntryResult.eAddLogEntryResult.NO_LEADER_YET:
+
+                        resp.Dispose_MRE();
+                        AsyncResponseHandler.df.TryRemove(msgIdStr, out resp);
+
+                        return false;
                 }
             }
 
             //return new AddLogEntryResult { AddResult = AddLogEntryResult.eAddLogEntryResult.NODE_NOT_FOUND_BY_NAME };
             //return new Tuple<bool, byte[]>(false, null);
-            return true;
+            return false;
         }
 
 
