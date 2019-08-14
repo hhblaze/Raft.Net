@@ -1220,6 +1220,29 @@ namespace Raft
             return res;
         }
 
+        /// <summary>
+        /// NodeIsInLatestState
+        /// </summary>
+        public bool NodeIsInLatestState
+        {
+            get
+            {
+                lock (lock_Operations)
+                {
+                    if (this.NodeState == eNodeState.Leader)
+                        return true;
+                    else
+                    {
+                        if (this.LeaderHeartbeat == null)
+                            return false;
+
+                        return this.NodeStateLog.LastCommittedIndex == this.LeaderHeartbeat.LastStateLogCommittedIndex;
+                    }
+                }
+                    
+            }
+        }
+
 
         int inCommit = 0;
                 
@@ -1253,7 +1276,9 @@ namespace Raft
                     
                     try
                     {
-                        
+                        ////if (this.LeaderHeartbeat != null)
+                        ////    Console.WriteLine($"LCIT={this.NodeStateLog.LastCommittedIndex}/{this.NodeStateLog.LastBusinessLogicCommittedIndex}/---{this.LeaderHeartbeat.LastStateLogCommittedIndex} ");
+
 
                         if (this.OnCommit(entitySettings.EntityName, sle.Index, sle.Data))
                         {
@@ -1262,6 +1287,7 @@ namespace Raft
                             {
                                 this.NodeStateLog.BusinessLogicIsApplied(sle.Index);
                             }
+
 
                             //Notifying Async AddLog
                             if (sle.ExternalID != null && AsyncResponseHandler.df.TryGetValue(sle.ExternalID.ToBytesString(), out var responseCrate))

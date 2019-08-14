@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Raft</id>
-        <version>1.4.0</version>
+        <version>1.5.0</version>
         <title>Raft.NET dotnet consensus algorithm implementation</title>
         <authors>Alex Solovyov</authors>
         <owners>tiesky.com / Alex Solovyov</owners>
@@ -11,7 +11,7 @@
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>Implementation of the RAFT consensus algorithm among TCP peers with disk or memory persistence</description>
         <summary>Raft.NET dotnet consensus algorithm implementation</summary>
-        <releaseNotes>fixed and optimized In-Memory implementation, added async implementation AddLogEntryAsync</releaseNotes>
+        <releaseNotes>raftNodeInstance.NodeIsInLatestState can help to understand if started node is in the latest update state</releaseNotes>
         <copyright>Copyright © 2018 tiesky.com / Alex Solovyov</copyright>
         <language>es-US</language>
         <tags>RAFT Raft.NET dotnet dbreeze netcore netstandard net framework</tags>

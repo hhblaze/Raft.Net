@@ -1096,6 +1096,11 @@
             <param name="logEntryExternalId"></param>
             <returns></returns>
         </member>
+        <member name="P:Raft.RaftNode.NodeIsInLatestState">
+            <summary>
+            NodeIsInLatestState
+            </summary>
+        </member>
         <member name="F:Raft.RaftEntitySettings.EntityName">
             <summary>
             First entity must always to have name "default" (or will be automatically changed to "default")

@@ -160,7 +160,7 @@ namespace _NodeTest
 
             rn = TcpRaftNode.GetFromConfig(System.IO.File.ReadAllText(args[2]),
                dbreezePath, Convert.ToInt32(args[1]), log,
-               (entName, index, data) => { Console.WriteLine($"wow committed {entName}/{index}; DataLen: {(data == null ? -1 : data.Length)}"); return true; });
+               (entName, index, data) => { Console.WriteLine($"wow committed {entName}/{index}; DataLen: {(data == null ? -1 : data.Length)};"); return true; });
 
 
 

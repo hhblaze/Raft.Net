@@ -593,6 +593,11 @@
             <param name="logEntryExternalId"></param>
             <returns></returns>
         </member>
+        <member name="P:Raft.RaftNode.NodeIsInLatestState">
+            <summary>
+            NodeIsInLatestState
+            </summary>
+        </member>
         <member name="F:Raft.eRaftSignalType.LeaderHearthbeat">
             <summary>
             Heartbeat which comes to the node from the Leader, followed by LeaderId and payload.
