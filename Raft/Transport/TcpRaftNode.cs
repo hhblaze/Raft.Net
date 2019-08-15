@@ -327,7 +327,15 @@ namespace Raft.Transport
                 rn.AddLogEntry(data);          
         }
 
-       
+
+        public bool NodeIsInLatestState(string entityName = "default")
+        {
+            RaftNode rn = null;
+            if (this.raftNodes.TryGetValue(entityName, out rn))
+                return rn.NodeIsInLatestState;
+
+            return false;
+        }
 
         public AddLogEntryResult AddLogEntry(byte[] data, string entityName = "default")
         {
@@ -337,7 +345,7 @@ namespace Raft.Transport
 
             return new AddLogEntryResult { AddResult = AddLogEntryResult.eAddLogEntryResult.NODE_NOT_FOUND_BY_NAME };
         }
-
+               
         public async Task<bool> AddLogEntryAsync(byte[] data, string entityName = "default", int timeoutMs = 20000)
         {
             if (System.Threading.Interlocked.Read(ref disposed) == 1)
