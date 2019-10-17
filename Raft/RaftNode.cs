@@ -176,13 +176,22 @@ namespace Raft
             //}
         }
 
-       
-
-
         /// <summary>
-        /// We need this value to calculate majority while leader election
+        /// Is node a leader
         /// </summary>
-        public void SetNodesQuantityInTheCluster(uint nodesQuantityInTheCluster)
+        public bool IsLeader
+        {
+            get
+            {
+                return this.NodeState == eNodeState.Leader;
+            }
+        }
+
+
+    /// <summary>
+    /// We need this value to calculate majority while leader election
+    /// </summary>
+    public void SetNodesQuantityInTheCluster(uint nodesQuantityInTheCluster)
         {
             lock (lock_Operations)
             {
@@ -1321,7 +1330,7 @@ namespace Raft
             });            
         }
         
-
+      
         public void EmulationStop()
         {
             this.NodeStop();

@@ -120,6 +120,21 @@ namespace Raft.Transport
         }
 
         /// <summary>
+        /// Gets raft node by entity and returns if it is a leader 
+        /// </summary>
+        /// <param name="entityName"></param>
+        /// <returns></returns>
+        public bool IsLeader(string entityName = "default")
+        {
+            if(this.raftNodes.TryGetValue(entityName, out var rn))
+            {
+                return rn.IsLeader;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="jsonConfiguration">json representation of Raft.NodeSettings</param>

@@ -561,6 +561,13 @@
             <param name="DontRemoveFromSpider"></param>
             <param name="calledFromDispose"></param>
         </member>
+        <member name="M:Raft.Transport.TcpRaftNode.IsLeader(System.String)">
+            <summary>
+            Gets raft node by entity and returns if it is a leader 
+            </summary>
+            <param name="entityName"></param>
+            <returns></returns>
+        </member>
         <member name="M:Raft.Transport.TcpRaftNode.GetFromConfig(System.String,System.String,System.Int32,Raft.IWarningLog,System.Func{System.String,System.UInt64,System.Byte[],System.Boolean})">
             <summary>
             
@@ -924,6 +931,11 @@
         <member name="M:Raft.RaftNode.Dispose">
             <summary>
             
+            </summary>
+        </member>
+        <member name="P:Raft.RaftNode.IsLeader">
+            <summary>
+            Is node a leader
             </summary>
         </member>
         <member name="M:Raft.RaftNode.SetNodesQuantityInTheCluster(System.UInt32)">
