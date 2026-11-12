@@ -1,0 +1,135 @@
+﻿DOCS:
+https://github.com/raft/raft.github.io
+https://github.com/hhblaze/Raft.Net
+
+https://ramcloud.stanford.edu/wiki/download/attachments/11370504/raft.pdf
+http://raftconsensus.github.io/
+http://thesecretlivesofdata.com/raft/
+https://www.youtube.com/watch?v=YbZ3zDzDnrw
+https://docs.google.com/presentation/d/e/2PACX-1vQjS7iV8k84WSVavOTbRjQ-0nihukXxh_1l44Dy0qqSWVs3uQB9C0Xh9erLdXqDTkcH3XoKiOmt3bhI/pub?start=false&loop=false&delayms=3000&slide=id.g32ff89c1fa_0_11
+https://www.youtube.com/watch?v=BYMOlWAAiOQ
+
+//First touch 15.08.2014
+
+------------- Typical task for RAFT fault-tolerance cluster
+ - Distributed lock
+ - Distributed Transaction coordination
+ - Distributed counter
+ - Distributed unique ID generator
+
+
+
+
+ Extra notes.
+--------------------------------------------------------------   TRANSPORT  notes ----------------------------------------------------
+-- USE HttpClient as a webClient
+-- USE https://github.com/Code-Sharp/uHttpSharp as possible webserver (enable support keepl-alive)
+-- ENABLE HttpClient automatic decompression https://blogs.msdn.microsoft.com/dotnet/2013/07/17/httpclient-2-2-is-now-stable/
+   http://www.nimaara.com/2016/11/01/beware-of-the-net-httpclient/
+   https://aspnetmonsters.com/2016/08/2016-08-27-httpclientwrong/
+
+
+     System.Net.Http.HttpClient httpClient = null;
+        object lock_httpClient = new object();
+
+        async public Task<string> CallReverseGeocodingService(string uri)
+        {
+            if(httpClient == null)
+            {
+                lock(lock_httpClient)
+                {
+                    if (httpClient == null)
+                    {
+                        var handler = new System.Net.Http.HttpClientHandler();
+                        if (handler.SupportsAutomaticDecompression)
+                        {
+                            handler.AutomaticDecompression = DecompressionMethods.GZip |
+                                                             DecompressionMethods.Deflate;
+                        }
+                        httpClient = new System.Net.Http.HttpClient(handler);                        
+                        httpClient.Timeout = TimeSpan.FromSeconds(20);
+                        httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 6.3; rv:36.0) Gecko/20100101 Firefox/36.0");
+                        httpClient.DefaultRequestHeaders.Add("Referer", "http://google.de");
+                        httpClient.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate");
+						httpClient.DefaultRequestHeaders.ConnectionClose = false;
+                        ServicePointManager.DnsRefreshTimeout = TimeSpan.FromSeconds(60).Milliseconds;
+                    }
+                }
+            }
+            //System.Net.HttpWebRequest wr = null;
+            //WebResponse webResp = null;
+            string body = null;
+
+            lock (lock_rgq)
+            {
+                currentQuantityOfActiveGeocodings++;
+            }
+
+            try
+            {
+                var request = new System.Net.Http.HttpRequestMessage();
+                request.RequestUri = new Uri(uri);
+                //request.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 6.3; rv:36.0) Gecko/20100101 Firefox/36.0");
+                //request.Headers.Add("Referer", "http://google.de");
+                //request.Headers.Add("Accept-Encoding", "gzip, deflate");
+
+                var response = await httpClient.SendAsync(request);
+
+                body = System.Text.Encoding.UTF8.GetString(await response.Content.ReadAsByteArrayAsync());
+
+                //No dispose
+
+                //wr = (HttpWebRequest)WebRequest.Create(uri);
+
+                ////Supplying fake otherwise some service decline the connection
+                //wr.UserAgent = "Mozilla/5.0 (Windows NT 6.3; rv:36.0) Gecko/20100101 Firefox/36.0";
+                //wr.Referer = "http://google.de";
+
+                ////webResp = wr.GetResponse();
+                //webResp = await wr.GetResponseAsync();
+                //using (var sr = new StreamReader(webResp.GetResponseStream()))
+                //{
+                //    //body = sr.ReadToEnd();
+                //    body = await sr.ReadToEndAsync();
+                //    sr.Close();
+                //}
+                //webResp.Close();
+            }
+            catch (Exception ex)
+            {
+                _M_WDA._Log.LogException("GM_CoreWebFace.Geocoding.AbstractGisService", "CallReverseGeocodingService", ex, uri);
+                body = null;
+				  try
+                {
+                    lock(lock_httpClient)
+                    {
+                        if(httpClient != null)
+                            httpClient.Dispose();
+                        httpClient = null;
+                    }
+                }
+                catch
+                {}
+                httpClient = null;
+            }
+            finally
+            {
+                //if (webResp != null)
+                //{
+                //    webResp.Close();
+                //    webResp = null;
+                //}
+
+                //if (wr != null)
+                //{
+                //    wr = null;
+                //}
+            }
+
+            lock (lock_rgq)
+            {
+                currentQuantityOfActiveGeocodings--;
+            }
+
+            return body;
+        }

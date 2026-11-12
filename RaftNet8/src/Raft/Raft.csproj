@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Raft.Net8</AssemblyName>
+    <RootNamespace>Raft</RootNamespace>
+    <Version>2.0.0</Version>
+    <Description>Fixed-membership Raft consensus for .NET 8 with DBreeze persistence.</Description>
+    <PackageLicenseExpression>BSD-2-Clause</PackageLicenseExpression>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="DBreeze" Version="[1.142.2026.1016-beta]" />
+    <InternalsVisibleTo Include="Raft.Tests" />
+    <InternalsVisibleTo Include="Raft.Benchmarks" />
+  </ItemGroup>
+</Project>

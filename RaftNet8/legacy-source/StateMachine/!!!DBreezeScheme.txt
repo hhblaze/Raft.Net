@@ -1,0 +1,17 @@
+﻿
+
+"RaftTbl_StateLogEntry" (if entity is not default: "_"+EntityName)
+1 -- first byte   
+   K<byte[]>: StateLogEntry.Index + StateLogTerm, V<StateLogEntry>
+2 -- first ONLY byte   
+   V<byte[]>: last commited index(ulong) + last commited term(ulong)
+
+3 -- first ONLY byte
+   V<byte[]> - BusinessLogicCommittedIndex (after successful run OnCommit)(ulong)
+
+   
+
+
+
+
+

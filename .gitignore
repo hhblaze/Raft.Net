@@ -1,0 +1,10 @@
+**/bin/
+**/obj/
+**/.vs/
+**/packages/
+**/TestResults/
+**/BenchmarkDotNet.Artifacts/
+RaftNet8/.data/
+RaftNet8/.artifacts/
+*.user
+*.suo

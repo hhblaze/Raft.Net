@@ -1,0 +1,34 @@
+name: Raft .NET 8
+
+on:
+  push:
+    paths: ['RaftNet8/**', '_docs/**', 'AGENTS.md', '.github/workflows/raft-net8.yml']
+  pull_request:
+    paths: ['RaftNet8/**', '_docs/**', 'AGENTS.md', '.github/workflows/raft-net8.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: RaftNet8
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '8.0.x'
+      - run: dotnet restore Raft.Net8.sln --locked-mode
+      - run: dotnet build Raft.Net8.sln -c Release --no-restore
+      - run: dotnet test Raft.Net8.sln -c Release --no-build --logger trx
+      - run: dotnet run --project HumanTest/Raft.Demo -c Release --no-build -- --scenario

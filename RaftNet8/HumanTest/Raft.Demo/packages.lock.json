@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net8.0": {
+      "DBreeze": {
+        "type": "Transitive",
+        "resolved": "1.142.2026.1016-beta",
+        "contentHash": "fhU/r7HF3o5fvQz1uvUndvD9/XU6sy4k26KS5QooZkKSE8GExaMQj3YiRB7Y6GXJrpFXAkmnGCzL6ozqpzePlA=="
+      },
+      "Raft.Net8": {
+        "type": "Project",
+        "dependencies": {
+          "DBreeze": "[1.142.2026.1016-beta, 1.142.2026.1016-beta]"
+        }
+      }
+    }
+  }
+}

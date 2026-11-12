@@ -1,13 +1,22 @@
 # Raft.NET
-[![Image of Build](https://img.shields.io/badge/License-BSD%203,%20FOSS-FC0574.svg)](https://github.com/hhblaze/Biser/blob/master/LICENSE)
-[![NuGet Badge](https://buildstats.info/nuget/Raft)](https://www.nuget.org/packages/Raft/)
-[![Image of Build](https://img.shields.io/badge/Powered%20by-tiesky.com-1883F5.svg)](http://tiesky.com)
 
-Implementation of the [RAFT](https://raft.github.io/) distributed consensus algorithm among TCP peers with disk or memory data persistence.<br />.NET c# / dotnet / netstandard /netcore<br />
+The supported implementation is now **.NET 8**, with **DBreeze 1.142.2026.1016-beta**, durable election state, bounded replication and application pipelines, and a reusable TCP transport.
 
-----
+- [Build, API, behavior, and operational limits](RaftNet8/README.md)
+- [Run the interactive three-node demo](RaftNet8/HumanTest/README.md) — real TCP, disk persistence, partitions, stop/restart, and load commands
+- [Benchmarks and measurement guidance](RaftNet8/benchmarks/README.md)
+- [LLM usage skill](_docs/raft_skill.md)
+- [Engineering specification](_docs/llm/sdd/001-resurrection.md) and [project memory](_docs/llm/okf/index.md)
 
- - [Documentation](https://docs.google.com/document/d/e/2PACX-1vQYWpDD6L20CSBR4QTlpP2SJDEKcj6VRP-ZI3t_wQ93c3OS96Wk8ojvAFNo3zwYaiz7VUi5EF34JJhZ/pub)
- 
- hhblaze@gmail.com
- 
+```sh
+cd RaftNet8
+dotnet restore Raft.Net8.sln --locked-mode
+dotnet test Raft.Net8.sln -c Release
+dotnet run --project HumanTest/Raft.Demo -c Release
+```
+
+`Raft/`, `RaftStandard/`, `Deployment/`, and `Docu/` are historical artifacts. Their original code was copied to `RaftNet8/legacy-source/` for reference and is excluded from the supported solution. The .NET 8 API, wire protocol, and database schema are new; existing applications/data need an explicit migration. The old NuGet packages are not the new implementation.
+
+This release implements fixed membership and retains the full disk log. Snapshot installation, log compaction, and live membership changes are not implemented. See the [supported scope](RaftNet8/README.md#supported-scope) before deployment.
+
+Algorithm: [Raft](https://raft.github.io/) · [BSD 2-Clause license](LICENSE) · Alexey Solovyov / tiesky.com
