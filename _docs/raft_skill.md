@@ -9,6 +9,8 @@ Use `RaftNet8/src/Raft/Raft.csproj` and `RaftNet8/Raft.Net8.sln`, targeting **ne
 
 Read [the runnable durable example](../RaftNet8/README.md#runnable-durable-example) for construction, [configuration](../RaftNet8/docs/CONFIGURATION.md) for exact defaults/units, and [operations](../RaftNet8/docs/OPERATIONS.md) before changing membership, restoring or upgrading. The complete snapshot-capable application is [SnapshotKeyValueMachine](../RaftNet8/HumanTest/Raft.Demo/SnapshotKeyValueMachine.cs).
 
+For a human introduction use the offline [English/Russian HTML books](../RaftNet8/docs/human/tutorial/index.html) and their compiled `examples/TutorialNode` project. The example supports disk generations/images and a separate all-memory lab; volatile voters do not provide durable restart guarantees.
+
 ## Construct and own a node
 
 1. Give each node a stable `NodeId`, common `GroupId`, initial voter `Members` and compatible limits. Use distinct data directories/endpoints. IDs are 1..128 ASCII letters/digits/`-`/`_`. `Learners` do not vote; provision future IDs in `KnownPeers` everywhere before adding them. Known peers are transport authorization, never implicit voters.
@@ -46,7 +48,7 @@ Plain TCP is for trusted networks. Pass `TlsRaftTransportSecurity(certificate, a
 
 Defaults: 25 ms ticks, heartbeat 1 tick, elections `[12,24)` ticks, RPC 200 ms. Minimum election >=10× heartbeat; tune all deadlines to measured disk/network/GC tails. Off-owner proposal windows: small2ms, bulk up to8ms while other admitted work awaits quorum/application, single voter1ms; application batches128 entries/256KiB; wire2 packets auto1MiB+2688B (same count cap); commands64KiB; 1024 pending proposals/reads; peer window 4 messages/4 MiB; uncommitted budget 64 MiB; cache 1024 entries/8 MiB. Read the reference for snapshot and validation limits. Backpressure does not bound arbitrary caller-owned waiting tasks.
 
-MaxProposalBatchBytes=null independently permits a bounded local durable group up to min(4×MaxAppendBytes +21×MaxAppendEntries, MaxUncommittedBytes,64MiB), normally1MiB+2688B. MaxAppendEntries still caps its count; wire and application batches retain MaxAppendBytes. Each command remains a distinct log entry and waits for quorum plus apply. Set MaxProposalBatchBytes=MaxAppendBytes for the earlier local-byte cap; invalid overrides are rejected at construction.
+MaxProposalBatchBytes=null independently permits a bounded local durable group up to min(4×MaxAppendBytes +21×MaxAppendEntries, MaxUncommittedBytes,64MiB), normally1MiB+2688B. MaxAppendEntries still caps its count; application batches retain MaxAppendBytes, wire2 uses MaxReplicationBytes, and wire1 retains MaxAppendBytes. Each command remains a distinct log entry and waits for quorum plus apply. Set MaxProposalBatchBytes=MaxAppendBytes for the earlier local-byte cap; invalid overrides are rejected at construction.
 
 Structured `ILoggerFactory` overloads, Meter and ActivitySource `Raft.Net8` expose role/term/frontiers, peer lag, elections, snapshot progress and proposal/persistence/Commit/apply durations. Histograms use seconds; bytes use `By`. DBreeze Commit timing includes disk flush rather than isolating a syscall. Payloads are excluded. Faulty diagnostics are counted separately and cannot replace a storage/app failure.
 

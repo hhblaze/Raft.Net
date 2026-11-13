@@ -1,0 +1,26 @@
+{
+  "format": 1,
+  "date": "2026-11-13",
+  "editions": [
+    {
+      "language": "en",
+      "chapters": 26,
+      "words_with_code": 10312,
+      "bytes": 227157
+    },
+    {
+      "language": "ru",
+      "chapters": 26,
+      "words_with_code": 9669,
+      "bytes": 316765
+    }
+  ],
+  "source_sha256": {
+    "RaftNet8/docs/human/tutorial/examples/TutorialNode/BookState.cs": "39a3b7d22b6cae3f5e2305b1e8ba66ebc26a18105625687056d35eac8bf36f7b",
+    "RaftNet8/docs/human/tutorial/examples/TutorialNode/IntegrationRecipes.cs": "a1d7dc06e237a6aef87b52e5939a8f3dc2011501a640c7ec85f6a6c44de900c6",
+    "RaftNet8/docs/human/tutorial/examples/TutorialNode/packages.lock.json": "00a4393791ad8b0b9abb3c8e2bf71d9e0d7d81ac1e1410b00734f2bc0b73f1b5",
+    "RaftNet8/docs/human/tutorial/examples/TutorialNode/Program.cs": "0653e934ac9d33611c3f0352c57d7936dc4e131b48447abb98486451195060d9",
+    "RaftNet8/docs/human/tutorial/examples/TutorialNode/TutorialNode.csproj": "6159df425dfcf9c4995b84c97f55e293ea1042ca7e2cc287c5ca52bad915cfe9",
+    "RaftNet8/docs/human/tutorial/examples/TutorialNode/TutorialSettings.cs": "2d2a2dca0a2729749573f86221c9f79b74f6a0ace7f6bbee5986b2256fffbb0e"
+  }
+}

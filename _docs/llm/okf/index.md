@@ -12,6 +12,7 @@ OKF v0.2. Concept IDs are paths relative to this directory, without `.md`.
 - [Validation](validation.md) — executed checks and measurement limits.
 - [DotNext comparison](dotnext-comparison.md) — pinned external implementation, benchmark adapter, fresh measurements and comparability limits.
 - [Benchmark winner work](benchmark-winner.md) — completed R18 local winner criterion, accepted/reverted experiments, provenance and operational limits.
+- [Human tutorials](human-tutorial.md) — English/Russian offline HTML books, compiled three-process C# example, disk/RAM semantics and limits.
 - [Work log](log.md) — dated implementation and validation evidence.
 
 The upstream specification is stored as `OKF-SPEC.reference.txt`; it is a reference, not a concept document. Specifications live in `../sdd/`; the original DBreeze skill lives in `../skill/`.

@@ -4,6 +4,8 @@ Embedded crash-tolerant consensus for logical commands applied to DBreeze. All s
 
 Implemented: pre-vote, check-quorum, ReadIndex, leadership transfer, learners, corrected single-server membership changes, batched durable writes, bounded replication pipelines, CRC-checked recovery, and chunked resumable snapshots. See the [interactive solution](HumanTest/Raft.HumanTest.sln), [operational runbook](docs/OPERATIONS.md), [configuration reference](docs/CONFIGURATION.md), [architecture/storage notes](docs/ARCHITECTURE.md), and [LLM usage skill](../_docs/raft_skill.md).
 
+Human tutorials: [English HTML book](docs/human/tutorial/book-en.html) · [Русская HTML-книга](docs/human/tutorial/book-ru.html) · [language index](docs/human/tutorial/index.html). Both editions include the runnable C# companion, three-process startup, configuration, disk/RAM storage, snapshots, recovery and detailed limits.
+
 ## Build and run
 
 Install a .NET 8 SDK and run from `RaftNet8/`:

@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>Raft.TutorialNode</AssemblyName>
+    <RootNamespace>Raft.Tutorial</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../../../../src/Raft/Raft.csproj" />
+  </ItemGroup>
+</Project>
