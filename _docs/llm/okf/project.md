@@ -21,7 +21,7 @@ The assembly is Raft.Net8, namespace Raft, net8.0 only. DBreeze **[1.142.2026.10
 
 # Working commands and references
 
-Run locked restore, Release solution build, tests/Raft.Tests and the demo scenario from RaftNet8/. The [README](../../../RaftNet8/README.md), [runbook](../../../RaftNet8/docs/OPERATIONS.md), [usage skill](../../raft_skill.md) and [validation record](validation.md) describe current behavior. Active CI is `.github/workflows/raft-net8.yml`, not the historical inactive `_workflows` copy. Remote CI has not run here.
+Run locked restore, Release solution build, tests/Raft.Tests and the demo scenario from RaftNet8/. The [README](../../../RaftNet8/README.md), [runbook](../../../RaftNet8/docs/OPERATIONS.md), [usage skill](../../raft_skill.md) and [validation record](validation.md) describe current behavior. On 2026-11-13 the user requested removal of `.github/workflows/raft-net8.yml` after GitHub rejected the unpublished commit because its Personal Access Token lacked `workflow` scope. Automatic GitHub Actions validation is disabled; the historical `.github/_workflows/raft-net8.yml` copy remains inactive. Remote CI has not run here. The workflow must also be excluded from the unpublished commit before retrying the push; a working-tree deletion alone does not change that commit.
 
 Local restricted environment uses process-local DOTNET_CLI_HOME under TEMP, NUGET_PACKAGES at USERPROFILE/.nuget/packages and NuGetAudit=false only when its vulnerability feed is unreachable. Do not commit audit suppression or accidentally restore into an empty CLI_HOME package cache. Windows mTLS/profiled tests need OS-backed temporary key access; approved dotnet-test escalation provides it. Avoid heavy tests during final benchmark timing.
 

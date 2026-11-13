@@ -114,7 +114,7 @@ Pass `ILoggerFactory` through the additive constructor/CreateAsync overload for 
 ## Validation and measurements
 
 ```sh
-# Exact replay, or the nightly 42,000-run matrix
+# Exact replay, or the full 42,000-run matrix
 dotnet run --project tools/Raft.Simulator -c Release -- --seed 17 --scenario Mixed --steps 3000 --voters 3
 dotnet run --project tools/Raft.Simulator -c Release -- --seeds 3000 --scenario all --steps 3000 --voters 3,5 --parallel 4 --out .artifacts/simulation.json
 # Core coverage; raw fault children deliberately run without the collector
@@ -123,7 +123,7 @@ dotnet test tests/Raft.Tests -c Release --no-build --settings tests/core-coverag
 
 The runner advances the actual reducer with one seeded PRNG per run for clocks/skew, delayed/dropped/duplicated/asymmetric networking, disk flushes/failures, crashes/torn tails, application, configuration and snapshots. Invariants run after every event; bounded real-time backtracking checks client histories. Failures print exact replay commands/traces. The local large matrix passed **42,000 runs / 132,010,316 events**. Independent tests use real DBreeze/TCP, 3/5 OS-process clusters, forced termination, rolling restart and persistence/snapshot kill boundaries. Property tests cover logs/reopen, configurations and codecs. This is regression/model evidence, not a formal proof.
 
-The [active CI workflow](../.github/workflows/raft-net8.yml) builds/tests Windows/Linux, runs the demo/smaller seed matrix, uploads coverage and schedules 3000 seeds per scenario/topology nightly. Remote CI has not been executed here. See [validation and core coverage](docs/VALIDATION.md) and [benchmarks](benchmarks/README.md): 1/3/5-node disk/TCP workloads versus unchanged `8b991bd`, with individual p50/p99 measured separately.
+Automatic GitHub Actions validation is disabled: the active workflow was removed to avoid requiring the GitHub token's `workflow` permission. The historical [inactive workflow template](../.github/_workflows/raft-net8.yml) remains for reference. Run validation locally using the commands above. Remote CI has not been executed here. See [validation and core coverage](docs/VALIDATION.md) and [benchmarks](benchmarks/README.md): 1/3/5-node disk/TCP workloads versus unchanged `8b991bd`, with individual p50/p99 measured separately.
 
 ## Compatibility and boundaries
 

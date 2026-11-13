@@ -9,7 +9,7 @@ sources:
   - resource: ../../../RaftNet8/benchmarks/results/enhancement-2026-11-12.md
   - resource: ../../../RaftNet8/benchmarks/results/dotnext-comparison-2026-11-13.html
   - resource: ../../../RaftNet8/tests/Raft.Tests/
-  - resource: ../../../.github/workflows/raft-net8.yml
+  - resource: ../../../.github/_workflows/raft-net8.yml
 ---
 
 # Current evidence
@@ -38,4 +38,4 @@ The slow incomplete C-temp run and failed initial BDN generator reports are excl
 
 # Evidence limits
 
-This is extensive regression/model evidence, not formal verification or hardware power-loss proof. Only Windows executed locally. Active Windows/Linux/scheduled3000-seed CI is configured, not remotely run. Native collection excludes raw child processes; OS clusters run separately to avoid artificial profiler/process contention. Baseline8b991bd has weaker v1 integrity/recovery/features. Historical pre-.NET-8 APIs/data are not an equivalent benchmark or automatically migratable format.
+This is extensive regression/model evidence, not formal verification or hardware power-loss proof. Only Windows executed locally. The active GitHub Actions workflow was removed at the user's request on 2026-11-13 to avoid requiring token workflow scope; the retained `_workflows` template is inactive, and remote CI has not run. Native collection excludes raw child processes; OS clusters run separately to avoid artificial profiler/process contention. Baseline8b991bd has weaker v1 integrity/recovery/features. Historical pre-.NET-8 APIs/data are not an equivalent benchmark or automatically migratable format.

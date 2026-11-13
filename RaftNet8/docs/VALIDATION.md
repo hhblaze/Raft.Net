@@ -1,6 +1,6 @@
 # Executed validation
 
-Local host: Windows x64, .NET 8. Raw test/coverage/simulation/benchmark evidence is retained under the ignored `.artifacts/autonomous/` directory. Remote Windows/Linux CI is configured but has not been executed here. These results are regression evidence, not formal verification or a hardware power-loss guarantee.
+Local host: Windows x64, .NET 8. Raw test/coverage/simulation/benchmark evidence is retained under the ignored `.artifacts/autonomous/` directory. The active GitHub Actions workflow was removed at the user's request; remote Windows/Linux CI has not been executed here. Local validation commands remain available. These results are regression evidence, not formal verification or a hardware power-loss guarantee.
 
 ## Correctness and integration
 
