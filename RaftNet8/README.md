@@ -132,3 +132,12 @@ Automatic GitHub Actions validation is disabled: the active workflow was removed
 Recommended for new data: explicit **raft8-v3**, wire **2**. Existing constructors retain v2; select its layout when continuing those databases, or use the stopped copy migration to v3. V1 golden bytes/readers remain for existing .NET 8 integrations; v1 lacks CRC-frontier/configuration/snapshot support. Mixed wire versions are rejected. Upgrade v1 by **offline copy migration**, then restart the whole group on wire2; physical v2/v3 layouts use that same wire. See [upgrade/restore procedures](docs/OPERATIONS.md). Historical pre-.NET-8 data/packages need application-specific migration; the tool cannot infer their committed history.
 
 The model is non-Byzantine crash/recovery within one region. Joint consensus, lease reads, follower read forwarding, automatic client retries, external side-effect exactly-once delivery, a public client protocol and cross-region capacity guarantees are outside scope. Leases are absent/off. Snapshot replay uses extra disk/CPU for consistency without assuming MVCC. Durability relies on the OS/device honoring flushes; software tests cannot prove hardware power-loss behavior. Retain backups and measure network/storage tails before tuning deadlines.
+
+
+
+# Benchmark
+Base version, Newest Raft-NET-8, DotNext: RaftNet8/benchmarks/results/winner-r18-2026-11-13.html
+
+# Books, Tutorial ru, eng
+RaftNet8/docs/human/tutorial/book-ru.html
+RaftNet8/docs/human/tutorial/book-en.html
