@@ -6,6 +6,7 @@ namespace Raft.Benchmarks;
 [MemoryDiagnoser]
 public class WireBenchmarks
 {
+    [Params(1, 2)] public int Version { get; set; }
     private readonly RaftOptions _options = new() { NodeId = "n1", Members = new[] { "n1", "n2", "n3" } };
     private AppendRequest _append = null!;
     private readonly AppendRequest _heartbeat = new(1, 2, 32, 1, 32, Array.Empty<LogEntry>());
@@ -15,23 +16,24 @@ public class WireBenchmarks
     public void Setup()
     {
         _append = new(1, 1, 0, 0, 0, Enumerable.Range(1, 32).Select(i => new LogEntry(i, 1, new byte[256], false)).ToArray());
-        using var frame = RaftWireCodec.Encode("default", "n1", _append, _options.MaxAppendBytes + 1024);
+        using var frame = RaftWireCodec.Encode("default", "n1", _append, _options.MaxAppendBytes + 1024, Version, 1);
         _encoded = frame.Memory.Span[4..].ToArray();
     }
 
     [Benchmark]
     public int EncodeHeartbeat()
     {
-        using var frame = RaftWireCodec.Encode("default", "n1", _heartbeat, _options.MaxAppendBytes + 1024);
+        using var frame = RaftWireCodec.Encode("default", "n1", _heartbeat, _options.MaxAppendBytes + 1024, Version, 1);
         return frame.Memory.Length;
     }
 
     [Benchmark]
     public int EncodeAppend()
     {
-        using var frame = RaftWireCodec.Encode("default", "n1", _append, _options.MaxAppendBytes + 1024);
+        using var frame = RaftWireCodec.Encode("default", "n1", _append, _options.MaxAppendBytes + 1024, Version, 1);
         return frame.Memory.Length;
     }
 
-    [Benchmark] public RaftRpc DecodeAppend() => RaftWireCodec.Decode(_encoded, _options).Message;
+    // Keep generated BDN return signatures free of the two aliased assemblies' duplicate Raft type names.
+    [Benchmark] public object DecodeAppend() => RaftWireCodec.Decode(_encoded, _options).Message;
 }

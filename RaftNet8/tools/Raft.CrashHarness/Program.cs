@@ -13,6 +13,46 @@ if (args[1] == "committed")
     // Deliberately skip Dispose and all finally blocks, modelling abrupt process exit after acknowledgment.
     Environment.Exit(17);
 }
+else if (args[1].StartsWith("snapshot-", StringComparison.Ordinal) || args[1].StartsWith("v3-snapshot-", StringComparison.Ordinal))
+{
+    var unified = args[1].StartsWith("v3-", StringComparison.Ordinal);
+    await SnapshotCrashScenario.RunAsync(args[0], unified ? args[1][3..] : args[1],
+        unified ? DBreezeLogLayout.UnifiedTableV3 : DBreezeLogLayout.SeparateTablesV2);
+}
+else if (args[1].StartsWith("apply-v2-", StringComparison.Ordinal))
+{
+    var boundary = Enum.Parse<ApplicationPersistenceBoundary>(args[1][9..]);
+    using var engine = new DBreezeEngine(args[0]);
+    var machine = new DBreezeStateMachine(engine, "business/checkpoint", ["business/values"], (tx, entry) =>
+    {
+        var current = tx.Select<string, long>("business/values", "counter");
+        tx.Insert<string, long>("business/values", "counter", (current.Exists ? current.Value : 0) + 1);
+    }, observe: point =>
+    {
+        if (point != boundary) return;
+        Console.WriteLine("READY");
+        Console.Out.Flush();
+        Thread.Sleep(Timeout.Infinite);
+    });
+    machine.ApplyAsync(new LogEntry(2, 8, "increment"u8), default).GetAwaiter().GetResult();
+}
+else if (args[1].StartsWith("v2-", StringComparison.Ordinal) || args[1].StartsWith("v3-", StringComparison.Ordinal))
+{
+    var boundary = Enum.Parse<PersistenceBoundary>(args[1][3..]);
+    var layout = args[1].StartsWith("v3-", StringComparison.Ordinal) ? DBreezeLogLayout.UnifiedTableV3 : DBreezeLogLayout.SeparateTablesV2;
+    using var storage = new DBreezeLogStorage(args[0], options, layout, point =>
+    {
+        if (point != boundary) return;
+        Console.WriteLine("READY");
+        Console.Out.Flush();
+        Thread.Sleep(Timeout.Infinite);
+    });
+    storage.Write(new LogWrite.Batch([
+        new LogWrite.HardStateUpdate(new(8, "n2", 1)),
+        new LogWrite.Append([new LogEntry(2, 8, "v2-durable"u8)]),
+        new LogWrite.HardStateUpdate(new(8, "n2", 2))
+    ]));
+}
 else if (args[1] == "uncommitted")
 {
     var engine = new DBreezeEngine(args[0]);

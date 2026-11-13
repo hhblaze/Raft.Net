@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="Code Coverage">
+        <Configuration>
+          <Format>Cobertura</Format>
+          <IncludeTestAssembly>False</IncludeTestAssembly>
+          <CodeCoverage>
+            <CollectFromChildProcesses>False</CollectFromChildProcesses>
+            <ModulePaths>
+              <Include><ModulePath>.*Raft\.Net8\.dll$</ModulePath></Include>
+            </ModulePaths>
+            <Functions>
+              <Include><Function>^Raft\.Core\..*</Function></Include>
+            </Functions>
+          </CodeCoverage>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

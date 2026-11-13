@@ -1,24 +1,62 @@
 using System.Buffers;
 using System.Buffers.Binary;
 using System.Text;
+using Raft.Storage;
 
 namespace Raft.Transport;
 
-internal readonly record struct RpcEnvelope(string GroupId, string From, RaftRpc Message);
+internal readonly record struct RpcEnvelope(string GroupId, string From, RaftRpc Message)
+{
+    public int Version { get; init; } = 1;
+    public long ExchangeId { get; init; }
+}
 
 internal static class RaftWireCodec
 {
-    internal static PooledFrame Encode(string groupId, string from, RaftRpc rpc, int maxFrameBytes)
+    internal static PooledFrame Encode(string groupId, string from, RaftRpc rpc, int maxFrameBytes, int version = 1, long exchangeId = 0)
     {
         var frame = new PooledFrame(maxFrameBytes);
         try
         {
-            frame.WriteInt32(0); // length prefix, patched after serialization
-            frame.WriteByte(1); // protocol version; deliberately incompatible with the historical protocol
-            frame.WriteByte(rpc switch { VoteRequest => 1, VoteResponse => 2, AppendRequest => 3, AppendResponse => 4, _ => throw new InvalidDataException("Unknown RPC.") });
-            frame.WriteString(groupId);
-            frame.WriteString(from);
-            frame.WriteInt64(rpc.Term);
+            Encode(frame, groupId, from, rpc, maxFrameBytes, version, exchangeId);
+            return frame;
+        }
+        catch { frame.Dispose(); throw; }
+    }
+
+    internal static void Encode(IBufferWriter<byte> destination, string groupId, string from, RaftRpc rpc, int maxFrameBytes,
+        int version = 1, long exchangeId = 0)
+    {
+        RaftOptions.ValidateId(groupId, nameof(groupId));
+        RaftOptions.ValidateId(from, nameof(from));
+        if (version is not 1 and not 2 || (version == 2 && exchangeId < 1)) throw new InvalidDataException("Invalid wire version/exchange ID.");
+        var metadata = rpc is SnapshotChunkRequest { Metadata: { } snapshot } ? StorageCodecV2.Snapshot(snapshot) : Array.Empty<byte>();
+        var kind = Kind(rpc);
+        if (version == 1 && kind > 4) throw new InvalidDataException("This message requires wire v2.");
+        var length = checked(18 + groupId.Length + from.Length + (version == 2 ? 8 : 0) + (rpc switch
+        {
+            VoteRequest => 16, VoteResponse => 1, AppendRequest => 36 + (version == 2 ? 8 : 0), AppendResponse => 33 + (version == 2 ? 8 : 0),
+            PreVoteRequest => 24, PreVoteResponse => 17, TimeoutNowRequest => 8, TimeoutNowResponse => 9,
+            SnapshotChunkRequest chunk => 41 + chunk.StorageId.Length + metadata.Length + chunk.Data.Length,
+            SnapshotChunkResponse chunk => 22 + chunk.StorageId.Length,
+            _ => throw new InvalidDataException("Unknown RPC.")
+        }));
+        if (rpc is AppendRequest batch)
+            for (var i = 0; i < batch.Entries.Count; i++)
+                length = checked(length + LogEntry.EncodedOverhead + batch.Entries[i].Command.Length);
+        if (length > maxFrameBytes) throw new InvalidDataException("Frame exceeds configured limit.");
+        // The pooled transport frame is contiguous and its exact length is known.
+        // Reserve once instead of growing/copying it as every log entry is encoded.
+        // Other IBufferWriter implementations may be segmented; keep their streaming contract.
+        if (destination is PooledFrame pooled) pooled.GetSpan(checked(length + 4));
+        var frame = new WireWriter(destination);
+        frame.WriteInt32(length);
+        frame.WriteByte((byte)version);
+        frame.WriteByte(kind);
+        frame.WriteString(groupId);
+        frame.WriteString(from);
+        frame.WriteInt64(rpc.Term);
+        if (version == 2) frame.WriteInt64(exchangeId);
             switch (rpc)
             {
                 case VoteRequest vote:
@@ -33,13 +71,15 @@ internal static class RaftWireCodec
                     frame.WriteInt64(append.PreviousIndex);
                     frame.WriteInt64(append.PreviousTerm);
                     frame.WriteInt64(append.LeaderCommit);
+                    if (version == 2) frame.WriteInt64(append.ReadContext);
                     frame.WriteInt32(append.Entries.Count);
                     for (var i = 0; i < append.Entries.Count; i++)
                     {
                         var entry = append.Entries[i];
                         frame.WriteInt64(entry.Index);
                         frame.WriteInt64(entry.Term);
-                        frame.WriteByte(entry.IsNoOp ? (byte)1 : (byte)0);
+                        if (version == 1 && entry.Kind == LogEntryKind.Configuration) throw new InvalidDataException("Configuration entries require v2.");
+                        frame.WriteByte((byte)entry.Kind);
                         frame.WriteInt32(entry.Command.Length);
                         frame.Write(entry.Command.Span);
                     }
@@ -50,23 +90,70 @@ internal static class RaftWireCodec
                     frame.WriteInt64(append.MatchIndex);
                     frame.WriteInt64(append.ConflictIndex);
                     frame.WriteInt64(append.ConflictTerm);
+                    if (version == 2) frame.WriteInt64(append.ReadContext);
+                    break;
+                case PreVoteRequest preVote:
+                    frame.WriteInt64(preVote.Round); frame.WriteInt64(preVote.LastLogIndex); frame.WriteInt64(preVote.LastLogTerm);
+                    break;
+                case PreVoteResponse preVote:
+                    frame.WriteInt64(preVote.Round); frame.WriteInt64(preVote.ProspectiveTerm); frame.WriteByte(preVote.Granted ? (byte)1 : (byte)0);
+                    break;
+                case TimeoutNowRequest timeout: frame.WriteInt64(timeout.RequestId); break;
+                case TimeoutNowResponse timeout:
+                    frame.WriteInt64(timeout.RequestId); frame.WriteByte(timeout.Accepted ? (byte)1 : (byte)0); break;
+                case SnapshotChunkRequest chunk:
+                    frame.WriteInt64(chunk.RequestId); frame.WriteString(chunk.StorageId);
+                    frame.WriteInt64(chunk.Offset); frame.WriteInt64(chunk.TotalLength); frame.WriteInt32(unchecked((int)chunk.Checksum));
+                    frame.WriteByte(chunk.Final ? (byte)1 : (byte)0);
+                    frame.WriteInt32(metadata.Length); frame.Write(metadata);
+                    frame.WriteInt32(chunk.Data.Length); frame.Write(chunk.Data.Span);
+                    break;
+                case SnapshotChunkResponse chunk:
+                    frame.WriteInt64(chunk.RequestId); frame.WriteString(chunk.StorageId); frame.WriteInt64(chunk.NextOffset);
+                    frame.WriteByte(chunk.Success ? (byte)1 : (byte)0); frame.WriteByte(chunk.Complete ? (byte)1 : (byte)0);
                     break;
             }
-            frame.PatchLength();
-            return frame;
+    }
+
+    private static byte Kind(RaftRpc rpc) => rpc switch
+    {
+        VoteRequest => 1, VoteResponse => 2, AppendRequest => 3, AppendResponse => 4,
+        PreVoteRequest => 5, PreVoteResponse => 6, TimeoutNowRequest => 7, TimeoutNowResponse => 8,
+        SnapshotChunkRequest => 9, SnapshotChunkResponse => 10, _ => throw new InvalidDataException("Unknown RPC.")
+    };
+
+    private readonly ref struct WireWriter(IBufferWriter<byte> destination)
+    {
+        public void WriteByte(byte value) { destination.GetSpan(1)[0] = value; destination.Advance(1); }
+        public void WriteInt32(int value) { BinaryPrimitives.WriteInt32LittleEndian(destination.GetSpan(4), value); destination.Advance(4); }
+        public void WriteInt64(long value) { BinaryPrimitives.WriteInt64LittleEndian(destination.GetSpan(8), value); destination.Advance(8); }
+        public void Write(ReadOnlySpan<byte> value)
+        {
+            if (value.IsEmpty) return;
+            value.CopyTo(destination.GetSpan(value.Length));
+            destination.Advance(value.Length);
         }
-        catch { frame.Dispose(); throw; }
+        public void WriteString(string value)
+        {
+            WriteInt32(value.Length);
+            Encoding.ASCII.GetBytes(value, destination.GetSpan(value.Length));
+            destination.Advance(value.Length);
+        }
     }
 
     internal static RpcEnvelope Decode(ReadOnlySpan<byte> bytes, RaftOptions options)
     {
         var reader = new SpanReader(bytes);
-        if (reader.Byte() != 1) throw new InvalidDataException("Unsupported Raft wire version.");
+        var version = reader.Byte();
+        if (version is not 1 and not 2) throw new InvalidDataException("Unsupported Raft wire version.");
         var kind = reader.Byte();
+        if (version == 1 && kind > 4) throw new InvalidDataException("Message requires v2.");
         var group = reader.String();
         var from = reader.String();
         var term = reader.Int64();
         if (term < 0) throw new InvalidDataException("Negative RPC term.");
+        var exchangeId = version == 2 ? reader.Int64() : 0;
+        if (version == 2 && exchangeId < 1) throw new InvalidDataException("Invalid exchange ID.");
         RaftRpc message;
         switch (kind)
         {
@@ -77,6 +164,7 @@ internal static class RaftWireCodec
                 var previous = reader.Int64();
                 var previousTerm = reader.Int64();
                 var commit = reader.Int64();
+                var readContext = version == 2 ? reader.Int64() : 0;
                 var count = reader.Int32();
                 if (count < 0 || count > options.MaxAppendEntries) throw new InvalidDataException("Invalid batch count.");
                 var entries = new LogEntry[count];
@@ -85,29 +173,54 @@ internal static class RaftWireCodec
                 {
                     var index = reader.Int64();
                     var entryTerm = reader.Int64();
-                    var noOp = reader.Boolean();
+                    var entryKind = (LogEntryKind)reader.Byte();
+                    if (entryKind > (version == 1 ? LogEntryKind.NoOp : LogEntryKind.Configuration))
+                        throw new InvalidDataException("Invalid log entry kind.");
                     var length = reader.Int32();
-                    if (length < 0 || length > options.MaxCommandBytes) throw new InvalidDataException("Command length exceeds limit.");
+                    if (length < 0 || length > (entryKind == LogEntryKind.Configuration ? options.MaxAppendBytes : options.MaxCommandBytes))
+                        throw new InvalidDataException("Command length exceeds limit.");
                     size = checked(size + length + LogEntry.EncodedOverhead);
-                    if (size > options.MaxAppendBytes) throw new InvalidDataException("Batch bytes exceed limit.");
-                    entries[i] = new LogEntry(index, entryTerm, reader.Bytes(length), noOp);
+                    if (size > (version == 1 ? options.MaxAppendBytes : options.ReplicationByteLimit))
+                        throw new InvalidDataException("Batch bytes exceed limit.");
+                    entries[i] = new LogEntry(index, entryTerm, reader.Bytes(length), entryKind);
                 }
-                message = new AppendRequest(term, requestId, previous, previousTerm, commit, entries);
+                message = new AppendRequest(term, requestId, previous, previousTerm, commit, entries) { ReadContext = readContext };
                 break;
             case 4:
-                message = new AppendResponse(term, reader.Int64(), reader.Boolean(), reader.Int64(), reader.Int64(), reader.Int64());
+                var response = new AppendResponse(term, reader.Int64(), reader.Boolean(), reader.Int64(), reader.Int64(), reader.Int64());
+                message = version == 2 ? response with { ReadContext = reader.Int64() } : response;
+                break;
+            case 5: message = new PreVoteRequest(term, reader.Int64(), reader.Int64(), reader.Int64()); break;
+            case 6: message = new PreVoteResponse(term, reader.Int64(), reader.Int64(), reader.Boolean()); break;
+            case 7: message = new TimeoutNowRequest(term, reader.Int64()); break;
+            case 8: message = new TimeoutNowResponse(term, reader.Int64(), reader.Boolean()); break;
+            case 9:
+                var id = reader.Int64(); var storageId = reader.String();
+                var offset = reader.Int64(); var total = reader.Int64(); var crc = unchecked((uint)reader.Int32()); var final = reader.Boolean();
+                var metadataLength = reader.Int32();
+                if (metadataLength < 0 || metadataLength > 280_000) throw new InvalidDataException("Invalid snapshot metadata length.");
+                var metadata = metadataLength == 0 ? null : StorageCodecV2.Snapshot(reader.Bytes(metadataLength).ToArray());
+                var dataLength = reader.Int32();
+                if (dataLength < 0 || dataLength > options.SnapshotChunkBytes || offset < 0 || total < 0 || offset > total - dataLength)
+                    throw new InvalidDataException("Invalid snapshot chunk bounds.");
+                var data = reader.Bytes(dataLength).ToArray();
+                if (Crc32C.Compute(data) != crc) throw new InvalidDataException("Snapshot chunk CRC32C differs.");
+                message = new SnapshotChunkRequest(term, id, storageId, offset, total, crc, final, metadata, data);
+                break;
+            case 10:
+                message = new SnapshotChunkResponse(term, reader.Int64(), reader.String(), reader.Int64(), reader.Boolean(), reader.Boolean());
                 break;
             default: throw new InvalidDataException("Unknown Raft message kind.");
         }
         if (!reader.IsEmpty) throw new InvalidDataException("Trailing bytes in Raft frame.");
-        return new(group, from, message);
+        return new(group, from, message) { Version = version, ExchangeId = exchangeId };
     }
 
     internal static async ValueTask<RpcEnvelope> ReadAsync(Stream stream, byte[] header, RaftOptions options, CancellationToken token)
     {
         await stream.ReadExactlyAsync(header, token).ConfigureAwait(false);
         var length = BinaryPrimitives.ReadInt32LittleEndian(header);
-        if (length < 18 || length > options.MaxAppendBytes + 1024) throw new InvalidDataException("Invalid Raft frame length.");
+        if (length < 18 || length > options.MaxFrameBytes) throw new InvalidDataException("Invalid Raft frame length.");
         var buffer = ArrayPool<byte>.Shared.Rent(length);
         try
         {
@@ -147,40 +260,44 @@ internal static class RaftWireCodec
 }
 
 /// <summary>Rented contiguous frame, returned only after the asynchronous write completes.</summary>
-internal sealed class PooledFrame : IDisposable
+internal sealed class PooledFrame : IDisposable, IBufferWriter<byte>
 {
-    private byte[] _buffer = ArrayPool<byte>.Shared.Rent(512);
+    private byte[] _buffer;
     private readonly int _limit;
     private int _written;
-    public PooledFrame(int maxFrameBytes) => _limit = checked(maxFrameBytes + 4);
-    public ReadOnlyMemory<byte> Memory => _buffer.AsMemory(0, _written);
-    private Span<byte> Reserve(int count)
+    private bool _disposed;
+    public PooledFrame(int maxFrameBytes)
     {
+        _limit = checked(maxFrameBytes + 4);
+        _buffer = Array.Empty<byte>();
+    }
+    public ReadOnlyMemory<byte> Memory => _buffer.AsMemory(0, _written);
+    public Memory<byte> GetMemory(int sizeHint = 0)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentOutOfRangeException.ThrowIfNegative(sizeHint);
+        var count = Math.Max(1, sizeHint);
         if (count < 0 || count > _limit - _written) throw new InvalidDataException("Frame exceeds configured limit.");
         if (_buffer.Length - _written < count)
         {
-            var next = ArrayPool<byte>.Shared.Rent(Math.Min(_limit, Math.Max(_written + count, _buffer.Length * 2)));
+            var next = ArrayPool<byte>.Shared.Rent(Math.Min(_limit, Math.Max(_written + count, Math.Max(512, _buffer.Length * 2))));
             _buffer.AsSpan(0, _written).CopyTo(next);
-            ArrayPool<byte>.Shared.Return(_buffer);
+            if (_buffer.Length != 0) ArrayPool<byte>.Shared.Return(_buffer);
             _buffer = next;
         }
-        var span = _buffer.AsSpan(_written, count);
-        _written += count;
-        return span;
+        return _buffer.AsMemory(_written, Math.Min(_buffer.Length, _limit) - _written);
     }
-    public void WriteByte(byte value) => Reserve(1)[0] = value;
-    public void WriteInt32(int value) => BinaryPrimitives.WriteInt32LittleEndian(Reserve(4), value);
-    public void WriteInt64(long value) => BinaryPrimitives.WriteInt64LittleEndian(Reserve(8), value);
-    public void Write(ReadOnlySpan<byte> value) => value.CopyTo(Reserve(value.Length));
-    public void WriteString(string value)
+    public Span<byte> GetSpan(int sizeHint = 0) => GetMemory(sizeHint).Span;
+    public void Advance(int count)
     {
-        RaftOptions.ValidateId(value, nameof(value));
-        WriteInt32(value.Length);
-        Encoding.ASCII.GetBytes(value, Reserve(value.Length));
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        if (count < 0 || count > Math.Min(_buffer.Length, _limit) - _written)
+            throw new ArgumentOutOfRangeException(nameof(count));
+        _written += count;
     }
-    public void PatchLength() => BinaryPrimitives.WriteInt32LittleEndian(_buffer, _written - 4);
     public void Dispose()
     {
+        _disposed = true;
         var buffer = Interlocked.Exchange(ref _buffer, Array.Empty<byte>());
         if (buffer.Length != 0) ArrayPool<byte>.Shared.Return(buffer);
     }

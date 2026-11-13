@@ -20,13 +20,15 @@ internal sealed class SimCluster : IDisposable
     public double DuplicateRate { get; set; }
     public bool Reorder { get; set; }
 
-    public SimCluster(int size = 3, int seed = 1, int maxAppendEntries = 16)
+    public SimCluster(int size = 3, int seed = 1, int maxAppendEntries = 16, bool preVote = false,
+        Func<RaftOptions, RaftOptions>? configure = null)
     {
         _random = new Random(seed);
         var members = Enumerable.Range(1, size).Select(i => $"n{i}").ToArray();
         foreach (var id in members)
         {
-            var options = new RaftOptions { NodeId = id, Members = members, MaxAppendEntries = maxAppendEntries };
+            var options = new RaftOptions { NodeId = id, Members = members, MaxAppendEntries = maxAppendEntries, EnablePreVote = preVote };
+            if (configure is not null) options = configure(options);
             _options.Add(id, options);
             var store = DBreezeRaftStorage.CreateInMemory(options);
             Stores.Add(id, store);
@@ -84,7 +86,7 @@ internal sealed class SimCluster : IDisposable
             if (Offline.Contains(packet.From) || Offline.Contains(packet.To) || _blocked.Contains((packet.From, packet.To)) ||
                 _random.NextDouble() < DropRate)
             {
-                var sender = packet.Message is VoteRequest or AppendRequest ? packet.From : packet.To;
+                var sender = RaftRpcProtocol.IsRequest(packet.Message) ? packet.From : packet.To;
                 var peer = sender == packet.From ? packet.To : packet.From;
                 Nodes[sender].ReportUnreachable(peer, packet.Original);
                 continue;
@@ -99,7 +101,7 @@ internal sealed class SimCluster : IDisposable
 
     private void Deliver(Packet packet)
     {
-        if (packet.Message is VoteRequest or AppendRequest)
+        if (RaftRpcProtocol.IsRequest(packet.Message))
         {
             var response = Nodes[packet.To].HandleRequest(packet.From, packet.Message);
             Network.Add(new(packet.To, packet.From, response, packet.Message));
@@ -163,6 +165,15 @@ internal sealed class TestDirectory : IDisposable
         var absolute = System.IO.Path.GetFullPath(Path);
         var parent = System.IO.Path.GetFullPath(System.IO.Path.Combine(System.IO.Path.GetTempPath(), "raftnet8-tests")) + System.IO.Path.DirectorySeparatorChar;
         if (!absolute.StartsWith(parent, StringComparison.OrdinalIgnoreCase)) throw new InvalidOperationException("Unexpected test path.");
-        if (Directory.Exists(absolute)) Directory.Delete(absolute, true);
+        for (var attempt = 0; ; attempt++)
+        {
+            try { if (Directory.Exists(absolute)) Directory.Delete(absolute, true); return; }
+            catch (IOException) when (OperatingSystem.IsWindows() && attempt < 8)
+            {
+                // A reaped native child/scanner may briefly retain a Windows file handle.
+                // Bound retries so a genuinely leaked engine still fails the test.
+                Thread.Sleep(25 * (attempt + 1));
+            }
+        }
     }
 }

@@ -5,15 +5,15 @@ namespace Raft.Benchmarks;
 internal sealed class BenchmarkStorage : IDisposable
 {
     private readonly string? _directory;
-    public DBreezeRaftStorage Store { get; }
+    public DBreezeLogStorage Store { get; }
     public BenchmarkStorage(bool disk, RaftOptions options)
     {
         if (disk)
         {
             _directory = Path.Combine(Path.GetTempPath(), "raftnet8-benchmarks", Guid.NewGuid().ToString("N"));
-            Store = new DBreezeRaftStorage(_directory, options);
+            Store = new DBreezeLogStorage(_directory, options);
         }
-        else Store = DBreezeRaftStorage.CreateInMemory(options);
+        else Store = DBreezeLogStorage.CreateInMemory(options);
     }
     public void Dispose()
     {

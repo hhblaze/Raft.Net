@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; object-src 'none'">
+<title>Raft.Net — сравнение производительности · 12.11.2026</title>
+<style>
+:root{--bg:#f4f6fa;--paper:#fff;--ink:#192b40;--muted:#52657a;--line:#dce3ec;--blue:#2563eb;--teal:#0d8278;--good:#116b4f;--bad:#a32b33;--soft:#edf3ff}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:24px}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 "Segoe UI",system-ui,sans-serif}
+a{color:#1b56ba;text-underline-offset:3px}a:hover{color:#143d83}
+button,select{font:inherit;color:inherit}button,a,select{touch-action:manipulation}
+button{cursor:pointer}button:focus-visible,a:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #4e83ea;outline-offset:3px}
+.wrap{max-width:1480px;margin:auto;padding:0 36px}.hero{background:#14273e;color:#f7faff;padding:38px 0 30px}
+.hero a{color:#c5d7ff}.eyebrow{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#aec3df}
+.hero-top{display:flex;justify-content:space-between;gap:24px;align-items:start}
+h1{font-size:clamp(28px,3.2vw,42px);line-height:1.15;letter-spacing:-.035em;margin:10px 0 16px;font-weight:650}
+.intro{max-width:920px;color:#d2dfef;font-size:16px;margin:0}.hero .sub{color:#aabed7;margin:12px 0 0;font-size:13px}
+.button{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:8px;background:var(--paper);padding:9px 14px;font-weight:600;text-decoration:none;white-space:nowrap}
+.hero .button{border-color:#425974;background:#233e5c;color:white}.hero .button:hover{background:#2b496d}
+.nav{display:flex;gap:12px 24px;flex-wrap:wrap;margin-top:26px;font-size:14px}.nav a{text-decoration:none}
+main.wrap{padding-top:26px;padding-bottom:40px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:19px 22px}
+.stat strong{font-size:30px;line-height:1.2;letter-spacing:-.04em;display:block;font-variant-numeric:tabular-nums}
+.stat span{display:block;color:var(--muted);font-size:13px;margin-top:7px}
+.takeaways{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px}
+.takeaway{padding:0 20px 0 15px;border-left:3px solid #b3c4dc}.takeaway h2{font-size:16px;margin:0 0 5px}
+.takeaway p{font-size:14px;color:var(--muted);margin:0}
+section{margin:0 0 28px}.panel{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:24px}
+.section-heading{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:10px}
+h2{font-size:23px;line-height:1.25;letter-spacing:-.02em;margin:0 0 10px}h3{font-size:17px;line-height:1.35;margin:0 0 8px}
+p{margin:0 0 12px}.muted,.note{color:var(--muted)}.note{font-size:13px}.section-heading p{margin:0}
+.callout{padding:12px 16px;border-radius:8px;background:#fff6e8;border:1px solid #ecd7b1;color:#68471a;font-size:14px;margin:16px 0}
+.scope-note{background:var(--soft);border:1px solid #d2dff8;border-radius:8px;padding:12px 16px;font-size:14px}
+.table-scroll{max-width:100%;overflow:auto;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:13px;line-height:1.45}
+caption{text-align:left;padding:12px 14px;background:#f5f7fb;color:var(--muted);font-size:13px}
+th,td{padding:11px 13px;text-align:left;border-bottom:1px solid #e5eaf1;vertical-align:middle}
+thead th{background:#eff3f8;color:#3a4d64;font-weight:600;white-space:nowrap}
+thead tr:first-child th{border-bottom-color:#d5deea}thead th.group{text-align:center;font-size:13px;background:#e7edf6}
+tbody tr:last-child td,tbody tr:last-child th{border-bottom:0}tbody tr:nth-child(even){background:#f9fafd}tbody tr:hover{background:#edf3ff}
+.numeric{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}.nowrap{white-space:nowrap}.strong{font-weight:650}
+.gain{color:var(--good);font-weight:650}.loss{color:var(--bad);font-weight:650}
+.workload-table th,.workload-table td{padding:9px 14px}
+.controls{display:flex;gap:18px;align-items:end;flex-wrap:wrap;margin:18px 0 10px}
+.control{display:flex;flex-direction:column;gap:5px}.control>span,.control label{font-size:12px;font-weight:650;color:var(--muted)}
+select{background:white;border:1px solid #bdcada;border-radius:7px;padding:8px 30px 8px 10px;min-height:40px;max-width:100%}
+.segmented{display:flex;gap:4px;padding:4px;background:#edf1f7;border-radius:9px;flex-wrap:wrap}
+.segmented button{border:0;background:transparent;padding:8px 12px;border-radius:6px;font-weight:600;font-size:14px}
+.segmented button[aria-pressed="true"]{background:#213d60;color:#fff;box-shadow:0 1px 3px #0002}
+.reset{padding:8px 13px;min-height:40px}.active-scope{font-size:14px;margin:16px 0 6px;font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin:16px 0 0;font-size:12px;color:#374b64}
+.legend span{display:flex;align-items:center;gap:7px}.swatch{width:12px;height:12px;border-radius:3px;display:inline-block;flex-shrink:0}
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px}
+.chart-card{padding:21px 22px 15px;min-width:0;background:var(--paper);border:1px solid var(--line);border-radius:12px}
+.chart-card h3{margin-bottom:4px}.chart-sub{font-size:13px;color:var(--muted);min-height:42px;margin:0}
+.chart-frame{height:490px;position:relative;margin-top:9px}.chart-card canvas{width:100%!important;height:100%!important}
+.chart-footer{font-size:12px;color:var(--muted);margin:8px 0 0}
+.metric-select{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px}
+.metric-select select{font-size:12px;padding:4px 22px 4px 7px;min-height:30px}
+#detail-table th button{border:0;background:transparent;padding:0;color:inherit;font:inherit;text-align:inherit;white-space:normal;min-width:48px}
+#detail-table th[aria-sort="ascending"],#detail-table th[aria-sort="descending"]{background:#dce8fb;color:#204f9c}
+#detail-table{min-width:1190px}#detail-caption{font-weight:500}#detail-table tbody td:first-child{font-weight:600}
+.table-heading{margin-bottom:14px}.table-heading .note{margin:0}
+details{border:1px solid var(--line);border-radius:10px;background:var(--paper);margin-bottom:12px}
+summary{cursor:pointer;font-weight:650;padding:16px 20px;font-size:16px}details[open]>summary{border-bottom:1px solid var(--line)}
+.details-body{padding:20px}.details-body p:last-child{margin-bottom:0}
+.method-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}.method-grid ul{padding-left:20px;margin:10px 0}
+li{margin-bottom:7px}.kv-table th{width:32%;background:#f7f9fc;white-space:normal}.kv-table td{overflow-wrap:anywhere}
+code{font-family:Consolas,monospace;font-size:.92em;background:#edf1f6;border-radius:4px;padding:1px 5px}
+pre{overflow:auto;max-height:440px;font:12px/1.5 Consolas,monospace;background:#f3f6fb;border:1px solid var(--line);padding:16px;border-radius:8px;white-space:pre-wrap;overflow-wrap:anywhere}
+.source-links{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 18px}.source-links a{background:#eef3fb;border-radius:6px;padding:7px 11px;font-size:13px}
+.hash{font:12px/1.6 Consolas,monospace;overflow-wrap:anywhere;color:var(--muted)}
+.footer{border-top:1px solid var(--line);padding-top:20px;font-size:12px;color:var(--muted)}
+[hidden]{display:none!important}.error{background:#fff0f0;color:#8c252d;padding:14px;border:1px solid #e2b2b6;border-radius:8px}
+.skip{position:absolute;left:20px;top:-100px;background:white;padding:10px;z-index:10}.skip:focus{top:10px}
+@media(max-width:1050px){.wrap{padding:0 22px}.chart-grid{grid-template-columns:1fr}.stats{gap:12px}.stat{padding:15px}.stat strong{font-size:26px}.takeaways{gap:12px}.method-grid{grid-template-columns:1fr}}
+@media(max-width:650px){.wrap{padding:0 14px}.hero{padding:26px 0 22px}.hero-top{display:block}.hero .button{margin-top:18px}.intro{font-size:15px}.stats{grid-template-columns:1fr 1fr}.stat{padding:14px}.stat strong{font-size:24px}.stat span{font-size:12px}.takeaways{grid-template-columns:1fr;gap:14px}.panel{padding:17px}.section-heading{display:block}.controls{gap:12px}.control{flex:1 1 135px}.series-control{flex-basis:100%}.segmented button{font-size:13px;padding:8px}.chart-card{padding:18px 12px 12px}.chart-sub{min-height:0}.chart-grid{gap:14px}.details-body{padding:15px}h2{font-size:21px}summary{padding:14px 15px}.nav{gap:10px 17px}.legend{gap:8px 12px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@page{size:A4 landscape;margin:12mm}
+@media print{body{background:white;font-size:11px;color:#16283d}.wrap{max-width:none;padding:0}.hero{background:white;color:#16283d;padding:0 0 12px;border-bottom:1px solid #aebaca}.hero .intro,.hero .sub,.eyebrow{color:#4a5d73}.hero h1{font-size:28px}.hero .button,.nav,.controls,.js-only-button,.skip,.metric-select{display:none!important}main{padding:15px 0}.stats{gap:8px}.stat{padding:10px}.stat strong{font-size:23px}.takeaways{gap:10px;margin-bottom:15px}.takeaway p{font-size:11px}.takeaway h2{font-size:13px}.panel{padding:14px}.chart-grid{gap:10px;grid-template-columns:1fr 1fr}.chart-card{padding:12px;break-inside:avoid}.chart-card h3{font-size:14px}.chart-sub,.chart-footer,.note{font-size:10px}.chart-sub{min-height:32px}.chart-frame{max-height:620px}.table-scroll{overflow:visible;border-radius:0}table,#detail-table{min-width:0;font-size:9px}th,td{padding:5px 6px}.workload-table th,.workload-table td{padding:6px 8px}thead{display:table-header-group}tr{break-inside:avoid}#detail-table th button{font-size:9px;min-width:0}#detail-table th{white-space:normal}#detail-table td{white-space:normal}.numeric{white-space:nowrap}section{margin-bottom:18px}h2{font-size:18px}.legend{font-size:10px}details{break-inside:auto}summary{padding:10px 12px;font-size:13px}.details-body{padding:12px}.source-links a{padding:4px 7px;font-size:11px}.footer{font-size:10px}a{color:inherit}pre{max-height:none;font-size:9px}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style>
+</head>
+<body>
+<a href="#comparison" class="skip">Перейти к сравнению</a>
+<header class="hero">
+ <div class="wrap">
+  <div class="hero-top">
+   <div>
+    <div class="eyebrow">.NET 8 · DBreeze на диске · измерения 12 ноября 2026</div>
+    <h1>Производительность Raft.Net</h1>
+    <p class="intro">Базовая реализация <strong>8b991bd</strong> и текущая версия: пропускная способность, задержки отдельных запросов и выделения управляемой памяти.</p>
+    <p class="sub">Один хост · loopback TCP · 1 / 3 / 5 голосующих узлов · команды 64 Б и 16 КиБ · без snapshot compaction</p>
+   </div>
+   <button class="button js-only" type="button" id="print-report">Печать / PDF</button>
+  </div>
+  <nav class="nav" aria-label="Разделы отчёта">
+   <a href="#workloads">Короткие и длинные прогоны</a><a href="#comparison">Графики</a>
+   <a href="#details">Все измерения</a><a href="#method">Методика</a><a href="#sources">Исходные данные</a>
+  </nav>
+ </div>
+</header>
+<main class="wrap">
+ <div class="stats" aria-label="Объём измерений">
+  <div class="stat"><strong>36</strong><span>конфигураций: короткие серии и BDN</span></div>
+  <div class="stat"><strong>18</strong><span>конфигураций: длинные серии</span></div>
+  <div class="stat"><strong>129 024</strong><span>индивидуальных замера задержки</span></div>
+  <div class="stat"><strong>TCP + диск</strong><span>DBreeze 1.142.2026.1016-beta на каждом узле</span></div>
+ </div>
+ <div class="takeaways">
+  <article class="takeaway"><h2>Результат зависит от нагрузки</h2><p>Размер команд, длина прогона и число реплик меняют итог. Данные не подтверждают универсального ускорения текущей версии.</p></article>
+  <article class="takeaway"><h2>Регрессии сохранены</h2><p>В многорепличных сценариях с 16 КиБ есть замедления. Pipeline помогает не во всех измеренных конфигурациях.</p></article>
+  <article class="takeaway"><h2>Гарантии версий различаются</h2><p>База использует v1 / wire 1 с более слабыми проверками целостности и восстановлением. Текущая версия — v2 / wire 2.</p></article>
+ </div>
+
+ <section class="panel" id="workloads" aria-labelledby="workload-title">
+  <h2 id="workload-title">Короткий и длинный прогон могут менять вывод</h2>
+  <p class="muted">Здесь везде сравниваются <strong>базовая с пакетами</strong> и <strong>текущая с пакетами + pipeline</strong>. Это два разных профиля нагрузки; их результаты не объединяются в среднее.</p>
+  <div class="table-scroll" tabindex="0" role="region" aria-label="Короткие и длинные прогоны, прокрутка таблицы">
+   <table class="workload-table" id="workload-table">
+    <caption>Пропускная способность, команд/с. Δ = (текущая / базовая − 1) × 100 %. Плюс означает больше команд в секунду.</caption>
+    <thead>
+     <tr><th rowspan="2" scope="col">Узлы</th><th rowspan="2" scope="col">Команда</th><th colspan="3" scope="colgroup" class="group">Коротко · 512 запросов × 3</th><th colspan="3" scope="colgroup" class="group">Долго · 4096 запросов × 1</th></tr>
+     <tr><th scope="col" class="numeric">Базовая</th><th scope="col" class="numeric">Текущая + pipeline</th><th scope="col" class="numeric">Δ, %</th><th scope="col" class="numeric">Базовая</th><th scope="col" class="numeric">Текущая + pipeline</th><th scope="col" class="numeric">Δ, %</th></tr>
+    </thead><tbody>@@@WORKLOAD_ROWS@@@</tbody>
+   </table>
+  </div>
+  <p class="note" style="margin:12px 0 0">Коротко: прогрев 128 команд, медиана пропускной способности трёх независимых раундов. Долго: прогрев 2048, один раунд и более длинный сохранённый лог; оценки разброса между раундами нет. Один узел не даёт сетевого выигрыша от pipeline.</p>
+ </section>
+
+ <section id="comparison" aria-labelledby="comparison-title">
+  <div class="panel">
+   <h2 id="comparison-title">Сравнение по конфигурациям</h2>
+   <p class="muted">Фильтры одновременно меняют четыре графика и полную таблицу ниже. Длина столбцов не сравнивается между графиками: у каждого своя шкала.</p>
+   <div class="controls js-only">
+    <div class="control series-control"><span id="series-label">Набор измерений</span>
+     <div class="segmented" role="group" aria-labelledby="series-label">
+      <button type="button" data-series="short" aria-pressed="true">Короткие серии</button>
+      <button type="button" data-series="long" aria-pressed="false">Длинные серии</button>
+      <button type="button" data-series="bdn" aria-pressed="false">BenchmarkDotNet</button>
+     </div>
+    </div>
+    <label class="control"><span>Размер команды</span><select id="filter-payload"><option value="all">64 Б и 16 КиБ</option><option value="64">64 Б</option><option value="16384">16 КиБ</option></select></label>
+    <label class="control"><span>Голосующие узлы</span><select id="filter-nodes"><option value="all">1, 3 и 5</option><option value="1">1</option><option value="3">3</option><option value="5">5</option></select></label>
+    <label class="control"><span>Режимы</span><select id="filter-mode"><option value="batched">С пакетами · 3 режима</option><option value="unbatched">Без пакетов · 3 режима</option><option value="all">Все · 6 режимов</option></select></label>
+    <button type="button" class="button reset" id="reset-filters">Сбросить</button>
+   </div>
+   <p id="active-scope" class="active-scope" aria-live="polite">Все 36 коротких конфигураций приведены в таблице ниже.</p>
+   <p id="series-note" class="scope-note">p50/p99: ближайший ранг по всем 1536 запросам на конфигурацию, без удаления выбросов. Выделения памяти измерены на весь процесс с совместно размещёнными репликами.</p>
+   <div id="series-legend" class="legend js-only" aria-label="Обозначения серий"></div>
+   <div class="callout" id="long-warning" hidden>Длинная серия — один раунд на конфигурацию, без оценки повторяемости. Режимы без пакетов здесь не измерялись. Не сравнивайте эти числа с короткими сериями как повтор одного эксперимента.</div>
+   <p id="runtime-error" class="error" hidden>Не удалось построить интерактивные графики. Полные данные встроены в этот файл; исходные таблицы также доступны ниже и в CSV.</p>
+  </div>
+  <noscript><style>.js-only,.chart-grid{display:none!important}</style><p class="callout">JavaScript отключён: ниже доступны полные статические таблицы коротких, длинных серий и BenchmarkDotNet.</p></noscript>
+  <div class="chart-grid js-only">
+   <article class="chart-card">
+    <h3>Пропускная способность <span class="muted">↑ больше — лучше</span></h3>
+    <p class="chart-sub" id="throughput-description">Медиана команд/с. Штрихи — минимум–максимум трёх раундов, не доверительный интервал.</p>
+    <div class="chart-frame"><canvas id="throughput-chart" role="img" aria-label="Пропускная способность по конфигурациям" aria-describedby="throughput-description detail-caption">Числа доступны в таблице всех измерений.</canvas></div>
+    <p class="chart-footer">Каждый цвет — фиксированная комбинация версии и режима.</p>
+   </article>
+   <article class="chart-card">
+    <h3 id="latency-title">Хвост задержки p99 <span class="muted">↓ меньше — лучше</span></h3>
+    <p class="chart-sub" id="latency-description">Время отдельного запроса от подачи до его собственного завершения, мс.</p>
+    <label class="metric-select" id="percentile-control">Квантиль <select id="filter-percentile"><option value="P99Ms">p99</option><option value="P50Ms">p50</option></select></label>
+    <div class="chart-frame"><canvas id="latency-chart" role="img" aria-label="Задержка по конфигурациям" aria-describedby="latency-description detail-caption">Числа доступны в таблице всех измерений.</canvas></div>
+    <p class="chart-footer" id="latency-footer">Задержка при concurrency 64 и закрытом цикле нагрузки; это не open-loop SLO.</p>
+   </article>
+   <article class="chart-card">
+    <h3>Изменение к базовой версии</h3>
+    <p class="chart-sub">Δ пропускной способности, %. Вправо от нуля — больше команд/с; влево — меньше. Сравнение при одинаковых узлах, команде и наличии пакетов.</p>
+    <div class="chart-frame"><canvas id="change-chart" role="img" aria-label="Процент изменения пропускной способности относительно базовой версии" aria-describedby="change-description detail-caption">Числа доступны в таблице всех измерений.</canvas></div>
+    <p class="chart-footer" id="change-description">Pipeline сравнивается с соответствующим режимом базы без pipeline. Значения являются отношениями точечных оценок, без проверки статистической значимости.</p>
+   </article>
+   <article class="chart-card">
+    <h3>Выделения памяти <span class="muted">↓ меньше — лучше</span></h3>
+    <p class="chart-sub" id="allocation-description">Управляемые выделения на команду, КиБ (1024 Б). Все реплики совместно размещены в одном процессе.</p>
+    <div class="chart-frame"><canvas id="allocation-chart" role="img" aria-label="Выделения управляемой памяти на команду" aria-describedby="allocation-description detail-caption">Числа доступны в таблице всех измерений.</canvas></div>
+    <p class="chart-footer">Это объём выделенных объектов, а не размер удерживаемой кучи, RSS или память одного узла.</p>
+   </article>
+  </div>
+ </section>
+
+ <section class="panel" id="details" aria-labelledby="detail-title">
+  <div class="section-heading table-heading"><div><h2 id="detail-title">Все измерения</h2><p class="note">Нажмите заголовок столбца для сортировки. На узком экране таблица прокручивается горизонтально. Числа округлены только для отображения.</p></div></div>
+  <div class="table-scroll" tabindex="0" role="region" aria-label="Таблица всех измерений, горизонтальная прокрутка">
+   <table id="detail-table"><caption id="detail-caption" aria-live="polite">Короткие серии · 36 конфигураций · полный набор</caption><thead>@@@SHORT_HEAD@@@</thead><tbody>@@@SHORT_ROWS@@@</tbody></table>
+  </div>
+  <p class="note" id="table-note" style="margin:12px 0 0">p50/p99 объединяют все 1536 измерений конфигурации. Пропускная способность и выделения — медианы по трём раундам. Мин.–макс. относится только к пропускной способности.</p>
+  <noscript>
+   <details><summary>Длинные серии · все 18 конфигураций</summary><div class="details-body table-scroll"><table><caption>Один раунд, прогрев 2048 и 4096 измеренных запросов на конфигурацию; повторов нет.</caption><thead>@@@SHORT_HEAD@@@</thead><tbody>@@@LONG_ROWS@@@</tbody></table></div></details>
+   <details><summary>BenchmarkDotNet · все 36 конфигураций</summary><div class="details-body table-scroll"><table><caption>Амортизированное среднее время, не индивидуальная задержка. N — число оставшихся измерений после фильтра выбросов BDN.</caption><thead>@@@BDN_HEAD@@@</thead><tbody>@@@BDN_ROWS@@@</tbody></table></div></details>
+  </noscript>
+ </section>
+
+ <section id="method" aria-labelledby="method-title">
+  <h2 id="method-title">Как проводились измерения</h2>
+  <details open>
+   <summary>Нагрузка, режимы и смысл метрик</summary>
+   <div class="details-body">
+    <div class="table-scroll"><table>
+     <caption>Каждый раунд начинается со свежего кластера. Логи сохраняются, компактизация выключена.</caption>
+     <thead><tr><th scope="col">Серия</th><th scope="col">Прогрев</th><th scope="col">Измеренная работа</th><th scope="col">Статистика</th></tr></thead>
+     <tbody>
+      <tr><th scope="row">Короткая · 36 конфигураций</th><td>128 команд / раунд</td><td>512 запросов × 3 независимых раунда</td><td>Медиана /с; p50/p99 по всем 1536 запросам, без удаления выбросов</td></tr>
+      <tr><th scope="row">Длинная · 18 конфигураций</th><td>2048 команд</td><td>4096 запросов × 1 раунд</td><td>Одна оценка /с и p50/p99; нет межраундового интервала</td></tr>
+      <tr><th scope="row">BDN · 36 конфигураций</th><td>128 команд в setup + 3 warmup-итерации</td><td>8 measurement-итераций, одна порция 128 команд на итерацию</td><td>Нормированное среднее время / команду и StdDev; выбросы обрабатывает BDN</td></tr>
+     </tbody>
+    </table></div>
+    <div class="method-grid" style="margin-top:22px">
+     <div><h3>Режимы</h3><ul>
+      <li><strong>Без пакетов (Unbatched):</strong> одна запись на пакет лога, репликации и применения; задержка сбора 0.</li>
+      <li><strong>Пакеты (Batched):</strong> до 128 записей / 256 КиБ. Текущая версия собирает пакет с задержкой 1 мс; база забирает уже накопившиеся команды, без настраиваемой задержки.</li>
+      <li><strong>Pipeline:</strong> текущая версия, пакеты и окно до 4 сообщений репликации.</li>
+      <li><strong>Без пакетов + pipeline (UnbatchedPipeline):</strong> текущая версия, одна запись на пакет, окно 4.</li>
+      <li>База имеет один запрос репликации в полёте; pipeline у неё отсутствует.</li>
+     </ul></div>
+     <div><h3>Общие условия</h3><ul>
+      <li>Concurrency 64, закрытый цикл с насыщением; MaxPending 1024. Это не тест задержки при заданной открытой интенсивности запросов.</li>
+      <li>Одинаковые таймеры: tick 25 мс, heartbeat 1 tick, election [200, 240) ticks (5–6 с), RPC 2 с.</li>
+      <li>Эти таймеры учитывают измеренные дисковые хвосты и очередь без пакетов; их нельзя считать рекомендацией для любого развёртывания.</li>
+      <li>Успех клиента: durable-кворум + применение на лидере. Проверка durable-счётчиков и checkpoint всех реплик выполняется после измерения.</li>
+     </ul></div>
+    </div>
+    <p class="scope-note"><strong>BDN не измеряет p50/p99 отдельного запроса.</strong> Среднее время порции делится на 128 и преобразуется в команд/с. Его нельзя читать как пользовательскую задержку. StdDev описывает оставшиеся измерения BDN, а не распределение individual-request latency. Полные доверительные интервалы и предупреждения доступны в исходных BDN-отчётах.</p>
+   </div>
+  </details>
+  <details>
+   <summary>Среда и границы применимости</summary>
+   <div class="details-body">
+    <div class="table-scroll"><table class="kv-table"><tbody>
+     <tr><th scope="row">ОС / runtime</th><td>Windows 11 (10.0.26200.9974) · .NET SDK 8.0.428 · .NET 8.0.34 · x64 RyuJIT AVX2 · concurrent workstation GC</td></tr>
+     <tr><th scope="row">Процессор</th><td>12 видимых логических процессоров. BDN не смог определить модель CPU и изменить power plan.</td></tr>
+     <tr><th scope="row">Хранилище</th><td>DBreeze 1.142.2026.1016-beta, DISK, рабочая копия на диске H:. Отдельный engine на узел, лог и бизнес-таблицы в одном engine.</td></tr>
+     <tr><th scope="row">Бизнес-применение</th><td>Одинаковая синхронная транзакция на каждой реплике: кольцо payload на 256 ключей, счётчик команд и CRC checkpoint (index, term) атомарно.</td></tr>
+     <tr><th scope="row">Транспорт</th><td>Реальный TCP через loopback; все узлы на одном хосте. Межхостовая сеть и TLS не являются предметом этих результатов.</td></tr>
+     <tr><th scope="row">Базовая версия</th><td>8 неизменённых C#-файлов коммита 8b991bd, изолированных assembly alias; .NET 8 и та же версия DBreeze. V1 / wire 1 имеет более слабый контракт целостности, восстановления и возможностей.</td></tr>
+     <tr><th scope="row">Текущая версия</th><td>V2 / wire 2, checksummed durable frontier, pure core и новые возможности. Сравнение не означает одинаковых гарантий двух реализаций.</td></tr>
+    </tbody></table></div>
+    <ul>
+     <li>Архивные проекты до .NET 8 отличаются API, применением и моментом подтверждения; они не являются эквивалентной базой этого сравнения.</li>
+     <li>Медленный незавершённый диагностический прогон на C-temp исключён. Размещение данных, рост лога, файловая система и планировщик существенно влияют на цифры.</li>
+     <li>Управляемые выделения в latency runner измерены за интервал на весь процесс с репликами; в BDN действует его memory diagnoser. Эти способы измерения не объединяются.</li>
+     <li>Минимальные длительности итераций, фильтрация выбросов и ограничения среды отражены в исходных BDN-отчётах. Это локальные результаты, а не гарантия производительности или hardware power-loss durability.</li>
+    </ul>
+   </div>
+  </details>
+  <details>
+   <summary>Оптимизации, проверка и исключённые эксперименты</summary>
+   <div class="details-body">
+    <p>Сохранённые оптимизации хранилища убирают LRU-сканирование с обычного append/commit, отвечают по известным диапазонам term из кэша с одной ленивой транзакцией при промахе и используют проверенную метаинформацию общего числа байтов при commit до хвоста. Их защищают тесты замены, компактизации, повторного открытия и сравнения DBreeze с моделью.</p>
+    <p>Эксперимент с обходом worker для неблокирующего чтения кэша прошёл проверки корректности, но показал нестабильную скорость, включая замедление длинного прогона с 5 узлами. Он отменён и не входит в финальные результаты. CPU EventPipe traces использованы только для диагностики: overhead async rundown / ConditionalWeakTable искажает время под профилированием.</p>
+    <p>Исправленные microbenchmarks выполнили 29 Dry-конфигураций и 6 прогретых wire-конфигураций. Dry подтверждает исполнение, а не производительность. Ранние отчёты генератора с конфликтом aliased return types, исполнившие 0 конфигураций, исключены. Финальные исправления legacy-wire control rejection и offline migration preflight не меняют измеренные proposal/storage/wire 2 пути.</p>
+    <p>Полный результат проверки библиотеки — в <a href="../../docs/VALIDATION.md">VALIDATION.md</a>. Этот HTML меняет представление существующих измерений; новые прогоны для него не выполнялись.</p>
+   </div>
+  </details>
+ </section>
+
+ <section class="panel" id="sources" aria-labelledby="sources-title">
+  <h2 id="sources-title">Данные и воспроизводимость</h2>
+  <p>Все числа и графики встроены в этот файл; интернет и сервер не нужны. Ссылки ниже ведут к соседним файлам репозитория и доступны при сохранении его структуры.</p>
+  <div class="source-links">
+   <a href="enhancement-latency-short-2026-11-12.csv">Короткие серии · CSV</a>
+   <a href="enhancement-latency-long-2026-11-12.csv">Длинные серии · CSV</a>
+   <a href="enhancement-bdn-2026-11-12.csv">BenchmarkDotNet · CSV</a>
+   <a href="enhancement-summary-2026-11-12.json">Сводка и метаданные · JSON</a>
+   <a href="enhancement-2026-11-12.md">Исходный Markdown</a>
+   <a href="../README.md">Команды и ограничения</a>
+  </div>
+  <p class="note">Пересоздать HTML из сводки: из <code>RaftNet8/</code> выполнить <code>python benchmarks/render_html.py</code>. Пересчитать сводку, CSV, Markdown и HTML из полных raw-измерений: <code>python benchmarks/summarize.py</code>.</p>
+  <p class="hash">SHA-256 исходной сводки: @@@SUMMARY_SHA256@@@</p>
+  <details><summary>Сырые измерения и provenance</summary><div class="details-body">
+   <p class="note">Эти локальные файлы находятся в игнорируемой <code>.artifacts</code> и могут отсутствовать в другой копии репозитория. Для чтения данного HTML они не нужны. Хеши измеренных бинарников, фактические пути данных и таймеры включены в метаданные ниже.</p>
+   <ul>
+    <li><a href="../../.artifacts/autonomous/benchmarks/latency-final.json">90 коротких измерений</a> и <a href="../../.artifacts/autonomous/benchmarks/latency-unbatched-pipeline.json">18 измерений без пакетов + pipeline</a></li>
+    <li><a href="../../.artifacts/autonomous/benchmarks/latency-long-batched.json">Длинные серии с пакетами</a> и <a href="../../.artifacts/autonomous/benchmarks/latency-long-pipeline.json">с pipeline</a></li>
+    <li><a href="../../.artifacts/autonomous/benchmarks/bdn-final/results/Raft.Benchmarks.DurableClusterBenchmarks-report-github.md">BDN: основные 30 конфигураций</a> и <a href="../../.artifacts/autonomous/benchmarks/bdn-unbatched-pipeline/results/Raft.Benchmarks.DurableClusterBenchmarks-report-github.md">дополнительные 6</a></li>
+   </ul>
+   <pre id="metadata" class="js-only" aria-label="Метаданные исходных измерений"></pre>
+  </div></details>
+  <details><summary>Библиотека графиков и лицензия</summary><div class="details-body"><p>Встроена Chart.js 4.4.8; файлы и лицензия сохранены в <code>benchmarks/report_assets/</code>.</p><pre>@@@CHART_LICENSE@@@</pre></div></details>
+ </section>
+ <footer class="footer">Raft.Net · результаты 12.11.2026 · исходные значения сохранены без удаления регрессий · проценты рассчитаны до округления · 1 КиБ = 1024 Б</footer>
+</main>
+<script id="report-data" type="application/json">@@@SUMMARY_JSON@@@</script>
+<script>@@@CHART_JS@@@</script>
+<script>
+'use strict';
+(() => {
+ const DATA = JSON.parse(document.getElementById('report-data').textContent);
+ const bdn = DATA.BenchmarkDotNet.map(row => {
+  const [,Version,nodes,size,Mode] = row.Case.match(/^(Baseline|Current)-([135])n-(64|16384)B-(\w+)$/);
+  return {...row,Version,Nodes:Number(nodes),PayloadBytes:Number(size),Mode};
+ });
+ const SOURCES = {short:DATA.ShortLatency,long:DATA.LongLatency,bdn};
+ const TITLES = {short:'Короткие серии',long:'Длинные серии',bdn:'BenchmarkDotNet'};
+ const MODES = {Unbatched:'Без пакетов',Batched:'Пакеты',Pipeline:'Пакеты + pipeline',UnbatchedPipeline:'Без пакетов + pipeline'};
+ const SERIES = [
+  {key:'Baseline-Batched',version:'Baseline',mode:'Batched',label:'Базовая · пакеты',color:'#637389'},
+  {key:'Current-Batched',version:'Current',mode:'Batched',label:'Текущая · пакеты',color:'#0d8278'},
+  {key:'Current-Pipeline',version:'Current',mode:'Pipeline',label:'Текущая · пакеты + pipeline',color:'#2563eb'},
+  {key:'Baseline-Unbatched',version:'Baseline',mode:'Unbatched',label:'Базовая · без пакетов',color:'#9a7446'},
+  {key:'Current-Unbatched',version:'Current',mode:'Unbatched',label:'Текущая · без пакетов',color:'#c5601a'},
+  {key:'Current-UnbatchedPipeline',version:'Current',mode:'UnbatchedPipeline',label:'Текущая · без пакетов + pipeline',color:'#8554b2'}
+ ];
+ const state = {series:'short',payload:'all',nodes:'all',mode:'batched',percentile:'P99Ms',sort:null,direction:1};
+ const charts = new Map();
+ const byId = id => document.getElementById(id);
+ const fmt = (v,d=0) => new Intl.NumberFormat('ru-RU',{minimumFractionDigits:d,maximumFractionDigits:d}).format(v);
+ const payloadName = n => n===64 ? '64 Б' : '16 КиБ';
+ const nodeName = n => n===1 ? '1 узел' : n===3 ? '3 узла' : '5 узлов';
+ const isUnbatched = mode => mode==='Unbatched' || mode==='UnbatchedPipeline';
+ const seriesKey = row => row.Version+'-'+row.Mode;
+ const throughput = row => state.series==='bdn' ? row.OpsPerSecondFromMean : row.MedianOpsPerSecond;
+ const allocation = row => (state.series==='bdn' ? row.AllocatedBytesPerProposal : row.AllocatedBytesPerRequest)/1024;
+ function relative(row) {
+  if(row.Version==='Baseline') return null;
+  const baseline=SOURCES[state.series].find(r=>r.Nodes===row.Nodes && r.PayloadBytes===row.PayloadBytes && r.Version==='Baseline' && r.Mode===(isUnbatched(row.Mode)?'Unbatched':'Batched'));
+  return (throughput(row)/throughput(baseline)-1)*100;
+ }
+ function selectedRows() {
+  return SOURCES[state.series].filter(row=>
+   (state.nodes==='all'||row.Nodes===Number(state.nodes)) &&
+   (state.payload==='all'||row.PayloadBytes===Number(state.payload)) &&
+   (state.mode==='all'||isUnbatched(row.Mode)===(state.mode==='unbatched')));
+ }
+ function signed(value) { return (value>=0?'+':'−')+fmt(Math.abs(value),1)+' %'; }
+ function changeCell(value) {
+  return value===null ? '<td class="numeric muted">—</td>' :
+   '<td class="numeric '+(value>=0?'gain':'loss')+'">'+signed(value)+'</td>';
+ }
+ const basicColumns=[['Nodes','Узлы'],['PayloadBytes','Команда'],['Version','Версия'],['Mode','Режим']];
+ function columns() {
+  return basicColumns.concat(state.series==='bdn'
+   ? [['RetainedSamples','N после фильтра BDN'],['MeanUs','Среднее, мкс/ком.'],['StdDevUs','StdDev, мкс'],['Throughput','Команд/с ↑'],['Delta','Δ к базе, % ↑'],['AllocationKiB','Выделено, КиБ/ком. ↓']]
+   : [['Requests','Запросы'],['Throughput','Команд/с ↑'],['Delta','Δ к базе, % ↑'],['P50Ms','p50, мс ↓'],['P99Ms','p99, мс ↓'],['AllocationKiB','Выделено, КиБ/ком. ↓'],['MinOpsPerSecond','Мин.–макс., команд/с']]);
+ }
+ function sortValue(row,key) {
+  if(key==='Throughput') return throughput(row);
+  if(key==='Delta') return relative(row);
+  if(key==='AllocationKiB') return allocation(row);
+  if(key==='MeanUs') return row.MeanNsPerProposal/1000;
+  if(key==='StdDevUs') return row.StdDevNs/1000;
+  return row[key];
+ }
+ function renderTable(rows) {
+  const cols=columns();
+  if(!cols.some(([key])=>key===state.sort)) state.sort=null;
+  const sorted=[...rows];
+  if(state.sort) sorted.sort((a,b)=>{
+   const av=sortValue(a,state.sort),bv=sortValue(b,state.sort);
+   if(av===null&&bv===null)return 0;if(av===null)return 1;if(bv===null)return -1;
+   return (typeof av==='number'?av-bv:String(av).localeCompare(String(bv),'ru'))*state.direction;
+  });
+  byId('detail-table').querySelector('thead').innerHTML='<tr>'+cols.map(([key,label])=>
+   '<th scope="col" aria-sort="'+(state.sort===key?(state.direction===1?'ascending':'descending'):'none')+'"><button type="button" data-sort="'+key+'">'+label+'<span aria-hidden="true"> '+(state.sort===key?(state.direction===1?'↑':'↓'):'↕')+'</span></button></th>').join('')+'</tr>';
+  const td=(value,strong=false)=>'<td class="numeric'+(strong?' strong':'')+'">'+value+'</td>';
+  byId('detail-table').querySelector('tbody').innerHTML=sorted.map(r=>{
+   const spec=SERIES.find(s=>s.key===seriesKey(r));
+   let cells=td(r.Nodes)+'<td class="nowrap">'+payloadName(r.PayloadBytes)+'</td><td>'+(r.Version==='Baseline'?'Базовая':'Текущая')+'</td><td class="nowrap"><span class="swatch" style="background:'+spec.color+';margin-right:6px" aria-hidden="true"></span>'+MODES[r.Mode]+'</td>';
+   if(state.series==='bdn')cells+=td(r.RetainedSamples)+td(fmt(r.MeanNsPerProposal/1000,2))+td(fmt(r.StdDevNs/1000,2));
+   else cells+=td(fmt(r.Requests));
+   cells+=td(fmt(throughput(r)),true)+changeCell(relative(r));
+   if(state.series!=='bdn')cells+=td(fmt(r.P50Ms,2))+td(fmt(r.P99Ms,2));
+   cells+=td(fmt(allocation(r),2));
+   if(state.series!=='bdn')cells+=td(state.series==='long'?'—':fmt(r.MinOpsPerSecond)+'–'+fmt(r.MaxOpsPerSecond));
+   return '<tr>'+cells+'</tr>';
+  }).join('');
+  const caption=TITLES[state.series]+' · '+rows.length+' из '+SOURCES[state.series].length+' конфигураций · '+(state.mode==='all'?'все режимы':state.mode==='batched'?'с пакетами':'без пакетов');
+  byId('detail-caption').textContent=caption;
+  byId('table-note').textContent=state.series==='short'
+   ? 'p50/p99 объединяют все 1536 измерений конфигурации. Пропускная способность и выделения — медианы по трём раундам. Мин.–макс. относится только к пропускной способности.'
+   : state.series==='long'
+   ? '4096 запросов на конфигурацию после прогрева 2048 команд, один раунд. Диапазон между раундами отсутствует; прочерк не означает ноль.'
+   : 'Время — амортизированное на команду, не индивидуальная задержка. Команд/с = 1 000 000 000 / MeanNsPerProposal. N — измерения, оставшиеся после фильтра выбросов BDN; StdDev не является p99.';
+ }
+ const marks = {
+  id:'reportMarks',
+  afterDatasetsDraw(chart) {
+   const {ctx,scales:{x}}=chart;
+   ctx.save();ctx.font='11px "Segoe UI",sans-serif';ctx.fillStyle='#253a53';ctx.textBaseline='middle';
+   chart.data.datasets.forEach((dataset,di)=>{
+    chart.getDatasetMeta(di).data.forEach((bar,i)=>{
+     const value=dataset.data[i];if(!Number.isFinite(value))return;
+     let edge=bar.x;
+     const range=dataset.reportRanges && dataset.reportRanges[i];
+     if(range) {
+      const lo=x.getPixelForValue(range[0]),hi=x.getPixelForValue(range[1]);
+      ctx.strokeStyle='#34475b';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(lo,bar.y);ctx.lineTo(hi,bar.y);
+      ctx.moveTo(lo,bar.y-3);ctx.lineTo(lo,bar.y+3);ctx.moveTo(hi,bar.y-3);ctx.lineTo(hi,bar.y+3);ctx.stroke();edge=Math.max(edge,hi);
+     }
+     const negative=value<0;
+     ctx.textAlign=negative?'right':'left';
+     ctx.fillText(chart.options.reportPercent?signed(value):fmt(value,chart.options.reportDecimals||0),edge+(negative?-6:6),bar.y);
+    });
+   });
+   ctx.restore();
+  }
+ };
+ function drawChart(id,rows,groups,specs,value,unit,{percent=false,decimals=0,ranges=false}={}) {
+  if(charts.has(id)) charts.get(id).destroy();
+  const datasets=specs.map(spec=>{
+   const values=groups.map(g=>rows.find(r=>r.Nodes===g.nodes&&r.PayloadBytes===g.size&&seriesKey(r)===spec.key));
+   return {label:spec.label,data:values.map(row=>row?value(row):null),reportRows:values,
+    reportRanges:ranges?values.map(row=>row?[row.MinOpsPerSecond,row.MaxOpsPerSecond]:null):null,
+    backgroundColor:spec.color,borderWidth:0,borderRadius:2,maxBarThickness:18,categoryPercentage:.78,barPercentage:.9};
+  });
+  const values=datasets.flatMap(ds=>ds.data).filter(Number.isFinite);
+  const low=Math.min(0,...values),high=Math.max(0,...values,...(ranges?rows.map(r=>r.MaxOpsPerSecond):[]));
+  const span=high-low || 1;
+  const canvas=byId(id);
+  canvas.parentElement.style.height=Math.max(310,groups.length*(specs.length*18+22)+75)+'px';
+  const chart=new Chart(canvas,{
+   type:'bar',data:{labels:groups.map(g=>[nodeName(g.nodes),payloadName(g.size)]),datasets},
+   plugins:[marks],
+   options:{
+    indexAxis:'y',responsive:true,maintainAspectRatio:false,animation:false,
+    reportPercent:percent,reportDecimals:decimals,
+    layout:{padding:{right:12,left:percent?14:0,top:4,bottom:0}},
+    interaction:{mode:'nearest',intersect:true},
+    scales:{
+     x:{min:percent&&low<0?low-span*.24:0,max:high+span*.25,
+      title:{display:true,text:unit,color:'#52657a',font:{size:12}},
+      grid:{color:context=>context.tick.value===0?'#899db5':'#e4eaf2'},
+      border:{display:false},ticks:{color:'#52657a',maxTicksLimit:5,callback:v=>fmt(v)+(percent?' %':'')}},
+     y:{grid:{display:false},border:{display:false},ticks:{color:'#263e5b',font:{size:12},autoSkip:false}}
+    },
+    plugins:{
+     legend:{display:false},
+     tooltip:{backgroundColor:'#142b45',padding:11,displayColors:true,
+      callbacks:{
+       title:items=>{const row=items[0].dataset.reportRows[items[0].dataIndex];return nodeName(row.Nodes)+' · '+payloadName(row.PayloadBytes);},
+       label:item=>item.dataset.label+': '+(percent?signed(item.raw):fmt(item.raw,decimals)+' '+unit),
+       afterLabel:item=>{
+        const row=item.dataset.reportRows[item.dataIndex];
+        const lines=state.series==='bdn'
+         ? ['Амортизированное среднее: '+fmt(row.MeanNsPerProposal/1000,2)+' мкс/ком.','N после фильтра BDN: '+row.RetainedSamples]
+         : ['Запросов: '+fmt(row.Requests),'p50 / p99: '+fmt(row.P50Ms,2)+' / '+fmt(row.P99Ms,2)+' мс'];
+        if(ranges)lines.push('Мин.–макс. /с: '+fmt(row.MinOpsPerSecond)+'–'+fmt(row.MaxOpsPerSecond));
+        return lines;
+       }
+      }}
+    }
+   }
+  });
+  charts.set(id,chart);
+ }
+ function render() {
+  const long=state.series==='long',bdnMode=state.series==='bdn';
+  if(long&&state.mode==='unbatched') {state.mode='batched';byId('filter-mode').value='batched';}
+  byId('filter-mode').querySelector('[value="unbatched"]').disabled=long;
+  byId('filter-mode').querySelector('[value="all"]').textContent=long?'Все измеренные · 3 режима':'Все · 6 режимов';
+  document.querySelectorAll('[data-series]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.series===state.series)));
+  const rows=selectedRows();
+  const specs=SERIES.filter(s=>rows.some(r=>seriesKey(r)===s.key));
+  const groups=[];
+  for(const nodes of [1,3,5])for(const size of [64,16384])if(rows.some(r=>r.Nodes===nodes&&r.PayloadBytes===size))groups.push({nodes,size});
+  byId('active-scope').textContent=TITLES[state.series]+' · '+rows.length+' из '+SOURCES[state.series].length+' конфигураций · '+(state.payload==='all'?'64 Б и 16 КиБ':payloadName(Number(state.payload)))+' · '+(state.nodes==='all'?'1, 3, 5 узлов':nodeName(Number(state.nodes)));
+  byId('series-note').textContent=bdnMode
+   ? 'BenchmarkDotNet: среднее амортизированное время и выделения памяти. Это порции по 128 команд; p50/p99 отдельных запросов здесь нет. 3 warmup / 8 measurement-итераций до фильтра выбросов.'
+   : long
+   ? 'Один раунд: 2048 прогревочных и 4096 измеренных запросов. Все p50/p99 рассчитаны по отдельным запросам, без удаления выбросов. Пропускная способность — единственная оценка, не медиана повторов.'
+   : 'Три независимых раунда: 128 прогревочных + 512 измеренных запросов каждый. Команд/с — медиана; p50/p99 по всем 1536 запросам без удаления выбросов. Штрихи — наблюдавшийся минимум–максимум, не доверительный интервал.';
+  byId('long-warning').hidden=!long;
+  byId('series-legend').innerHTML=specs.map(s=>'<span><i class="swatch" style="background:'+s.color+'" aria-hidden="true"></i>'+s.label+'</span>').join('');
+  byId('throughput-description').textContent=bdnMode
+   ? 'Команд/с, вычислено из среднего амортизированного времени BDN. Не индивидуальная задержка.'
+   : long?'Команд/с одного раунда. Повторов и оценки межраундового разброса нет.'
+   : 'Медиана команд/с. Штрихи — минимум–максимум трёх раундов, не доверительный интервал.';
+  byId('latency-title').innerHTML=(bdnMode?'Среднее время на команду':state.percentile==='P99Ms'?'Хвост задержки p99':'Медиана задержки p50')+' <span class="muted">↓ меньше — лучше</span>';
+  byId('latency-description').textContent=bdnMode
+   ? 'Амортизированное среднее по порциям из 128 команд, мкс/команду. Не время отдельного запроса.'
+   : 'Время отдельного запроса от подачи до его собственного завершения, мс.';
+  byId('percentile-control').hidden=bdnMode;
+  byId('latency-footer').textContent=bdnMode?'StdDev и число оставшихся измерений доступны в полной таблице.':'Задержка при concurrency 64 и закрытом цикле нагрузки; это не open-loop SLO.';
+  byId('allocation-description').textContent=bdnMode
+   ? 'Управляемые выделения BDN memory diagnoser, КиБ/команду. Все реплики в одном процессе.'
+   : (long?'Одно измерение':'Медиана по трём раундам')+' process-wide managed allocations, КиБ/команду. Все реплики в одном процессе.';
+  renderTable(rows);
+  drawChart('throughput-chart',rows,groups,specs,throughput,'команд/с',{ranges:state.series==='short'});
+  drawChart('latency-chart',rows,groups,specs,bdnMode?r=>r.MeanNsPerProposal/1000:r=>r[state.percentile],bdnMode?'мкс/ком.':'мс',{decimals:bdnMode?1:2});
+  drawChart('change-chart',rows,groups,specs.filter(s=>s.version==='Current'),relative,'%',{percent:true,decimals:1});
+  drawChart('allocation-chart',rows,groups,specs,allocation,'КиБ/ком.',{decimals:2});
+ }
+ try {
+  Chart.defaults.font.family='"Segoe UI",system-ui,sans-serif';
+  Chart.defaults.color='#52657a';
+  byId('metadata').textContent=JSON.stringify({ShortMetadata:DATA.ShortMetadata,LongMetadata:DATA.LongMetadata,BenchmarkDotNetEnvironment:DATA.BenchmarkDotNetEnvironment},null,2);
+  document.querySelectorAll('[data-series]').forEach(button=>button.addEventListener('click',()=>{state.series=button.dataset.series;state.sort=null;render();}));
+  for(const [id,key] of [['filter-payload','payload'],['filter-nodes','nodes'],['filter-mode','mode'],['filter-percentile','percentile']])byId(id).addEventListener('change',e=>{state[key]=e.target.value;render();});
+  byId('reset-filters').addEventListener('click',()=>{
+   Object.assign(state,{series:'short',payload:'all',nodes:'all',mode:'batched',percentile:'P99Ms',sort:null,direction:1});
+   for(const [id,value] of [['filter-payload','all'],['filter-nodes','all'],['filter-mode','batched'],['filter-percentile','P99Ms']])byId(id).value=value;
+   render();
+  });
+  byId('detail-table').querySelector('thead').addEventListener('click',e=>{
+   const button=e.target.closest('[data-sort]');if(!button)return;
+   const key=button.dataset.sort;state.direction=state.sort===key?-state.direction:1;state.sort=key;
+   renderTable(selectedRows());
+   byId('detail-table').querySelector('[data-sort="'+key+'"]').focus({preventScroll:true});
+  });
+  byId('print-report').addEventListener('click',()=>window.print());
+  window.addEventListener('beforeprint',()=>{document.querySelectorAll('#method details').forEach(d=>{d.dataset.wasOpen=String(d.open);d.open=true;});charts.forEach(c=>c.resize());});
+  window.addEventListener('afterprint',()=>{document.querySelectorAll('#method details').forEach(d=>{d.open=d.dataset.wasOpen==='true';});charts.forEach(c=>c.resize());});
+  render();
+ } catch(error) {byId('runtime-error').hidden=false;console.error(error);}
+})();
+</script>
+</body>
+</html>

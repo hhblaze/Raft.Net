@@ -1,5 +1,7 @@
 # .NET 8 resurrection specification
 
+Historical initial scope/evidence. Superseded by [006 autonomous enhancement](006-autonomous-enhancement.md) and specifications 007–012. Current supported features and commands are in [the solution README](../../../RaftNet8/README.md); the earlier exclusions and phase approval gates below no longer describe the current implementation.
+
 Status: implemented and locally validated on 2026-11-12. See [the evidence](../okf/validation.md) and [the detailed protocol contract](002-protocol-contract.md).
 
 ## Outcome
@@ -13,6 +15,8 @@ Implement fixed-membership, non-Byzantine Raft: randomized elections, persistent
 Log compaction, InstallSnapshot, dynamic membership, pre-vote, automatic client deduplication, authentication, and legacy wire/storage compatibility are outside this resurrection's initial API. Local application reads alone are not linearizable. Fixed membership and an uncompacted disk log must be clear in the README and usage skill. These are explicit supported-scope boundaries, not claims that all extensions in the Raft paper are implemented.
 
 ## Architecture and resource bounds
+
+Historical baseline: Phase 1 supersedes the core/I/O architecture below with a pure immutable reducer and effect driver; see [004](004-phase1-core-separation.md) and [005](005-phase1-review.md). The fixed-membership protocol and stored bytes remain compatible.
 
 - Deterministic, synchronous consensus core, advanced by logical ticks and RPCs. One asynchronous node loop owns it.
 - Short synchronous DBreeze transactions; cache durable metadata and bounded log entries. Atomic conflict-suffix replacement; monotonically ascending writes and bounded range reads. No full-log load at startup.

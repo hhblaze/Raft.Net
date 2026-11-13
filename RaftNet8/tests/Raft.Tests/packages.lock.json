@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "dependencies": {
     "net8.0": {
       "Microsoft.NET.Test.Sdk": {
@@ -29,15 +29,15 @@
         "resolved": "3.0.1",
         "contentHash": "lbyYtsBxA8Pz8kaf5Xn/Mj1mL9z2nlBWdZhqFaj66nxXBa4JwiTDm4eGcpSMet6du9TOWI6bfha+gQR6+IHawg=="
       },
-      "DBreeze": {
-        "type": "Transitive",
-        "resolved": "1.142.2026.1016-beta",
-        "contentHash": "fhU/r7HF3o5fvQz1uvUndvD9/XU6sy4k26KS5QooZkKSE8GExaMQj3YiRB7Y6GXJrpFXAkmnGCzL6ozqpzePlA=="
-      },
       "Microsoft.CodeCoverage": {
         "type": "Transitive",
         "resolved": "17.12.0",
         "contentHash": "4svMznBd5JM21JIG2xZKGNanAHNXplxf/kQDFfLHXQ3OnpJkayRK/TjacFjA+EYmoyuNXHo/sOETEfcYtAzIrA=="
+      },
+      "Microsoft.Extensions.DependencyInjection.Abstractions": {
+        "type": "Transitive",
+        "resolved": "8.0.2",
+        "contentHash": "3iE7UF7MQkCv1cxzCahz+Y/guQbTqieyxyaWKhrRO91itI9cOKO76OHeQDahqG4MmW5umr3CcCvGmK92lWNlbg=="
       },
       "Microsoft.TestPlatform.ObjectModel": {
         "type": "Transitive",
@@ -106,6 +106,12 @@
           "xunit.extensibility.core": "[2.9.3]"
         }
       },
+      "Raft.Baseline.Net8": {
+        "type": "Project",
+        "dependencies": {
+          "DBreeze": "[1.142.2026.1016-beta, 1.142.2026.1016-beta]"
+        }
+      },
       "raft.demo": {
         "type": "Project",
         "dependencies": {
@@ -115,7 +121,29 @@
       "Raft.Net8": {
         "type": "Project",
         "dependencies": {
-          "DBreeze": "[1.142.2026.1016-beta, 1.142.2026.1016-beta]"
+          "DBreeze": "[1.142.2026.1016-beta, 1.142.2026.1016-beta]",
+          "Microsoft.Extensions.Logging.Abstractions": "[8.0.3, )"
+        }
+      },
+      "raft.simulator": {
+        "type": "Project",
+        "dependencies": {
+          "Raft.Net8": "[2.0.0, )"
+        }
+      },
+      "DBreeze": {
+        "type": "CentralTransitive",
+        "requested": "[1.142.2026.1016-beta, 1.142.2026.1016-beta]",
+        "resolved": "1.142.2026.1016-beta",
+        "contentHash": "fhU/r7HF3o5fvQz1uvUndvD9/XU6sy4k26KS5QooZkKSE8GExaMQj3YiRB7Y6GXJrpFXAkmnGCzL6ozqpzePlA=="
+      },
+      "Microsoft.Extensions.Logging.Abstractions": {
+        "type": "CentralTransitive",
+        "requested": "[8.0.3, )",
+        "resolved": "8.0.3",
+        "contentHash": "dL0QGToTxggRLMYY4ZYX5AMwBb+byQBd/5dMiZE07Nv73o6I5Are3C7eQTh7K2+A4ct0PVISSr7TZANbiNb2yQ==",
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.2"
         }
       }
     }

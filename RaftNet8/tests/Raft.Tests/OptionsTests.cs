@@ -3,6 +3,14 @@ namespace Raft.Tests;
 public sealed class OptionsTests
 {
     [Fact]
+    public void Rejects_a_deadline_outside_the_runtime_timer_range_even_with_a_long_election()
+    {
+        var options = new RaftOptions { NodeId = "n1", Members = ["n1"], TickInterval = TimeSpan.FromSeconds(10),
+            ElectionMinTicks = 900_000, ElectionMaxTicks = 1_000_000, RpcTimeout = TimeSpan.FromDays(50) };
+        Assert.Throws<ArgumentOutOfRangeException>(() => options.Freeze());
+    }
+
+    [Fact]
     public void Rejects_duplicate_missing_self_and_unsafe_identifiers()
     {
         Assert.Throws<ArgumentException>(() => new RaftOptions { NodeId = "a", Members = new[] { "a", "a" } }.Freeze());

@@ -13,10 +13,22 @@ public sealed class FailureAndBatchTests
     private sealed class FailingStorage(IRaftStorage inner) : IRaftStorage
     {
         public bool FailSave, FailAppend;
+        public Exception? SaveFailure;
+        public bool FailAfterSave;
         public HardState HardState => inner.HardState;
         public long LastIndex => inner.LastIndex;
         public long LastTerm => inner.LastTerm;
-        public void SaveHardState(HardState state) { if (FailSave) throw new IOException("save failed"); inner.SaveHardState(state); }
+        public void SaveHardState(HardState state)
+        {
+            if (SaveFailure is { } error)
+            {
+                SaveFailure = null;
+                if (FailAfterSave) inner.SaveHardState(state);
+                throw error;
+            }
+            if (FailSave) throw new IOException("save failed");
+            inner.SaveHardState(state);
+        }
         public void Append(IReadOnlyList<LogEntry> entries) { if (FailAppend) throw new IOException("append failed"); inner.Append(entries); }
         public void ReplaceSuffix(long fromIndex, IReadOnlyList<LogEntry> entries) => inner.ReplaceSuffix(fromIndex, entries);
         public long GetTerm(long index) => inner.GetTerm(index);
@@ -52,6 +64,49 @@ public sealed class FailureAndBatchTests
         Assert.Equal("save failed", error.Message);
         await Assert.ThrowsAsync<IOException>(() => node.Completion);
         Assert.Equal(0, storage.HardState.Term);
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task Any_persistence_failure_including_argument_errors_and_uncertain_writes_must_fail_stop(bool argument, bool afterWrite)
+    {
+        var options = new RaftOptions { NodeId = "n1", Members = ["n1", "n2", "n3"] };
+        Exception failure = argument ? new ArgumentException("storage failure") : new IOException("storage failure");
+        var storage = new FailingStorage(DBreezeRaftStorage.CreateInMemory(options))
+            { SaveFailure = failure, FailAfterSave = afterWrite };
+        await using var node = new RaftNode(options, storage, new NoPeers(), new TestStateMachine());
+        await node.StartAsync();
+        Assert.Same(failure, await Assert.ThrowsAnyAsync<Exception>(() => node.HandleAsync("n2", new VoteRequest(10, 0, 0)).AsTask()));
+        Assert.Same(failure, await Assert.ThrowsAnyAsync<Exception>(() => node.Completion.WaitAsync(TimeSpan.FromSeconds(2))));
+        Assert.Same(failure, node.Status.Fault);
+        Assert.Equal(afterWrite ? 10 : 0, storage.HardState.Term);
+        var stopped = await Assert.ThrowsAsync<InvalidOperationException>(() => node.HandleAsync("n3", new VoteRequest(11, 0, 0)).AsTask());
+        Assert.Same(failure, stopped.InnerException);
+    }
+
+    [Fact]
+    public async Task Uncertain_vote_write_stops_the_node_and_recovery_retains_the_durable_vote()
+    {
+        using var directory = new TestDirectory();
+        var options = new RaftOptions { NodeId = "n1", Members = ["n1", "n2", "n3"] };
+        var raw = new DBreezeRaftStorage(directory.Path, options);
+        raw.SaveHardState(new HardState(10));
+        var failure = new ArgumentException("failure after vote commit");
+        var storage = new FailingStorage(raw) { SaveFailure = failure, FailAfterSave = true };
+        await using (var node = new RaftNode(options, storage, new NoPeers(), new TestStateMachine()))
+        {
+            await node.StartAsync();
+            Assert.Same(failure, await Assert.ThrowsAsync<ArgumentException>(() => node.HandleAsync("n2", new VoteRequest(10, 0, 0)).AsTask()));
+            Assert.Same(failure, await Assert.ThrowsAsync<ArgumentException>(() => node.Completion));
+            Assert.Equal("n2", storage.HardState.VotedFor);
+        }
+        using var reopened = new DBreezeRaftStorage(directory.Path, options);
+        var recovered = new RaftCore(options, reopened);
+        Assert.False(((VoteResponse)recovered.HandleRequest("n3", new VoteRequest(10, 0, 0))).Granted);
+        Assert.True(((VoteResponse)recovered.HandleRequest("n2", new VoteRequest(10, 0, 0))).Granted);
     }
 
     [Fact]

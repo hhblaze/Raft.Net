@@ -1,0 +1,19 @@
+# Coalesce already queued fresh follower appends
+
+Status: implemented R12 candidate after both frozen R11 matrices and HTML QA completed. Red regression6fail/8pass on R11, then focused14/14 after guarded source application. Full safety suite and performance verification remain pending. No performance gain is claimed.
+
+## Eligibility and equivalent behavior
+
+Only contiguous already queued nonempty AppendEntries from one active voter, at the follower's current term, may share a local durable append. Target role is follower/learner with modern configuration-capable storage and wire2. The first previous index/term must exactly match the current durable tail. No pending snapshot activation/install, uncommitted configuration, read round or configuration entry is eligible. Read-context requests, votes, ticks and every other queue item are barriers. Subsequent frames must continue the exact index/term chain, same source/term, monotonic LeaderCommit.
+
+Do not wait to form a group. Bound total entries by MaxAppendEntries and encoded bytes by the existing local ProposalBatchByteLimit. Each original frame is still validated before queue admission with the unchanged wire bound. Add an internal immutable CoreEvent.Request flag only for this separately validated local aggregate; it is never a wire field. Local validation still enforces entry/count/byte/term/index rules, rejects configuration/read-context/empty groups and uses the bounded local byte budget. Normal requests retain the exact old validation path.
+
+Execute the aggregate through the ordinary pure reducer and correlated persistence effects. Successful persistence covers a superset of every earlier frame's entries. After it succeeds, complete each original request with its own RequestId and matched index, preserving transport exchange correlation. Do not fabricate a cumulative match for an earlier request ID. No command is acknowledged to its client before the leader's ordinary quorum and local application.
+
+Every removed request belongs to the group until completion; any execution/storage exception must reach all of them and node Completion with the original identity. No type-based invalid-input classification is allowed after execution begins. Record ownership before dequeue so allocation failure cannot orphan a removed request. Preserve older-reader/wire/storage formats and all pure-core constraints. No I/O callback, clock, lock or task enters Core.
+
+## Required regression and verification
+
+Apply only the new test file to the unchanged R11 implementation first. Hold the first append, queue three valid one-entry frames, then hold the next persistence operation. Expected new writes are[1,3], old writes[1,1,1,1]; none of the three replies may complete before the grouped write. Every successful reply must carry its original ID/match, and the unchanged per-frame byte limit must still reject a single oversized external frame before persistence.
+
+Test v2/v3, higher-term vote/read-context/configuration barriers, application ordering, original group-failure identity for every removed request and node Completion. Independently constrain the aggregate by entry count and by encoded bytes: four queued one-entry frames must persist as[1,2,1] when either local budget allows only two entries. The regression contains fourteen cases; all fourteen pass after the change, with six grouping assertions failing on the unchanged baseline. Then full suite/crash/recovery/simulation/compatibility/demo/adapter/BDN checks and targeted actual TCP/disk measurements, including group/transaction counts. If retained, use distinct R12 final raw/source/runtime/report names and freshly measure all references. Preserve R4/R5/R11 reports and failed/no-gain experiments. The frozen R11 source must remain unchanged until both matrices finish.

@@ -4,50 +4,13 @@ using System.Net.Sockets;
 
 namespace Raft.Transport;
 
-/// <summary>Persistent framed TCP RPCs for trusted networks. Member IDs are checked but are not authenticated.</summary>
+/// <summary>Bounded persistent RPC multiplexing, with optional authenticated stream security.</summary>
 public sealed class TcpRaftTransport : IRaftTransport, IAsyncDisposable
 {
-    private sealed class Connection(IPEndPoint endpoint)
-    {
-        private readonly SemaphoreSlim _gate = new(1, 1);
-        private readonly byte[] _header = new byte[4];
-        private TcpClient? _client;
-
-        public async ValueTask<RpcEnvelope> SendAsync(RaftOptions options, RaftRpc request, CancellationToken token)
-        {
-            await _gate.WaitAsync(token).ConfigureAwait(false);
-            try
-            {
-                if (_client is null)
-                {
-                    _client = new TcpClient(endpoint.AddressFamily) { NoDelay = true };
-                    await _client.ConnectAsync(endpoint.Address, endpoint.Port, token).ConfigureAwait(false);
-                }
-                var stream = _client.GetStream();
-                using var frame = RaftWireCodec.Encode(options.GroupId, options.NodeId, request, options.MaxAppendBytes + 1024);
-                await stream.WriteAsync(frame.Memory, token).ConfigureAwait(false);
-                return await RaftWireCodec.ReadAsync(stream, _header, options, token).ConfigureAwait(false);
-            }
-            catch
-            {
-                _client?.Dispose();
-                _client = null;
-                throw;
-            }
-            finally { _gate.Release(); }
-        }
-
-        public async ValueTask CloseAsync()
-        {
-            await _gate.WaitAsync().ConfigureAwait(false);
-            try { _client?.Dispose(); _client = null; }
-            finally { _gate.Release(); }
-        }
-    }
-
     private readonly object _lifecycle = new();
     private readonly RaftOptions _options;
-    private readonly Dictionary<string, Connection> _outbound;
+    private readonly RaftTransportSecurity? _security;
+    private readonly ConcurrentDictionary<string, TcpPeerConnection> _outbound = new(StringComparer.Ordinal);
     private readonly TcpListener _listener;
     private readonly CancellationTokenSource _stop = new();
     private readonly SemaphoreSlim _slots;
@@ -59,14 +22,22 @@ public sealed class TcpRaftTransport : IRaftTransport, IAsyncDisposable
     private bool _disposed;
 
     public TcpRaftTransport(RaftOptions options, IReadOnlyDictionary<string, IPEndPoint> endpoints)
+        : this(options, endpoints, null) { }
+
+    public TcpRaftTransport(RaftOptions options, IReadOnlyDictionary<string, IPEndPoint> endpoints, RaftTransportSecurity? security)
     {
         _options = options.Freeze();
-        if (endpoints.Count != _options.Members.Count || _options.Members.Any(id => !endpoints.ContainsKey(id)))
+        _security = security;
+        if (endpoints.Count > 1024 || _options.Members.Concat(_options.Learners).Any(id => !endpoints.ContainsKey(id)) ||
+            !endpoints.ContainsKey(_options.NodeId))
             throw new ArgumentException("Supply an endpoint for every configured member, including self.", nameof(endpoints));
         _listener = new TcpListener(new IPEndPoint(endpoints[_options.NodeId].Address, endpoints[_options.NodeId].Port));
-        _outbound = _options.Members.Where(id => id != _options.NodeId).ToDictionary(id => id,
-            id => new Connection(new IPEndPoint(endpoints[id].Address, endpoints[id].Port)), StringComparer.Ordinal);
-        _slots = new SemaphoreSlim(Math.Max(4, _options.Members.Count * 2));
+        foreach (var id in endpoints.Keys)
+        {
+            RaftOptions.ValidateId(id, nameof(endpoints));
+            if (id != _options.NodeId) _outbound.TryAdd(id, new(endpoints[id], id, _options, security, _stop.Token));
+        }
+        _slots = new SemaphoreSlim(Math.Max(4, endpoints.Count * 2));
     }
 
     public IPEndPoint LocalEndPoint => (IPEndPoint)_listener.LocalEndpoint;
@@ -84,15 +55,31 @@ public sealed class TcpRaftTransport : IRaftTransport, IAsyncDisposable
         }
     }
 
+    /// <summary>Changes only routing for an already provisioned identity; this never changes voting membership.</summary>
+    public async ValueTask UpdatePeerAsync(string peerId, IPEndPoint endpoint)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        if (peerId == _options.NodeId || !_options.KnownPeers.Contains(peerId, StringComparer.Ordinal))
+            throw new ArgumentException("Provision the peer ID in KnownPeers before adding its route.", nameof(peerId));
+        var replacement = new TcpPeerConnection(endpoint, peerId, _options, _security, _stop.Token);
+        while (true)
+        {
+            if (_outbound.TryGetValue(peerId, out var previous))
+            {
+                if (!_outbound.TryUpdate(peerId, replacement, previous)) continue;
+                await previous.CloseAsync().ConfigureAwait(false);
+                return;
+            }
+            if (_outbound.TryAdd(peerId, replacement)) return;
+        }
+    }
+
     public async ValueTask<RaftRpc> SendAsync(string peerId, RaftRpc request, CancellationToken cancellationToken)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         if (!_outbound.TryGetValue(peerId, out var connection)) throw new ArgumentException("Unknown peer.", nameof(peerId));
         using var token = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _stop.Token);
-        var envelope = await connection.SendAsync(_options, request, token.Token).ConfigureAwait(false);
-        if (envelope.GroupId != _options.GroupId || envelope.From != peerId)
-            throw new InvalidDataException("RPC response came from a different group or member.");
-        return envelope.Message;
+        return (await connection.SendAsync(request, token.Token).ConfigureAwait(false)).Message;
     }
 
     private async Task AcceptAsync()
@@ -122,27 +109,81 @@ public sealed class TcpRaftTransport : IRaftTransport, IAsyncDisposable
 
     private async Task ServeAsync(TcpClient client)
     {
+        using var stop = CancellationTokenSource.CreateLinkedTokenSource(_stop.Token);
+        var jobs = new ConcurrentDictionary<long, Task>();
+        // Reserve a worst-case frame for each concurrent handler, bounding decoded request memory.
+        var parallelism = _options.WireVersion == 1 ? 1 :
+            (int)Math.Max(1, Math.Min(_options.MaxInFlightMessages + 4L, _options.MaxInFlightBytes / _options.MaxFrameBytes));
+        using var capacity = new SemaphoreSlim(parallelism);
+        using var writes = new SemaphoreSlim(1, 1);
+        Exception? failure = null;
+        long jobId = 0;
         try
         {
-            var stream = client.GetStream();
-            var header = new byte[4];
-            while (!_stop.IsCancellationRequested)
+            Stream stream = client.GetStream();
+            if (_security is not null)
             {
-                using var deadline = CancellationTokenSource.CreateLinkedTokenSource(_stop.Token);
-                // Bound idle/partial frames as well as frame sizes. Normal heartbeats keep a connection active.
-                deadline.CancelAfter(TimeSpan.FromSeconds(30));
-                var envelope = await RaftWireCodec.ReadAsync(stream, header, _options, deadline.Token).ConfigureAwait(false);
-                if (envelope.GroupId != _options.GroupId || !_outbound.ContainsKey(envelope.From) ||
-                    envelope.Message is not VoteRequest and not AppendRequest)
-                    throw new InvalidDataException("RPC group, member, or direction is invalid.");
-                var response = await _handler!(envelope.From, envelope.Message, deadline.Token).ConfigureAwait(false);
-                using var frame = RaftWireCodec.Encode(_options.GroupId, _options.NodeId, response, _options.MaxAppendBytes + 1024);
-                await stream.WriteAsync(frame.Memory, deadline.Token).ConfigureAwait(false);
+                using var handshake = CancellationTokenSource.CreateLinkedTokenSource(stop.Token);
+                handshake.CancelAfter(_options.RpcTimeout);
+                stream = await _security.AuthenticateServerAsync(stream, handshake.Token).ConfigureAwait(false);
+            }
+            await using var ownedStream = stream;
+            var header = new byte[4];
+            string? identity = null;
+            while (!stop.IsCancellationRequested)
+            {
+                await capacity.WaitAsync(stop.Token).ConfigureAwait(false);
+                RpcEnvelope envelope;
+                try
+                {
+                    using var deadline = CancellationTokenSource.CreateLinkedTokenSource(stop.Token);
+                    deadline.CancelAfter(TimeSpan.FromSeconds(30));
+                    envelope = await RaftWireCodec.ReadAsync(stream, header, _options, deadline.Token).ConfigureAwait(false);
+                    if (envelope.GroupId != _options.GroupId || envelope.Version != _options.WireVersion ||
+                        !_outbound.ContainsKey(envelope.From) || !RaftRpcProtocol.IsRequest(envelope.Message) ||
+                        (identity is not null && identity != envelope.From))
+                        throw new InvalidDataException("RPC group, identity, version, or direction is invalid.");
+                    if (identity is null && _security is not null)
+                        await _security.AuthorizePeerAsync(stream, envelope.From, deadline.Token).ConfigureAwait(false);
+                    identity = envelope.From;
+                }
+                catch { capacity.Release(); throw; }
+                var id = ++jobId;
+                var task = ReplyAsync(envelope);
+                jobs.TryAdd(id, task);
+                _ = task.ContinueWith(_ => jobs.TryRemove(id, out var ignored),
+                    CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+            }
+
+            async Task ReplyAsync(RpcEnvelope request)
+            {
+                try
+                {
+                    var response = await _handler!(request.From, request.Message, stop.Token).ConfigureAwait(false);
+                    using var frame = RaftWireCodec.Encode(_options.GroupId, _options.NodeId, response, _options.MaxFrameBytes,
+                        request.Version, request.ExchangeId);
+                    await writes.WaitAsync(stop.Token).ConfigureAwait(false);
+                    try { await stream.WriteAsync(frame.Memory, stop.Token).ConfigureAwait(false); }
+                    finally { writes.Release(); }
+                }
+                catch (Exception error)
+                {
+                    Interlocked.CompareExchange(ref failure, error, null);
+                    stop.Cancel();
+                    client.Dispose();
+                }
+                finally { capacity.Release(); }
             }
         }
-        catch (Exception) when (_stop.IsCancellationRequested) { }
-        catch (Exception) { Interlocked.Increment(ref _connectionErrors); }
-        finally { client.Dispose(); _slots.Release(); }
+        catch (Exception error) { Interlocked.CompareExchange(ref failure, error, null); }
+        finally
+        {
+            stop.Cancel();
+            client.Dispose();
+            await Task.WhenAll(jobs.Values).ConfigureAwait(false);
+            if (failure is not null && !_stop.IsCancellationRequested) Interlocked.Increment(ref _connectionErrors);
+            _slots.Release();
+        }
     }
 
     public ValueTask DisposeAsync()

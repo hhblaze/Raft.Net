@@ -1,5 +1,7 @@
 # Consensus and persistence contract
 
+Historical initial contract. Extensions and updated guarantees are specified by [006](006-autonomous-enhancement.md) through [012](012-process-and-human-tests.md); current public behavior is in the solution README and operations/configuration references. Earlier fixed-membership exclusions below are superseded.
+
 Status: implemented for the fixed-membership API. Authority: [Raft extended paper, Figure 2](https://raft.github.io/raft.pdf).
 
 ## Safety rules and observable consequences
@@ -27,6 +29,8 @@ Startup reads identity, hard state, tail, and existence of the committed entry, 
 The schema has no migration path from historical `RaftTbl_StateLogEntry` data. Do not point an old deployment at the new API and assume compatibility. Membership changes, compaction, and snapshots need a new specification and tests before implementation.
 
 ## Ownership and concurrency
+
+Phase 1 update: consensus storage and timeout sampling are now explicit effects executed by RaftDriver outside a pure immutable reducer. A bounded RaftStorageAdapter channel worker serves both consensus and application log requests. Legacy contracts use default interface bridges. The original invariants and wire/database schema above remain; [005](005-phase1-review.md) contains current evidence and limitations.
 
 `RaftCore` has one owner. `RaftNode` serializes ticks, proposals, and RPC transitions through a bounded channel. DBreeze storage serializes its synchronous calls under a storage lock; it can be called from consensus and application workers without moving a live transaction between threads. No transaction contains `await` or application callbacks.
 

@@ -1,129 +1,132 @@
 # Raft for .NET 8
 
-`Raft.Net8.sln` contains the supported library, tests, benchmarks, human demo, and a process-level crash test helper. Every project targets `net8.0`. The SDK selection allows installed .NET 8 feature bands and does not silently switch to .NET 10.
+Embedded crash-tolerant consensus for logical commands applied to DBreeze. All supported projects target **net8.0**. DBreeze is pinned to **1.142.2026.1016-beta**, using its .NET 8 asset; the beta suffix is upstream's version name. Dependencies are centrally managed and locked. The assembly/package is `Raft.Net8`, namespace `Raft`.
 
-DBreeze is pinned to the exact NuGet release **1.142.2026.1016-beta**, including its `net8.0` assembly. Package lock files are checked in. The beta suffix is part of the upstream release name. The library package/assembly is named `Raft.Net8`; its namespace is `Raft`.
+Implemented: pre-vote, check-quorum, ReadIndex, leadership transfer, learners, corrected single-server membership changes, batched durable writes, bounded replication pipelines, CRC-checked recovery, and chunked resumable snapshots. See the [interactive solution](HumanTest/Raft.HumanTest.sln), [operational runbook](docs/OPERATIONS.md), [configuration reference](docs/CONFIGURATION.md), [architecture/storage notes](docs/ARCHITECTURE.md), and [LLM usage skill](../_docs/raft_skill.md).
 
-## Build and verify
+## Build and run
 
-Install a .NET 8 SDK, then run from this directory:
+Install a .NET 8 SDK and run from `RaftNet8/`:
 
 ```sh
 dotnet restore Raft.Net8.sln --locked-mode
 dotnet build Raft.Net8.sln -c Release --no-restore
-dotnet test Raft.Net8.sln -c Release --no-build
+dotnet test tests/Raft.Tests -c Release --no-build --no-restore
 dotnet run --project HumanTest/Raft.Demo -c Release --no-build -- --scenario
+dotnet run --project HumanTest/Raft.Demo -c Release --no-build
 ```
 
-PowerShell users can run `./scripts/verify.ps1` for the same checks. The [human-test solution](HumanTest/Raft.HumanTest.sln) can also be opened directly in Visual Studio; set `Raft.Demo` as the startup project. No external service, container, or administrator privileges are required. The demo binds loopback TCP ports.
+`scripts/verify.ps1` runs build/tests/demo. Open `HumanTest/Raft.HumanTest.sln` in Visual Studio and select `Raft.Demo` to watch elections, partitions, application, snapshot catch-up and changes to voters/learners. The console's `help` lists commands. Each demo node owns separate log/application/snapshot directories and a loopback endpoint. See [human-test instructions](HumanTest/README.md).
 
-The test suite covers persistent voting, term-only updates, split elections, stale messages, Figure 8 commitment, committed-prefix protection, partial batches, replication correlation IDs, partitions, catch-up, bounded admission/caches, cancellation, application/storage failures, ordered application, concurrent clients, binary framing, actual TCP failover/restart, and abrupt process death. Seeded simulations combine message loss, duplication, reordering, partitions, and volatile-state resets, checking invariants after delivery. These tests provide regression evidence; they are not a formal proof of correctness.
+## Architecture and safety
 
-## Supported scope
+```mermaid
+flowchart LR
+    API[Proposals / ReadIndex / config / transfer] --> Q[Bounded proposal and control channels]
+    RPC[Authenticated RPCs / logical ticks] --> Q
+    Q --> Driver[Single RaftDriver owner]
+    Driver -->|immutable state and event| Core[Pure RaftCore reducer]
+    Core -->|state and explicit effects| Driver
+    Driver -->|bounded queries and atomic mutations| Store[ILogStore / DBreeze worker]
+    Store -->|correlated durable completions| Driver
+    Driver --> TCP[Multiplexed TCP / TLS hooks]
+    Driver -->|committed frontier| Apply[Ordered application worker]
+    Apply --> App[DBreeze effects + index/term checkpoint]
+    Images[Independent replay generation / immutable images] --> Stream[CRC chunks / SHA-256 / resume / throttle]
+    Stream --> App
+```
 
-Implemented:
+- **Persistence before acknowledgment:** term/vote and log mutations complete durably before dependent votes/AppendEntries acknowledgments leave the driver. V2 batches use one DBreeze transaction/commit. An uncertain storage/application failure fail-stops the node and preserves the original exception through `Completion`.
+- **Elections:** voters check log freshness; pre-vote does not modify the receiver's term/vote or reset its timer. Recent leader contact suppresses disruptive pre-votes. Leaders check quorum. Learners and removed nodes never campaign or grant votes.
+- **Commitment:** only a current-term entry advances a leader's quorum commit. Election no-ops establish that term. Stale/canceled/reordered replies cannot regress a newer replication flight or manufacture a match.
+- **Reads:** `ReadIndexAsync` requires a committed entry in the current term, confirms a fresh context with a voter quorum, captures the committed index, then waits for local application. Concurrent reads share a confirmation round. `ReadBarrierAsync` remains available and appends a no-op. Plain application/status reads can be stale.
+- **Membership:** the latest log configuration is active on append and restored on rollback. Change one server/role at a time, after the prior configuration **and a current-term entry** commit (the [2015 correction](https://groups.google.com/g/raft-dev/c/t4xj6dJTP6E)). Provisioned transport identities never become voters implicitly. Promote a caught-up learner.
+- **Recovery:** v2 entries/metadata carry lengths/CRC32C. A durable frontier distinguishes previously promised entries from an unpromised torn tail. Startup verifies the retained log in bounded memory. Promised/interior corruption fails loudly. Business effects and `(lastAppliedIndex, term)` commit atomically.
+- **Snapshots:** an independent DBreeze generation replays through a pinned committed/applied fence without holding a live application transaction for the build. Images have SHA-256; chunks have CRC/offsets and durable resume progress. An install intent orders generation activation before atomic log/frontier/config publication. Startup finishes interrupted activation before elections.
 
-- Fixed membership with majority quorum, randomized elections, durable `currentTerm` and `votedFor`, and candidate log-freshness checks.
-- AppendEntries consistency and conflict hints; atomic suffix replacement; persistent commits; an election no-op and current-term quorum commitment.
-- Ordered application outside the consensus loop; optional batched application; completion after quorum commit **and local application**; restart replay from the application's checkpoint.
-- Bounded proposal admission, event queues, replication batches, binary frames, and a log-tail cache; per-peer replication progress and correlated responses.
-- Leader check-quorum, known-leader hints in `NotLeaderException`, and quorum-backed `ReadBarrierAsync`.
-- Disk or explicitly volatile DBreeze storage and persistent per-peer TCP connections.
+The reducer contains no storage interfaces, clocks, random providers, tasks, locks or network calls. Time/samples and I/O completions are events. The driver serializes each event through dependent storage operations; slow durable log I/O can delay subsequent owner events. Application work and snapshot build/staging run separately. [Detailed ordering and trade-offs](docs/ARCHITECTURE.md) are part of the integration contract.
 
-Not implemented: snapshots/InstallSnapshot, log compaction, dynamic membership/joint consensus, pre-vote, learner nodes, automatic client retries/deduplication, TLS/authentication, automatic legacy migration, or an HTTP/client service. The TCP implementation is for trusted networks; checking a member ID does not authenticate it. It exposes no untrusted-network security boundary.
+The latest [five-round performance report](benchmarks/results/winner-r18-2026-11-13.html) compares fixed Pipeline against unchanged baseline8b991bd and DotNext5.26.2 on .NET8:12/12 median-throughput points over both, including8/8 on3/5nodes. It contains all614400 request samples in aggregated tables/charts, observed ranges, paired wins and explicit memory/p99 losses. This is a local loopback/disk whole-stack result, not a cross-host sizing guarantee. [Validation](docs/VALIDATION.md) records342tests and a fresh1400-run fault matrix; [configuration](docs/CONFIGURATION.md) explains larger wire bounds, mixed-version upgrade limits and coalesced follower commit notifications.
 
-The full log remains on disk. Cache memory is bounded, but disk use grows with retained commands. Monitor space and plan capacity accordingly. Do not delete or truncate live log tables to reclaim space. The in-memory storage factory is useful for simulations and ephemeral deployments; it does not provide crash durability.
+## Runnable durable example
 
-## Small runnable example
-
-Reference `src/Raft/Raft.csproj` from a .NET 8 console application. This single-node example exercises the same API without requiring other processes; a single member provides no fault tolerance.
+Reference `src/Raft/Raft.csproj` from a .NET 8 console project. One voter provides no fault tolerance.
 
 ```csharp
 using System.Net;
-using System.Text;
 using Raft;
 using Raft.Storage;
 using Raft.Transport;
 
-var options = new RaftOptions { NodeId = "n1", Members = new[] { "n1" } };
-var endpoints = new Dictionary<string, IPEndPoint>
+var root = Path.GetFullPath("data/n1");
+var options = new RaftOptions
 {
-    ["n1"] = new(IPAddress.Loopback, 5001)
+    NodeId = "n1", GroupId = "counter", Members = ["n1"],
+    SnapshotDirectory = Path.Combine(root, "snapshots"),
+    SnapshotIntervalEntries = 10_000
 };
-var machine = new CounterMachine();
-await using var transport = new TcpRaftTransport(options, endpoints);
-await using var node = new RaftNode(options,
-    new DBreezeRaftStorage("./data/n1", options), transport, machine);
-await node.StartAsync();
-transport.Start(node.HandleAsync);
-
-using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-while (node.Status.Role != RaftRole.Leader)
-    await Task.Delay(25, deadline.Token);
-var result = await node.ProposeAsync(Encoding.UTF8.GetBytes("increment"), deadline.Token);
-Console.WriteLine($"Applied index {result.Index}; count={machine.Count}");
-await transport.DisposeAsync(); // stop inbound I/O before automatic node disposal
-
-sealed class CounterMachine : IRaftStateMachine
-{
-    private long _lastApplied;
-    private long _count;
-    public long LastApplied => Interlocked.Read(ref _lastApplied);
-    public long Count => Interlocked.Read(ref _count);
-    public ValueTask ApplyAsync(LogEntry entry, CancellationToken token)
+// A deterministic synchronous handler: use only this supplied transaction.
+using var app = new DBreezeGenerationStateMachine(
+    Path.Combine(root, "application"), "counter-v1", "app/checkpoint", ["app/values"],
+    (tx, entry) =>
     {
-        if (!entry.IsNoOp) Interlocked.Increment(ref _count);
-        Interlocked.Exchange(ref _lastApplied, entry.Index);
-        return ValueTask.CompletedTask;
-    }
-}
+        if (entry.Command.Length != 1 || entry.Command.Span[0] != 1)
+            throw new InvalidDataException("Unknown counter command.");
+        var old = tx.Select<string, long>("app/values", "counter");
+        tx.Insert<string, long>("app/values", "counter", (old.Exists ? old.Value : 0) + 1);
+    });
+await using var log = new RaftStorageAdapter(new DBreezeLogStorage(
+    Path.Combine(root, "log"), options, DBreezeLogLayout.UnifiedTableV3));
+await using var tcp = new TcpRaftTransport(options,
+    new Dictionary<string, IPEndPoint> { ["n1"] = new(IPAddress.Loopback, 5001) });
+await using var node = await RaftNode.CreateAsync(options, log, tcp, app);
+await node.StartAsync();
+tcp.Start(node.HandleAsync);
+using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+while (node.Status.Role != RaftRole.Leader) await Task.Delay(25, deadline.Token);
+var written = await node.ProposeAsync(new byte[] { 1 }, deadline.Token);
+await node.ReadIndexAsync(deadline.Token);
+var count = app.Read(tx => tx.Select<string, long>("app/values", "counter").Value);
+Console.WriteLine($"Applied ({written.Index}, {written.Term}); counter={count}");
+await tcp.DisposeAsync(); // stop inbound calls before automatic node/application disposal
 ```
 
-The in-memory application above reports checkpoint zero when recreated and rebuilds by replaying the retained committed log. For a three-node application, all nodes use the same `GroupId`, member IDs, endpoints, and compatible limits, each with its own `NodeId`, data folder, state machine, and transport. Submit to the elected leader. The [complete demo](HumanTest/Raft.Demo/DemoCluster.cs) shows lifecycle handling and an actual replicated application.
+For three/five nodes, use distinct directories/IDs/endpoints and the same initial voters/group and compatible limits. Send proposals/reads/configuration changes to the leader; `NotLeaderException.LeaderId` supplies a hint, possibly null. There is no automatic client service/routing. Success means quorum durability **and leader application**; followers may lag.
 
-## Application contract
+New databases should select `DBreezeLogLayout.UnifiedTableV3` explicitly. It stores metadata/log/configuration under ordered `ToIndex` prefixes in one physical DBreeze table, preserving CRC and atomic durable frontier. Existing constructors retain v2 for compatibility; they do not convert existing data. See [v2 → v3 offline copy migration](docs/OPERATIONS.md#upgrade-raft8-v2-to-v3). Wire 2 is unchanged.
 
-`IRaftStateMachine.ApplyAsync` receives every committed entry, including election and read-barrier no-ops. Advance `LastApplied` for no-ops too. A newly constructed application exposes the checkpoint that agrees with its reconstructed/durable state. The library rejects checkpoints beyond the durable commit index.
+## Application and lifecycle contract
 
-For external side effects, persist effects and the application checkpoint atomically or make replay idempotent. A crash after effects but before checkpointing can otherwise repeat the effects. The [demo state machine](HumanTest/Raft.Demo/KeyValueMachine.cs) atomically persists values, request IDs, and checkpoints using a shared DBreeze engine. `IRaftBatchStateMachine` lets an application handle one ordered committed batch per call, reducing transaction overhead. The ordinary per-entry interface remains supported. Application I/O must honor cancellation for prompt shutdown.
+`IStateMachine`/`IBatchStateMachine` and the original `IRaftStateMachine`/`IRaftBatchStateMachine` are supported through adapters. Applications receive every committed entry, including no-ops/configuration records. Skip their business effect (`entry.IsNoOp`), but advance the checkpoint. Built-in DBreeze helpers do this automatically. A fresh volatile application reports zero and can replay a full retained log; a compacted log requires a compatible snapshot-capable application.
 
-`ProposeAsync` returns after durable quorum replication and the leader's application of that entry. Followers can still be applying it. A canceled or failed request may have committed; a caller's timeout cannot undo a distributed command. Include stable request IDs and deduplicate inside the replicated state machine when retrying. The demo implements this explicitly. Keep supplied `ReadOnlyMemory<byte>` unchanged until the asynchronous call finishes; the host makes its owned copy after admission.
+Use `DBreezeStateMachine` with a caller-owned engine for atomic effects/checkpoint without images; use `DBreezeGenerationStateMachine` for snapshots in a separate application root. Both reserve all declared write tables before reads, use short synchronous transactions and never await inside a transaction. The generation handler runs during independent replay: write only its supplied transaction, without external calls, live-engine captures or nondeterminism. Materialize reads inside `Read(...)`; never return lazy rows/enumerators. The [demo](HumanTest/Raft.Demo/SnapshotKeyValueMachine.cs) persists request deduplication atomically.
 
-`ReadBarrierAsync` commits and applies a current-term no-op, then allows a read of that node's state machine. Serialize/read application data safely when querying concurrently with application. Reading `Status` or an application cache without a barrier can return stale data, including on an isolated former leader. Barriers add a log entry; this release does not implement ReadIndex or lease reads.
+Cancellation stops waiting; an admitted command may still commit/apply. Retry with the **same application request ID** and transactional deduplication. The library does not deduplicate commands. Keep input memory unchanged until `ProposeAsync` completes. Custom callbacks must honor cancellation for prompt shutdown.
 
-The application worker is independent of consensus. Slow application consumes bounded outstanding-proposal capacity and delays client results without blocking heartbeats. Application or storage failures fault the node and its `Completion` task; observe that task in a service and surface the error. Restart with a healthy state machine and the same durable identity. `RaftNode` owns/disposes its `IRaftStorage`; it does not own the transport. A shared `DBreezeEngine` remains caller-owned unless the storage constructor's `ownsEngine` flag is true. Dispose transport, node, then a caller-owned engine.
+Observe `node.Completion` for fail-stop errors. The node owns the `ILogStore` after successful construction; on construction failure the caller still owns it. `RaftStorageAdapter` owns its wrapped storage. Path storage owns its engine; supplied engines are caller-owned unless `ownsEngine: true`. The node never owns transport/application/logger factory/TLS certificates. Dispose transport, node/store, then application/caller engines. Original signatures remain; [architecture tests](tests/Raft.Tests/ArchitectureTests.cs) compare all 272 baseline API members and inspect every core IL method.
 
-## Storage, bounds, and tuning
+## Security and observability
 
-DBreeze tables `raft8/meta` and `raft8/log` hold a versioned identity/hard state and an index-keyed log. One engine/folder supports one Raft node/group and may also hold application tables. Reopening a folder with a different group, node, or member set is rejected. Reordering the same members is allowed. No transactions cross `await`; the engine is reused, and log inserts/deletes are ordered. Metadata and the last log index/term are cached; unchanged heartbeats do not write to the database. Startup reads metadata and the tail, rather than loading the entire log. Corruption such as a missing committed entry fails closed.
+Plain `TcpRaftTransport(options, endpoints)` is a trusted-network choice. Pass `TlsRaftTransportSecurity(certificate, authorizePeer, ...)` to its three-argument constructor for mutual TLS 1.2/1.3. Platform chain/name validation is the default; certificate-to-Raft-ID authorization is mandatory. An optional validation callback supports an explicit private-PKI policy. `KnownPeers` is an allowlist, not authentication. See [TLS/provisioning](docs/OPERATIONS.md#transport-identities-and-tls).
 
-| Setting | Default | Meaning |
-| --- | ---: | --- |
-| `TickInterval` | 25 ms | Logical timer cadence |
-| `HeartbeatTicks` | 2 | 50 ms heartbeat cadence |
-| `ElectionMinTicks` / `ElectionMaxTicks` | 12 / 24 | Random election deadline in `[300, 600)` ms |
-| `RpcTimeout` | 200 ms | Per-RPC deadline, shorter than minimum election timeout |
-| `MaxAppendEntries` | 128 | Entries per replication/application batch |
-| `MaxAppendBytes` | 256 KiB | Encoded entry bytes per batch |
-| `MaxCommandBytes` | 64 KiB | Largest individual command |
-| `MaxPendingProposals` | 1,024 | Admitted proposals until applied, rejected, or faulted |
-| `LogCacheEntries` / `LogCacheBytes` | 1,024 / 8 MiB | Both limits apply; count zero disables caching |
+Pass `ILoggerFactory` through the additive constructor/CreateAsync overload for structured role/configuration/snapshot/failure logs. Meter and ActivitySource **`Raft.Net8`** expose index/role/lag/progress gauges, election/RPC/failure counters, proposal/persistence/DBreeze-commit/application histograms and proposal spans. Durations are seconds; bytes use `By`. Commit latency includes DBreeze's disk flush guarantee, rather than timing a raw fsync syscall. Payloads are excluded. Broken diagnostic subscribers are isolated; `RaftInstrumentation.CallbackFailures` counts them. See [instrument names](docs/CONFIGURATION.md#observability).
 
-The cache byte budget counts payload plus encoded entry overhead; object/dictionary overhead is additionally bounded by the entry count. Caller-owned tasks waiting for admission are outside the node's retained command budget. TCP accepts a bounded number of inbound connections, caps frame length, and times out idle/partial frames. There is at most one current AppendEntries exchange per peer; election exchanges are also bounded by membership and deadlines. Custom `IRaftTransport` implementations must enforce peer identity and promptly honor cancellation.
+## Validation and measurements
 
-Tune election/RPC deadlines for measured network and storage tail latency, including pauses and durable writes. Keep the maximum command plus its 21-byte entry header within `MaxAppendBytes`. Keep resource and protocol limits compatible across members and do not lower command limits below existing stored commands. Large membership (maximum 1,024 IDs) is accepted, but the intended deployment is a small odd-sized quorum, commonly three or five nodes.
-
-## Layout and migration
-
-```text
-src/Raft/                    supported library
-tests/Raft.Tests/            deterministic, persistence, async, TCP, crash, and load tests
-HumanTest/                   human-test .sln and console application
-benchmarks/Raft.Benchmarks/  BenchmarkDotNet workloads
-tools/Raft.CrashHarness/     isolated child process used by crash tests
-legacy-source/              copied historical sources, never compiled by this solution
+```sh
+# Exact replay, or the nightly 42,000-run matrix
+dotnet run --project tools/Raft.Simulator -c Release -- --seed 17 --scenario Mixed --steps 3000 --voters 3
+dotnet run --project tools/Raft.Simulator -c Release -- --seeds 3000 --scenario all --steps 3000 --voters 3,5 --parallel 4 --out .artifacts/simulation.json
+# Core coverage; raw fault children deliberately run without the collector
+dotnet test tests/Raft.Tests -c Release --no-build --settings tests/core-coverage.runsettings --collect "Code Coverage;Format=Cobertura"
 ```
 
-The legacy `RaftNode`, multi-entity TCP API, Biser messages, delayed persistence, and old database format are not reused. The [audit](../_docs/llm/okf/consensus-audit.md) records why election persistence and heartbeat/replication needed replacement. Export application data from an old deployment through its existing API and bootstrap a **new** cluster under an explicit migration procedure; pointing this implementation at historical Raft tables does not migrate them. New storage detects only its own versioned schema.
+The runner advances the actual reducer with one seeded PRNG per run for clocks/skew, delayed/dropped/duplicated/asymmetric networking, disk flushes/failures, crashes/torn tails, application, configuration and snapshots. Invariants run after every event; bounded real-time backtracking checks client histories. Failures print exact replay commands/traces. The local large matrix passed **42,000 runs / 132,010,316 events**. Independent tests use real DBreeze/TCP, 3/5 OS-process clusters, forced termination, rolling restart and persistence/snapshot kill boundaries. Property tests cover logs/reopen, configurations and codecs. This is regression/model evidence, not a formal proof.
 
-No NuGet package has been published by this work. Use a project reference or package the library deliberately after reviewing its API and your deployment requirements. The repository's BSD 2-Clause license applies.
+The [active CI workflow](../.github/workflows/raft-net8.yml) builds/tests Windows/Linux, runs the demo/smaller seed matrix, uploads coverage and schedules 3000 seeds per scenario/topology nightly. Remote CI has not been executed here. See [validation and core coverage](docs/VALIDATION.md) and [benchmarks](benchmarks/README.md): 1/3/5-node disk/TCP workloads versus unchanged `8b991bd`, with individual p50/p99 measured separately.
+
+## Compatibility and boundaries
+
+Recommended for new data: explicit **raft8-v3**, wire **2**. Existing constructors retain v2; select its layout when continuing those databases, or use the stopped copy migration to v3. V1 golden bytes/readers remain for existing .NET 8 integrations; v1 lacks CRC-frontier/configuration/snapshot support. Mixed wire versions are rejected. Upgrade v1 by **offline copy migration**, then restart the whole group on wire2; physical v2/v3 layouts use that same wire. See [upgrade/restore procedures](docs/OPERATIONS.md). Historical pre-.NET-8 data/packages need application-specific migration; the tool cannot infer their committed history.
+
+The model is non-Byzantine crash/recovery within one region. Joint consensus, lease reads, follower read forwarding, automatic client retries, external side-effect exactly-once delivery, a public client protocol and cross-region capacity guarantees are outside scope. Leases are absent/off. Snapshot replay uses extra disk/CPU for consistency without assuming MVCC. Durability relies on the OS/device honoring flushes; software tests cannot prove hardware power-loss behavior. Retain backups and measure network/storage tails before tuning deadlines.

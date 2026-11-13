@@ -5,7 +5,7 @@ using DBreeze;
 namespace Raft.Storage;
 
 /// <summary>Versioned Raft storage. One engine/folder per physical node; no legacy database compatibility.</summary>
-public sealed class DBreezeRaftStorage : IRaftStorage
+public sealed class DBreezeRaftStorage : IRaftStorage, IRaftStorageIdentity
 {
     private readonly object _gate = new();
     private readonly DBreezeEngine _engine;
@@ -48,6 +48,9 @@ public sealed class DBreezeRaftStorage : IRaftStorage
     public long LastIndex { get { lock (_gate) return _lastIndex; } }
     public long LastTerm { get { lock (_gate) return _lastTerm; } }
     public StorageMetrics Metrics { get { lock (_gate) return new(_reads, _writes, _hits, _cache.Count, _cacheBytes); } }
+    public StorageIdentity Identity => new(_options.GroupId, _options.NodeId,
+        new(System.Collections.Immutable.ImmutableArray.CreateRange(_options.Members),
+            System.Collections.Immutable.ImmutableArray<string>.Empty));
 
     private void Initialize()
     {
@@ -130,6 +133,8 @@ public sealed class DBreezeRaftStorage : IRaftStorage
             var expected = fromIndex;
             foreach (var entry in entries)
             {
+                if (entry.Kind == LogEntryKind.Configuration)
+                    throw new NotSupportedException("Configuration entries require DBreezeLogStorage v2.");
                 if (entry.Index != expected || entry.Term < previousTerm || entry.Term > _state.Term ||
                     entry.Command.Length > _options.MaxCommandBytes)
                     throw new InvalidOperationException("Log entries must be contiguous with nondecreasing, persisted terms.");

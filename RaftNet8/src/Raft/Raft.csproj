@@ -3,12 +3,14 @@
     <AssemblyName>Raft.Net8</AssemblyName>
     <RootNamespace>Raft</RootNamespace>
     <Version>2.0.0</Version>
-    <Description>Fixed-membership Raft consensus for .NET 8 with DBreeze persistence.</Description>
+    <Description>Raft consensus for .NET 8 with checked DBreeze persistence, dynamic membership, ReadIndex and resumable snapshots.</Description>
     <PackageLicenseExpression>BSD-2-Clause</PackageLicenseExpression>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="DBreeze" Version="[1.142.2026.1016-beta]" />
+    <PackageReference Include="DBreeze" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <InternalsVisibleTo Include="Raft.Tests" />
     <InternalsVisibleTo Include="Raft.Benchmarks" />
+    <InternalsVisibleTo Include="Raft.Simulator" />
   </ItemGroup>
 </Project>

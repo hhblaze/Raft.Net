@@ -10,7 +10,7 @@ public class CoreReplicationBenchmarks
 {
     [Params(1, 32, 128)] public int BatchSize { get; set; }
     private readonly Dictionary<string, RaftCore> _nodes = new();
-    private readonly List<DBreezeRaftStorage> _stores = new();
+    private readonly List<DBreezeLogStorage> _stores = new();
     private ProposedCommand[] _commands = null!;
 
     [IterationSetup]
@@ -20,7 +20,7 @@ public class CoreReplicationBenchmarks
         foreach (var id in members)
         {
             var options = new RaftOptions { NodeId = id, Members = members };
-            var store = DBreezeRaftStorage.CreateInMemory(options);
+            var store = DBreezeLogStorage.CreateInMemory(options);
             _stores.Add(store);
             _nodes.Add(id, new RaftCore(options, store));
         }

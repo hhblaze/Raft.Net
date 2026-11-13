@@ -12,14 +12,19 @@ internal sealed record SetCommand(string RequestId, string Key, string Value);
 internal partial class DemoJsonContext : JsonSerializerContext;
 
 /// <summary>Example of effects, request deduplication, and application checkpoint in one DBreeze transaction.</summary>
-internal sealed class KeyValueMachine : IRaftBatchStateMachine
+internal sealed class KeyValueMachine : IRaftBatchStateMachine, ICheckpointStateMachine
 {
+    private sealed record AppliedState(long Index, long Term);
     private readonly DBreezeEngine _engine;
     private readonly string _nodeId;
     private readonly Action<string> _trace;
     private readonly ConcurrentDictionary<string, string> _values = new(StringComparer.Ordinal);
-    private long _lastApplied;
-    public long LastApplied => Interlocked.Read(ref _lastApplied);
+    private AppliedState _applied = new(0, 0);
+    public long LastApplied => Volatile.Read(ref _applied).Index;
+    public AppliedCheckpoint Checkpoint
+    {
+        get { var value = Volatile.Read(ref _applied); return new(value.Index, value.Term); }
+    }
     public int Count => _values.Count;
     public string? Get(string key) => _values.GetValueOrDefault(key);
 
@@ -30,7 +35,10 @@ internal sealed class KeyValueMachine : IRaftBatchStateMachine
         _trace = trace;
         using var transaction = engine.GetTransaction();
         var checkpoint = transaction.Select<string, long>("demo/checkpoint", "lastApplied");
-        _lastApplied = checkpoint.Exists ? checkpoint.Value : 0;
+        var term = transaction.Select<string, long>("demo/checkpoint", "lastAppliedTerm");
+        if (checkpoint.Exists && checkpoint.Value > 0 && !term.Exists)
+            throw new InvalidDataException("Index-only demo checkpoint requires offline checkpoint-term migration.");
+        _applied = new(checkpoint.Exists ? checkpoint.Value : 0, term.Exists ? term.Value : 0);
         foreach (var row in transaction.SelectForward<string, string>("demo/values")) _values[row.Key] = row.Value;
     }
 
@@ -63,6 +71,7 @@ internal sealed class KeyValueMachine : IRaftBatchStateMachine
                 else commands[i] = null;
             }
             transaction.Insert<string, long>("demo/checkpoint", "lastApplied", entries[^1].Index);
+            transaction.Insert<string, long>("demo/checkpoint", "lastAppliedTerm", entries[^1].Term);
             transaction.Commit();
         }
         for (var i = 0; i < commands.Length; i++)
@@ -71,7 +80,7 @@ internal sealed class KeyValueMachine : IRaftBatchStateMachine
             _values[command.Key] = command.Value;
             _trace($"APPLY {_nodeId} index={entries[i].Index} term={entries[i].Term}: {command.Key}={command.Value}");
         }
-        Interlocked.Exchange(ref _lastApplied, entries[^1].Index);
+        Volatile.Write(ref _applied, new(entries[^1].Index, entries[^1].Term));
         return ValueTask.CompletedTask;
     }
 

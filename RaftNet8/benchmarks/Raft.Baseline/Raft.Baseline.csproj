@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Raft.Baseline.Net8</AssemblyName>
+    <RootNamespace>Raft</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <Description>Unmodified 8b991bd Raft source, isolated for before/after benchmarks only.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="DBreeze" />
+  </ItemGroup>
+</Project>

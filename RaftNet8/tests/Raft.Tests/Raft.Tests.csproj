@@ -4,12 +4,14 @@
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
-    <PackageReference Include="xunit" Version="2.9.3" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="3.0.1" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
     <ProjectReference Include="../../src/Raft/Raft.csproj" />
     <ProjectReference Include="../../HumanTest/Raft.Demo/Raft.Demo.csproj" />
     <ProjectReference Include="../../tools/Raft.CrashHarness/Raft.CrashHarness.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="../../tools/Raft.Simulator/Raft.Simulator.csproj" />
+    <ProjectReference Include="../../benchmarks/Raft.Baseline/Raft.Baseline.csproj" Aliases="baseline" />
     <Using Include="Xunit" />
   </ItemGroup>
 </Project>

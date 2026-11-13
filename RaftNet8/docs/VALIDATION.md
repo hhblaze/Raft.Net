@@ -1,0 +1,51 @@
+# Executed validation
+
+Local host: Windows x64, .NET 8. Raw test/coverage/simulation/benchmark evidence is retained under the ignored `.artifacts/autonomous/` directory. Remote Windows/Linux CI is configured but has not been executed here. These results are regression evidence, not formal verification or a hardware power-loss guarantee.
+
+## Correctness and integration
+
+The current R18 candidate passed **342/342 tests**, no skips: [passing TRX](../.artifacts/winner/tests/r18-full.trx). The original338/340 run is retained as r18-full-initial.trx/log; tests with manually stopped time now explicitly deliver the heartbeat used for coalesced follower apply. Twelve new commit-notification cases cover next data/heartbeat/ReadIndex, opt-out, and leader death before notification with all copies or only a durable majority. A fresh current-reducer fault matrix passed **1400 runs /4,378,652 events** (100seeds10001..10100 ×7scenarios ×3/5voters,3000steps), including14,685crashes/torn tails,782disk failures and397snapshot installs: [report](../.artifacts/winner/tests/r18-simulation.json). Locked restore/zero-warning Release, adapter, human TCP/disk scenario and BDN Dry passed(r18-* logs). The coverage percentages and42000-run matrix below describe the earlier221-test baseline, not current-source coverage or a rerun. The [final R18 HTML](../benchmarks/results/winner-r18-2026-11-13.html) meets goal016’s local median-throughput criterion at12/12points over both refs,8/8distributed,360measurements/614400samples/5rounds. Independent numeric/source/binary/CSV and offline desktop/mobile/print/noJS/chart QA passed. All earlier reports remain intact; allocations and individual p99 losses stay explicit.
+
+Locked restore and Release solution build passed with zero warnings/errors. The complete **221-test** suite passed with zero skipped cases under Microsoft.CodeCoverage 17.12.0. [TRX](../.artifacts/autonomous/release-coverage/final-release-full-coverage.trx) and [coverage directory](../.artifacts/autonomous/release-coverage/) preserve results.
+
+| Report scope | Line coverage | Branch coverage |
+| --- | ---: | ---: |
+| RaftCore.Reducer | 96.75% | 91.53% |
+| Whole reported Core, including generated record methods | 80.29% (1043/1299) | 88.36% (744/842) |
+
+The collector excludes raw fault children: attaching it caused Windows native-loader failures before Main. OS-process clusters run in a nonparallel test collection; disk integration deadlines allow filesystem/profiler tails. Fast deterministic/in-memory timing tests retain their short deadlines. File cleanup retries only transient Windows IO exceptions for a bounded interval, so a persistent leaked engine still fails.
+
+| Requested mechanism | Implementation and independent evidence |
+| --- | --- |
+| Pure deterministic core | Immutable State/Event/Effect; ArchitectureTests inspect every core method/field for direct I/O/runtime dependencies; CoreTransition/AsyncDriver withheld-completion tests |
+| Persistence hygiene/group commit | V2 CRC/frontier/atomic batches; original-exception fail-stop; actual process kills at transaction/commit/cache boundaries; randomized store/model/list/reopen properties |
+| Pre-vote/check-quorum | Prospective rounds/recent contact suppression; non-voter gates; election/partition/seed scenarios |
+| Leadership transfer | Caught-up TimeoutNow; bounded abort and proposal gating; duplicate/delayed rejection regression; 3/5 disk/TCP and rolling OS-process tests |
+| ReadIndex | Current-term commit, fresh eligible voter context and applied fence; concurrent batching/stale context/isolation tests; history linearizability checker |
+| Learners/membership | Active-on-append/rollback/recovery and corrected current-term gate; add/promote/remove including leader retirement; simulated crashes and real process membership workflows |
+| Batching/pipelining/flow | Probe/Replicate/Snapshot flights, cumulative acknowledgment, rejection/reordering and byte/count budgets; backpressure and pipeline tests |
+| Nonblocking resumable snapshots | Independent DBreeze replay generation, bounded archives/chunks, CRC/SHA-256, progress, throttle, keepalive, install intent; multi-chunk 3/5 disk/TCP, interruptions/leader change and 15 snapshot OS-kill boundary cases |
+| Deterministic validation | One seeded PRNG for scheduler/network/disk/skew/app, every-event invariants and bounded real-time history checker; generated codec/config/store properties |
+| Cross-cutting integration | ILogger/Meter/Activity and broken-callback isolation; real mTLS/ID rejection; immutable validated options; offline migration; runnable human solution and application/operations/LLM guidance |
+
+The large matrix passed **42,000 runs / 132,010,316 events**: 3000 seeds ×7 scenarios ×3/5 voters, 3000 disruption events plus healing per run. It includes 438,927 completed writes, 280,606 reads, 440,342 crashes/torn tails, 22,442 uncertain disk failures and 11,954 modeled snapshot installs. Raw [JSON](../.artifacts/autonomous/simulation/large-matrix.json) / [log](../.artifacts/autonomous/simulation/large-matrix.log). A subsequent **896-run / 2,817,880-event** check passed after storage cache optimizations. No core algorithm changes were made after the large matrix.
+
+Properties include 32×160 actual DBreeze/model/list operations, 2560 wire round trips with pool reuse and 512 generated configurations with invalid variants. The history checker also rejects deliberately invalid stale reads and checks 200 generated valid histories. Search exhaustion fails validation rather than being counted as a pass.
+
+Real **3/5 OS-process clusters** kill the leader without disposal, elect/write, compact/install snapshots, restart every voter with planned transfer, add/promote a spare, transfer to it, remove/restart an original voter and verify durable application/configuration. They reproduced a removed snapshot-node restart bug and passed after correction. Other raw children die at persistence/image/intent/generation/publication steps.
+
+## Compatibility and examples
+
+ArchitectureTests retain all **272 original public members/signatures/enum values**; v1 wire/storage golden fixtures pass. Eight benchmark reference C# files match commit `8b991bd` after normalizing only line endings. Historical source artifacts remain unchanged.
+
+The original compiled Client.dll ran with the new library **without recompilation** (`BINARY COMPATIBILITY PASS: applied=2, count=1`), SHA-256 `2BD210BB23A09EAC28E6C4F7BCA4A29E3749E4C290A841B8C4B6F6A97A314D9B`. Runtime manifests/DLLs were updated for new logging dependencies; this is not a DLL-only deployment claim. Wire/storage 1→2 still requires the documented whole-group offline migration.
+
+The exact durable-generation README example compiled/executed (`Applied (2, 1); counter=1`) and persisted correctly across another process run (`Applied (4, 2); counter=2`). The updated human scenario passed with snapshot catch-up, learner promotion, transfer/removal and restart: [log](../.artifacts/autonomous/human-scenario-delivery.log). Canonical Raft skill and both skill folder entrypoints passed skill-creator quick_validate; validation tooling was installed only under ignored workspace artifacts. Workflow/OKF YAML, 34 current Markdown files/local line links, reference hashes, legacy-tree preservation and whitespace checks also passed.
+
+Final review also reproduced/fixed unknown database migration: preflight now requires existing raft8-v1 identity/state instead of allowing the v1 constructor to initialize an unrelated source. The red/green regression verifies preserved business data, no inserted Raft marker and no created target; an initialized empty v1 database remains valid. Wire v1 rejects new ReadIndex/transfer APIs immediately while legacy writes/barriers continue working. These changes do not alter the measured proposal/storage/wire 2 paths.
+
+## Performance evidence
+
+The newer [three-way HTML comparison](../benchmarks/results/dotnext-comparison-2026-11-13.html) measures baseline/current/DotNext.Net.Cluster5.26.2 on .NET8 afresh:48 short and24 long configurations,3 rounds each,368,640 individual samples. All216 rounds passed all-replica and closed/reopened DBreeze validation. Dedicated adapter checks prove no client success before the common durable business transaction, correct no-op metadata/batch limits/repeated commits and native-WAL/application reopen/replay. This integration passed locked restore, zero-warning Release build and221 tests again. Independent raw/CSV/hash and offline browser checks cover every row and chart, both comparison references, mobile/print/no-JS; raw and saved-summary regeneration agree. Native file WAL, fixed in-memory membership bootstrap and transport aggregation differences are explicit. Latest DotNext6.12.1 is net10.0-only and was not measured. The earlier current-version large-payload multi-voter regressions remain; this comparison is not a production optimization or an independent correctness audit of DotNext. [Commands/limits](../benchmarks/Raft.Comparison/README.md).
+
+See [the offline HTML benchmark report](../benchmarks/results/enhancement-2026-11-12.html) ([Markdown](../benchmarks/results/enhancement-2026-11-12.md)): **36** durable comparison cases with all current batching/pipeline combinations, **129,024** unprofiled latency samples, warmed BDN allocation/throughput statistics, 29 successful micro Dry cases and 6 warmed wire cases. The independently checked JSON summaries reject incomplete cases. BDN's normalized mean is amortized throughput time, not individual latency. V1 has weaker integrity/recovery/features; regressions and workload-dependent results are retained. The incomplete C-temp diagnostic and reverted cache-worker-bypass experiment are excluded. No blanket performance improvement is claimed.

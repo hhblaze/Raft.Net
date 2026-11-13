@@ -29,6 +29,7 @@ public sealed class ReplicationTests
         var store = cluster.Stores["n1"];
         store.SaveHardState(new HardState(3));
         store.Append(new[] { new LogEntry(1, 1, "a"u8), new LogEntry(2, 2, "uncommitted"u8) });
+        cluster.Restart("n1"); // Recovery supplies metadata explicitly; running cores do not observe out-of-band writes.
         var reply = (AppendResponse)cluster.Nodes["n1"].HandleRequest("n2",
             new AppendRequest(3, 1, 1, 1, 2, Array.Empty<LogEntry>()));
         Assert.True(reply.Success);

@@ -20,11 +20,11 @@ public class ReadBenchmarks
         _scope.Store.Append(Enumerable.Range(1, 10000).Select(i => new LogEntry(i, 1, payload, false)).ToArray());
     }
 
-    [Benchmark] public IReadOnlyList<LogEntry> ReadTail() => _scope.Store.Read(10000 - 127, 128, 256 * 1024);
+    [Benchmark] public object ReadTail() => _scope.Store.Read(10000 - 127, 128, 256 * 1024);
     [Benchmark] public long HistoricalTerm() => _scope.Store.GetTerm(5000);
 
     [Benchmark]
-    public IReadOnlyList<LogEntry> CatchUpWindow()
+    public object CatchUpWindow()
     {
         var entries = _scope.Store.Read(_cursor, 128, 256 * 1024);
         _cursor = _cursor + entries.Count > 10000 ? 1 : _cursor + entries.Count;

@@ -1,0 +1,3637 @@
+{
+  "ReportVersion": 1,
+  "Short": [
+    {
+      "Nodes": 1,
+      "PayloadBytes": 64,
+      "Implementation": "Baseline",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 3841.9027023133203,
+      "MinOps": 3537.658443223,
+      "MaxOps": 4318.379258284625,
+      "P50Ms": 16.2253,
+      "P99Ms": 22.1556,
+      "AllocatedKiB": 5.75,
+      "RoundOps": [
+        3977.916348770031,
+        3841.9027023133203,
+        3537.658443223,
+        3818.422096731371,
+        4318.379258284625
+      ],
+      "RoundP99Ms": [
+        21.2637,
+        23.5767,
+        22.1585,
+        20.3189,
+        19.5173
+      ]
+    },
+    {
+      "Nodes": 1,
+      "PayloadBytes": 64,
+      "Implementation": "Current",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 7896.3846279599875,
+      "MinOps": 7370.979073329725,
+      "MaxOps": 8112.484670256018,
+      "P50Ms": 8.1637,
+      "P99Ms": 10.3271,
+      "AllocatedKiB": 6.0810546875,
+      "RoundOps": [
+        7464.296752447765,
+        8112.484670256018,
+        7896.3846279599875,
+        7370.979073329725,
+        7984.7665625424
+      ],
+      "RoundP99Ms": [
+        10.3364,
+        8.8324,
+        9.285,
+        9.6238,
+        9.2223
+      ]
+    },
+    {
+      "Nodes": 1,
+      "PayloadBytes": 64,
+      "Implementation": "Current",
+      "Mode": "Pipeline",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 7352.128168271834,
+      "MinOps": 6472.598280463246,
+      "MaxOps": 8562.288137719053,
+      "P50Ms": 8.2053,
+      "P99Ms": 15.07,
+      "AllocatedKiB": 6.0830078125,
+      "RoundOps": [
+        7352.128168271834,
+        8562.288137719053,
+        7761.091767330957,
+        7339.344332793395,
+        6472.598280463246
+      ],
+      "RoundP99Ms": [
+        11.1057,
+        7.9272,
+        8.8852,
+        9.6829,
+        15.0909
+      ]
+    },
+    {
+      "Nodes": 1,
+      "PayloadBytes": 64,
+      "Implementation": "DotNext",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 7341.101710103909,
+      "MinOps": 6669.523793395869,
+      "MaxOps": 7443.0829482167865,
+      "P50Ms": 8.7695,
+      "P99Ms": 10.4665,
+      "AllocatedKiB": 3.2158203125,
+      "RoundOps": [
+        7171.862765285383,
+        7341.101710103909,
+        6669.523793395869,
+        7443.0829482167865,
+        7358.943991537214
+      ],
+      "RoundP99Ms": [
+        9.4954,
+        9.5342,
+        10.4707,
+        9.2408,
+        9.3909
+      ]
+    },
+    {
+      "Nodes": 1,
+      "PayloadBytes": 64,
+      "Implementation": "Baseline",
+      "Mode": "Unbatched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 169.5503864838141,
+      "MinOps": 160.54168268817264,
+      "MaxOps": 176.02253363465732,
+      "P50Ms": 358.8476,
+      "P99Ms": 488.1689,
+      "AllocatedKiB": 37.87109375,
+      "RoundOps": [
+        169.5503864838141,
+        176.02253363465732,
+        160.54168268817264,
+        171.09692410170524,
+        165.806180088569
+      ],
+      "RoundP99Ms": [
+        488.7465,
+        465.3219,
+        493.9883,
+        483.4731,
+        498.6103
+      ]
+    },
+    {
+      "Nodes": 1,
+      "PayloadBytes": 64,
+      "Implementation": "Current",
+      "Mode": "Unbatched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 190.88285332882174,
+      "MinOps": 180.7472543362396,
+      "MaxOps": 201.16944671447663,
+      "P50Ms": 324.2428,
+      "P99Ms": 368.2881,
+      "AllocatedKiB": 77.849609375,
+      "RoundOps": [
+        201.16944671447663,
+        200.9641017275573,
+        180.7472543362396,
+        190.88285332882174,
+        190.43009902439536
+      ],
+      "RoundP99Ms": [
+        352.9145,
+        349.2447,
+        387.3141,
+        370.9936,
+        364.164
+      ]
+    },
+    {
+      "Nodes": 1,
+      "PayloadBytes": 64,
+      "Implementation": "Current",
+      "Mode": "UnbatchedPipeline",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 186.43839130614478,
+      "MinOps": 123.00277251132117,
+      "MaxOps": 201.821629413232,
+      "P50Ms": 339.5169,
+      "P99Ms": 561.7838,
+      "AllocatedKiB": 77.8583984375,
+      "RoundOps": [
+        201.821629413232,
+        186.43839130614478,
+        188.51051253541522,
+        123.00277251132117,
+        146.1997279599984
+      ],
+      "RoundP99Ms": [
+        342.1628,
+        395.0893,
+        373.3713,
+        562.2936,
+        567.6369
+      ]
+    },
+    {
+      "Nodes": 1,
+      "PayloadBytes": 64,
+      "Implementation": "DotNext",
+      "Mode": "Unbatched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 204.94946554623357,
+      "MinOps": 133.3305278368101,
+      "MaxOps": 216.26319501161905,
+      "P50Ms": 304.6682,
+      "P99Ms": 543.9849,
+      "AllocatedKiB": 31.3173828125,
+      "RoundOps": [
+        216.26319501161905,
+        214.03567355981374,
+        204.94946554623357,
+        133.3305278368101,
+        203.53033705140592
+      ],
+      "RoundP99Ms": [
+        304.1893,
+        307.0061,
+        316.4003,
+        554.4022,
+        374.0875
+      ]
+    },
+    {
+      "Nodes": 1,
+      "PayloadBytes": 16384,
+      "Implementation": "Baseline",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 1931.7940858425904,
+      "MinOps": 1034.970061671683,
+      "MaxOps": 1953.7480672394606,
+      "P50Ms": 32.2979,
+      "P99Ms": 75.4039,
+      "AllocatedKiB": 111.59375,
+      "RoundOps": [
+        1939.507077306782,
+        1880.0671389600952,
+        1931.7940858425904,
+        1953.7480672394606,
+        1034.970061671683
+      ],
+      "RoundP99Ms": [
+        43.0948,
+        45.1866,
+        41.3322,
+        41.382,
+        84.0981
+      ]
+    },
+    {
+      "Nodes": 1,
+      "PayloadBytes": 16384,
+      "Implementation": "Current",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 2362.6011315567375,
+      "MinOps": 1312.586266656002,
+      "MaxOps": 2379.5061316433885,
+      "P50Ms": 26.644,
+      "P99Ms": 64.9961,
+      "AllocatedKiB": 114.1181640625,
+      "RoundOps": [
+        2362.6011315567375,
+        2363.1267305172432,
+        2379.5061316433885,
+        2117.5540265786117,
+        1312.586266656002
+      ],
+      "RoundP99Ms": [
+        36.5098,
+        32.6018,
+        33.1012,
+        37.4953,
+        75.3929
+      ]
+    },
+    {
+      "Nodes": 1,
+      "PayloadBytes": 16384,
+      "Implementation": "Current",
+      "Mode": "Pipeline",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 2145.3616610462664,
+      "MinOps": 1386.948650664205,
+      "MaxOps": 2431.1987376760303,
+      "P50Ms": 26.6559,
+      "P99Ms": 55.3586,
+      "AllocatedKiB": 114.12109375,
+      "RoundOps": [
+        2137.2819617576806,
+        2379.615617714751,
+        2431.1987376760303,
+        2145.3616610462664,
+        1386.948650664205
+      ],
+      "RoundP99Ms": [
+        46.4868,
+        33.077,
+        31.7391,
+        38.2327,
+        59.3754
+      ]
+    },
+    {
+      "Nodes": 1,
+      "PayloadBytes": 16384,
+      "Implementation": "DotNext",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 1971.178445163702,
+      "MinOps": 1389.4961149742903,
+      "MaxOps": 2260.2790826622027,
+      "P50Ms": 31.299,
+      "P99Ms": 51.871,
+      "AllocatedKiB": 92.9033203125,
+      "RoundOps": [
+        2212.780449393236,
+        1971.178445163702,
+        2260.2790826622027,
+        1832.723857196448,
+        1389.4961149742903
+      ],
+      "RoundP99Ms": [
+        31.2074,
+        36.1884,
+        29.8608,
+        38.4163,
+        53.2776
+      ]
+    },
+    {
+      "Nodes": 1,
+      "PayloadBytes": 16384,
+      "Implementation": "Baseline",
+      "Mode": "Unbatched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 163.51359546883387,
+      "MinOps": 150.08609577492103,
+      "MaxOps": 165.6928436548864,
+      "P50Ms": 379.2163,
+      "P99Ms": 513.8077,
+      "AllocatedKiB": 141.267578125,
+      "RoundOps": [
+        165.0826257887693,
+        165.6928436548864,
+        162.42777238272944,
+        150.08609577492103,
+        163.51359546883387
+      ],
+      "RoundP99Ms": [
+        495.7195,
+        489.8718,
+        557.3288,
+        512.8356,
+        503.748
+      ]
+    },
+    {
+      "Nodes": 1,
+      "PayloadBytes": 16384,
+      "Implementation": "Current",
+      "Mode": "Unbatched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 185.66414603413406,
+      "MinOps": 157.46149436001838,
+      "MaxOps": 191.38012694557804,
+      "P50Ms": 341.7358,
+      "P99Ms": 461.3071,
+      "AllocatedKiB": 181.4521484375,
+      "RoundOps": [
+        179.52411732952967,
+        157.46149436001838,
+        191.38012694557804,
+        185.66414603413406,
+        188.15289421779698
+      ],
+      "RoundP99Ms": [
+        382.7302,
+        468.8893,
+        359.4798,
+        367.9588,
+        363.6175
+      ]
+    },
+    {
+      "Nodes": 1,
+      "PayloadBytes": 16384,
+      "Implementation": "Current",
+      "Mode": "UnbatchedPipeline",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 185.57624577659996,
+      "MinOps": 175.4408087382681,
+      "MaxOps": 188.8449857082705,
+      "P50Ms": 340.521,
+      "P99Ms": 416.099,
+      "AllocatedKiB": 181.4501953125,
+      "RoundOps": [
+        187.6169720364965,
+        177.83416602792246,
+        188.8449857082705,
+        185.57624577659996,
+        175.4408087382681
+      ],
+      "RoundP99Ms": [
+        363.7759,
+        390.0791,
+        369.3014,
+        371.0328,
+        419.678
+      ]
+    },
+    {
+      "Nodes": 1,
+      "PayloadBytes": 16384,
+      "Implementation": "DotNext",
+      "Mode": "Unbatched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 197.0388599885733,
+      "MinOps": 188.85639558863917,
+      "MaxOps": 203.66073002268232,
+      "P50Ms": 322.5945,
+      "P99Ms": 373.5416,
+      "AllocatedKiB": 118.978515625,
+      "RoundOps": [
+        203.66073002268232,
+        197.81432938411706,
+        197.0388599885733,
+        188.85639558863917,
+        190.096612519206
+      ],
+      "RoundP99Ms": [
+        332.6929,
+        343.3828,
+        339.0828,
+        375.6274,
+        384.084
+      ]
+    },
+    {
+      "Nodes": 3,
+      "PayloadBytes": 64,
+      "Implementation": "Baseline",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 2554.6441884588958,
+      "MinOps": 2218.7544553846183,
+      "MaxOps": 3320.933882930595,
+      "P50Ms": 22.9794,
+      "P99Ms": 35.8913,
+      "AllocatedKiB": 15.2548828125,
+      "RoundOps": [
+        3050.746062332939,
+        2218.7544553846183,
+        2554.6441884588958,
+        2419.710050681583,
+        3320.933882930595
+      ],
+      "RoundP99Ms": [
+        22.9851,
+        34.8816,
+        30.9713,
+        35.8996,
+        22.9882
+      ]
+    },
+    {
+      "Nodes": 3,
+      "PayloadBytes": 64,
+      "Implementation": "Current",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 4269.5308102518775,
+      "MinOps": 3798.2815743283645,
+      "MaxOps": 4527.519715049228,
+      "P50Ms": 14.7191,
+      "P99Ms": 22.2289,
+      "AllocatedKiB": 18.044921875,
+      "RoundOps": [
+        4446.463107817177,
+        4527.519715049228,
+        4269.5308102518775,
+        4209.377045083086,
+        3798.2815743283645
+      ],
+      "RoundP99Ms": [
+        15.5584,
+        15.2707,
+        16.3089,
+        16.2886,
+        22.2378
+      ]
+    },
+    {
+      "Nodes": 3,
+      "PayloadBytes": 64,
+      "Implementation": "Current",
+      "Mode": "Pipeline",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 4396.797208033773,
+      "MinOps": 3604.494071944857,
+      "MaxOps": 4411.940848971164,
+      "P50Ms": 14.7873,
+      "P99Ms": 20.399,
+      "AllocatedKiB": 18.263671875,
+      "RoundOps": [
+        4407.952566297931,
+        3604.494071944857,
+        4411.940848971164,
+        4272.905108124529,
+        4396.797208033773
+      ],
+      "RoundP99Ms": [
+        16.7508,
+        20.4191,
+        15.9786,
+        16.3663,
+        16.0132
+      ]
+    },
+    {
+      "Nodes": 3,
+      "PayloadBytes": 64,
+      "Implementation": "DotNext",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 3534.686179238965,
+      "MinOps": 3389.352534368498,
+      "MaxOps": 3606.6929513807927,
+      "P50Ms": 18.5521,
+      "P99Ms": 25.6578,
+      "AllocatedKiB": 8.2626953125,
+      "RoundOps": [
+        3534.686179238965,
+        3589.3905467230684,
+        3476.9522883371337,
+        3606.6929513807927,
+        3389.352534368498
+      ],
+      "RoundP99Ms": [
+        18.9325,
+        19.641,
+        20.7146,
+        20.5959,
+        25.6609
+      ]
+    },
+    {
+      "Nodes": 3,
+      "PayloadBytes": 64,
+      "Implementation": "Baseline",
+      "Mode": "Unbatched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 106.85326363050075,
+      "MinOps": 88.56773398224422,
+      "MaxOps": 111.16660756598193,
+      "P50Ms": 591.7436,
+      "P99Ms": 776.1446,
+      "AllocatedKiB": 118.26171875,
+      "RoundOps": [
+        102.45709934146299,
+        106.85326363050075,
+        108.49443626969006,
+        111.16660756598193,
+        88.56773398224422
+      ],
+      "RoundP99Ms": [
+        657.6788,
+        629.3136,
+        648.9875,
+        604.4872,
+        782.1754
+      ]
+    },
+    {
+      "Nodes": 3,
+      "PayloadBytes": 64,
+      "Implementation": "Current",
+      "Mode": "Unbatched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 110.33747492516231,
+      "MinOps": 93.82039679247853,
+      "MaxOps": 112.5791055115124,
+      "P50Ms": 584.0458,
+      "P99Ms": 793.1096,
+      "AllocatedKiB": 336.55078125,
+      "RoundOps": [
+        99.42129427805985,
+        112.5791055115124,
+        110.33747492516231,
+        110.98706235519792,
+        93.82039679247853
+      ],
+      "RoundP99Ms": [
+        805.2195,
+        687.0122,
+        670.8612,
+        659.0884,
+        751.533
+      ]
+    },
+    {
+      "Nodes": 3,
+      "PayloadBytes": 64,
+      "Implementation": "Current",
+      "Mode": "UnbatchedPipeline",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 112.45985326009914,
+      "MinOps": 109.87442061898227,
+      "MaxOps": 113.6528429959005,
+      "P50Ms": 558.5809,
+      "P99Ms": 725.2377,
+      "AllocatedKiB": 333.2763671875,
+      "RoundOps": [
+        112.29732471363633,
+        109.87442061898227,
+        113.11925778919989,
+        113.6528429959005,
+        112.45985326009914
+      ],
+      "RoundP99Ms": [
+        673.4416,
+        780.9592,
+        663.0815,
+        641.8223,
+        654.5569
+      ]
+    },
+    {
+      "Nodes": 3,
+      "PayloadBytes": 64,
+      "Implementation": "DotNext",
+      "Mode": "Unbatched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 91.17330570972113,
+      "MinOps": 90.81802133215989,
+      "MaxOps": 96.41921810529946,
+      "P50Ms": 705.3578,
+      "P99Ms": 1083.2956,
+      "AllocatedKiB": 66.443359375,
+      "RoundOps": [
+        91.17330570972113,
+        93.86305387772292,
+        96.41921810529946,
+        90.81802133215989,
+        91.02606230837081
+      ],
+      "RoundP99Ms": [
+        1075.2121,
+        1083.2956,
+        1078.9812,
+        1131.5991,
+        1084.5294
+      ]
+    },
+    {
+      "Nodes": 3,
+      "PayloadBytes": 16384,
+      "Implementation": "Baseline",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 1148.9506848823223,
+      "MinOps": 867.2688990936024,
+      "MaxOps": 1278.6360150309656,
+      "P50Ms": 51.3332,
+      "P99Ms": 111.4106,
+      "AllocatedKiB": 325.4619140625,
+      "RoundOps": [
+        1274.2588268556021,
+        867.2688990936024,
+        1148.9506848823223,
+        1278.6360150309656,
+        1115.459660882834
+      ],
+      "RoundP99Ms": [
+        63.53,
+        127.99,
+        77.4419,
+        61.9173,
+        73.3531
+      ]
+    },
+    {
+      "Nodes": 3,
+      "PayloadBytes": 16384,
+      "Implementation": "Current",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 1246.9259136045948,
+      "MinOps": 1243.0418788578,
+      "MaxOps": 1284.2376632292408,
+      "P50Ms": 47.7699,
+      "P99Ms": 64.2417,
+      "AllocatedKiB": 347.546875,
+      "RoundOps": [
+        1246.9259136045948,
+        1243.0418788578,
+        1284.2376632292408,
+        1256.616873223065,
+        1244.6216301626273
+      ],
+      "RoundP99Ms": [
+        64.0222,
+        62.4473,
+        61.0155,
+        64.9186,
+        62.9176
+      ]
+    },
+    {
+      "Nodes": 3,
+      "PayloadBytes": 16384,
+      "Implementation": "Current",
+      "Mode": "Pipeline",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 1253.8871726852435,
+      "MinOps": 1037.7870002989719,
+      "MaxOps": 1266.16493232571,
+      "P50Ms": 49.377,
+      "P99Ms": 73.9516,
+      "AllocatedKiB": 347.9990234375,
+      "RoundOps": [
+        1259.3622019160998,
+        1195.4670318444864,
+        1037.7870002989719,
+        1266.16493232571,
+        1253.8871726852435
+      ],
+      "RoundP99Ms": [
+        60.9832,
+        65.3367,
+        76.1475,
+        63.1021,
+        64.0755
+      ]
+    },
+    {
+      "Nodes": 3,
+      "PayloadBytes": 16384,
+      "Implementation": "DotNext",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 857.2479561249781,
+      "MinOps": 518.7531282232097,
+      "MaxOps": 940.2260472364424,
+      "P50Ms": 69.219,
+      "P99Ms": 189.1661,
+      "AllocatedKiB": 259.44921875,
+      "RoundOps": [
+        857.2479561249781,
+        924.3797763759221,
+        813.3656307269201,
+        518.7531282232097,
+        940.2260472364424
+      ],
+      "RoundP99Ms": [
+        108.885,
+        104.0823,
+        114.9371,
+        191.1788,
+        101.8275
+      ]
+    },
+    {
+      "Nodes": 3,
+      "PayloadBytes": 16384,
+      "Implementation": "Baseline",
+      "Mode": "Unbatched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 99.92014779907237,
+      "MinOps": 75.70251937984496,
+      "MaxOps": 103.62165789795371,
+      "P50Ms": 620.1531,
+      "P99Ms": 867.6882,
+      "AllocatedKiB": 425.5615234375,
+      "RoundOps": [
+        103.62165789795371,
+        88.59821905120582,
+        99.92014779907237,
+        75.70251937984496,
+        103.37635243324513
+      ],
+      "RoundP99Ms": [
+        658.0595,
+        867.9875,
+        763.5024,
+        870.0952,
+        668.9136
+      ]
+    },
+    {
+      "Nodes": 3,
+      "PayloadBytes": 16384,
+      "Implementation": "Current",
+      "Mode": "Unbatched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 101.66452022815186,
+      "MinOps": 79.07111943732745,
+      "MaxOps": 108.58325614802851,
+      "P50Ms": 633.7776,
+      "P99Ms": 858.5888,
+      "AllocatedKiB": 647.685546875,
+      "RoundOps": [
+        108.58325614802851,
+        97.72142271550503,
+        101.66452022815186,
+        79.07111943732745,
+        104.00282286411871
+      ],
+      "RoundP99Ms": [
+        663.5294,
+        726.2609,
+        684.0334,
+        897.7655,
+        701.2077
+      ]
+    },
+    {
+      "Nodes": 3,
+      "PayloadBytes": 16384,
+      "Implementation": "Current",
+      "Mode": "UnbatchedPipeline",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 104.2638221703944,
+      "MinOps": 84.35850612025904,
+      "MaxOps": 107.82905943449302,
+      "P50Ms": 618.1974,
+      "P99Ms": 865.0312,
+      "AllocatedKiB": 644.4814453125,
+      "RoundOps": [
+        107.82905943449302,
+        94.32748930935162,
+        104.2638221703944,
+        84.35850612025904,
+        105.13067033923143
+      ],
+      "RoundP99Ms": [
+        688.2013,
+        756.1233,
+        743.6194,
+        920.7215,
+        700.1711
+      ]
+    },
+    {
+      "Nodes": 3,
+      "PayloadBytes": 16384,
+      "Implementation": "DotNext",
+      "Mode": "Unbatched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 89.58195931316882,
+      "MinOps": 67.08774007190547,
+      "MaxOps": 95.09554743702083,
+      "P50Ms": 728.7871,
+      "P99Ms": 1264.5537,
+      "AllocatedKiB": 310.064453125,
+      "RoundOps": [
+        95.09554743702083,
+        67.08774007190547,
+        86.49487882743217,
+        91.44761049447776,
+        89.58195931316882
+      ],
+      "RoundP99Ms": [
+        1104.4306,
+        1288.1729,
+        1192.1989,
+        1118.5554,
+        1138.4361
+      ]
+    },
+    {
+      "Nodes": 5,
+      "PayloadBytes": 64,
+      "Implementation": "Baseline",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 1994.8733313878124,
+      "MinOps": 1719.7626593173684,
+      "MaxOps": 2144.969794468324,
+      "P50Ms": 32.0828,
+      "P99Ms": 45.0204,
+      "AllocatedKiB": 24.630859375,
+      "RoundOps": [
+        2144.969794468324,
+        1994.8733313878124,
+        1878.6577870732199,
+        2118.9518306791942,
+        1719.7626593173684
+      ],
+      "RoundP99Ms": [
+        38.4503,
+        40.7132,
+        51.1693,
+        42.7028,
+        45.0209
+      ]
+    },
+    {
+      "Nodes": 5,
+      "PayloadBytes": 64,
+      "Implementation": "Current",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 3594.218362805456,
+      "MinOps": 2661.474019958976,
+      "MaxOps": 3682.9074252305054,
+      "P50Ms": 18.5778,
+      "P99Ms": 26.253,
+      "AllocatedKiB": 29.73828125,
+      "RoundOps": [
+        3659.487543090109,
+        3290.492661301621,
+        2661.474019958976,
+        3594.218362805456,
+        3682.9074252305054
+      ],
+      "RoundP99Ms": [
+        20.1287,
+        21.784,
+        26.2802,
+        20.3802,
+        20.2011
+      ]
+    },
+    {
+      "Nodes": 5,
+      "PayloadBytes": 64,
+      "Implementation": "Current",
+      "Mode": "Pipeline",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 3583.2912249956958,
+      "MinOps": 2821.043885414928,
+      "MaxOps": 3717.331768956214,
+      "P50Ms": 18.5481,
+      "P99Ms": 28.2133,
+      "AllocatedKiB": 30.3203125,
+      "RoundOps": [
+        3666.2902513199006,
+        3002.6085161484043,
+        2821.043885414928,
+        3717.331768956214,
+        3583.2912249956958
+      ],
+      "RoundP99Ms": [
+        18.5592,
+        22.5322,
+        28.2214,
+        19.3514,
+        21.1952
+      ]
+    },
+    {
+      "Nodes": 5,
+      "PayloadBytes": 64,
+      "Implementation": "DotNext",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 3013.728948043784,
+      "MinOps": 2050.8268597434703,
+      "MaxOps": 3118.384092343149,
+      "P50Ms": 22.1645,
+      "P99Ms": 38.9343,
+      "AllocatedKiB": 13.44140625,
+      "RoundOps": [
+        2973.763506810615,
+        2050.8268597434703,
+        3013.728948043784,
+        3118.384092343149,
+        3067.569203043124
+      ],
+      "RoundP99Ms": [
+        24.4629,
+        38.9584,
+        23.9178,
+        24.1143,
+        23.9494
+      ]
+    },
+    {
+      "Nodes": 5,
+      "PayloadBytes": 64,
+      "Implementation": "Baseline",
+      "Mode": "Unbatched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 74.93816467096723,
+      "MinOps": 72.25434953543981,
+      "MaxOps": 78.49770238604958,
+      "P50Ms": 845.0571,
+      "P99Ms": 964.2389,
+      "AllocatedKiB": 199.0234375,
+      "RoundOps": [
+        76.02081063752077,
+        74.5296538353775,
+        72.25434953543981,
+        74.93816467096723,
+        78.49770238604958
+      ],
+      "RoundP99Ms": [
+        900.683,
+        934.6081,
+        968.7641,
+        945.208,
+        865.3265
+      ]
+    },
+    {
+      "Nodes": 5,
+      "PayloadBytes": 64,
+      "Implementation": "Current",
+      "Mode": "Unbatched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 79.441890925539,
+      "MinOps": 71.08458866125284,
+      "MaxOps": 82.05039974650272,
+      "P50Ms": 798.1757,
+      "P99Ms": 1011.9337,
+      "AllocatedKiB": 583.5361328125,
+      "RoundOps": [
+        82.00069393087239,
+        71.08458866125284,
+        79.06851849255128,
+        82.05039974650272,
+        79.441890925539
+      ],
+      "RoundP99Ms": [
+        857.4647,
+        1031.4646,
+        888.6445,
+        870.7451,
+        939.4843
+      ]
+    },
+    {
+      "Nodes": 5,
+      "PayloadBytes": 64,
+      "Implementation": "Current",
+      "Mode": "UnbatchedPipeline",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 79.55685835435892,
+      "MinOps": 66.36009426399546,
+      "MaxOps": 82.2732576737529,
+      "P50Ms": 801.1724,
+      "P99Ms": 1046.519,
+      "AllocatedKiB": 581.3330078125,
+      "RoundOps": [
+        79.55685835435892,
+        66.36009426399546,
+        78.61986270637944,
+        80.10584610743868,
+        82.2732576737529
+      ],
+      "RoundP99Ms": [
+        899.3876,
+        1108.8024,
+        916.7621,
+        920.9118,
+        908.7078
+      ]
+    },
+    {
+      "Nodes": 5,
+      "PayloadBytes": 64,
+      "Implementation": "DotNext",
+      "Mode": "Unbatched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 77.7668129609269,
+      "MinOps": 72.35784890742757,
+      "MaxOps": 82.64819673176423,
+      "P50Ms": 841.1904,
+      "P99Ms": 1348.5151,
+      "AllocatedKiB": 104.0712890625,
+      "RoundOps": [
+        82.05946038115562,
+        72.35784890742757,
+        77.7668129609269,
+        74.0323698150537,
+        82.64819673176423
+      ],
+      "RoundP99Ms": [
+        1347.978,
+        1556.4911,
+        1387.2985,
+        1409.5121,
+        1342.5561
+      ]
+    },
+    {
+      "Nodes": 5,
+      "PayloadBytes": 16384,
+      "Implementation": "Baseline",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 766.962376600697,
+      "MinOps": 509.86463591831057,
+      "MaxOps": 884.025062801175,
+      "P50Ms": 75.2324,
+      "P99Ms": 208.2749,
+      "AllocatedKiB": 534.986328125,
+      "RoundOps": [
+        509.86463591831057,
+        820.5162393304844,
+        748.1782517149283,
+        766.962376600697,
+        884.025062801175
+      ],
+      "RoundP99Ms": [
+        239.679,
+        96.8795,
+        133.4259,
+        110.5558,
+        86.6129
+      ]
+    },
+    {
+      "Nodes": 5,
+      "PayloadBytes": 16384,
+      "Implementation": "Current",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 807.8476083845114,
+      "MinOps": 392.42184367140067,
+      "MaxOps": 882.8736987096938,
+      "P50Ms": 83.4509,
+      "P99Ms": 208.3433,
+      "AllocatedKiB": 580.2763671875,
+      "RoundOps": [
+        392.42184367140067,
+        400.7431907705086,
+        882.8736987096938,
+        807.8476083845114,
+        877.9881176654982
+      ],
+      "RoundP99Ms": [
+        208.3433,
+        223.0351,
+        89.7153,
+        112.0647,
+        89.7999
+      ]
+    },
+    {
+      "Nodes": 5,
+      "PayloadBytes": 16384,
+      "Implementation": "Current",
+      "Mode": "Pipeline",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 843.838045723826,
+      "MinOps": 389.38162395560926,
+      "MaxOps": 888.6409642309862,
+      "P50Ms": 80.8711,
+      "P99Ms": 209.2725,
+      "AllocatedKiB": 580.5693359375,
+      "RoundOps": [
+        389.49910415206045,
+        389.38162395560926,
+        843.838045723826,
+        852.8187993244077,
+        888.6409642309862
+      ],
+      "RoundP99Ms": [
+        212.5647,
+        209.19,
+        96.6971,
+        93.7079,
+        87.9041
+      ]
+    },
+    {
+      "Nodes": 5,
+      "PayloadBytes": 16384,
+      "Implementation": "DotNext",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 674.1728083985078,
+      "MinOps": 358.93686545903574,
+      "MaxOps": 729.0777124218466,
+      "P50Ms": 90.9934,
+      "P99Ms": 287.7165,
+      "AllocatedKiB": 434.7919921875,
+      "RoundOps": [
+        374.1961634222812,
+        358.93686545903574,
+        674.1728083985078,
+        729.0777124218466,
+        727.9614987987925
+      ],
+      "RoundP99Ms": [
+        287.7176,
+        294.7777,
+        149.2223,
+        136.7074,
+        133.9731
+      ]
+    },
+    {
+      "Nodes": 5,
+      "PayloadBytes": 16384,
+      "Implementation": "Baseline",
+      "Mode": "Unbatched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 65.00488120637277,
+      "MinOps": 51.80853004173775,
+      "MaxOps": 68.75622104475104,
+      "P50Ms": 1012.6983,
+      "P99Ms": 1297.2408,
+      "AllocatedKiB": 707.232421875,
+      "RoundOps": [
+        51.80853004173775,
+        54.63757959705575,
+        67.09717982035018,
+        68.75622104475104,
+        65.00488120637277
+      ],
+      "RoundP99Ms": [
+        1300.3395,
+        1267.6722,
+        1048.7281,
+        1055.7534,
+        1091.8117
+      ]
+    },
+    {
+      "Nodes": 5,
+      "PayloadBytes": 16384,
+      "Implementation": "Current",
+      "Mode": "Unbatched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 64.98641085916833,
+      "MinOps": 34.22002223125132,
+      "MaxOps": 77.34312118588515,
+      "P50Ms": 968.4006,
+      "P99Ms": 3935.6672,
+      "AllocatedKiB": 1097.9296875,
+      "RoundOps": [
+        54.1553340195759,
+        34.22002223125132,
+        72.80135120445357,
+        64.98641085916833,
+        77.34312118588515
+      ],
+      "RoundP99Ms": [
+        1320.0579,
+        4524.2772,
+        1120.8768,
+        1162.3564,
+        924.7493
+      ]
+    },
+    {
+      "Nodes": 5,
+      "PayloadBytes": 16384,
+      "Implementation": "Current",
+      "Mode": "UnbatchedPipeline",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 72.71912797835073,
+      "MinOps": 54.73369725825655,
+      "MaxOps": 76.80523581292536,
+      "P50Ms": 864.7518,
+      "P99Ms": 1260.9399,
+      "AllocatedKiB": 1099.3154296875,
+      "RoundOps": [
+        72.71912797835073,
+        56.94157059732141,
+        75.36076094115346,
+        54.73369725825655,
+        76.80523581292536
+      ],
+      "RoundP99Ms": [
+        1006.088,
+        1232.0269,
+        937.644,
+        1325.6867,
+        946.6892
+      ]
+    },
+    {
+      "Nodes": 5,
+      "PayloadBytes": 16384,
+      "Implementation": "DotNext",
+      "Mode": "Unbatched",
+      "Rounds": 5,
+      "Requests": 2560,
+      "Ops": 75.12639686126609,
+      "MinOps": 68.35552611639694,
+      "MaxOps": 79.15022463745835,
+      "P50Ms": 890.4526,
+      "P99Ms": 1414.5226,
+      "AllocatedKiB": 506.462890625,
+      "RoundOps": [
+        75.12639686126609,
+        68.35552611639694,
+        79.15022463745835,
+        69.48364208498262,
+        77.47920322748095
+      ],
+      "RoundP99Ms": [
+        1466.8338,
+        1583.2167,
+        1391.7861,
+        1476.3524,
+        1406.3069
+      ]
+    }
+  ],
+  "ShortMetadata": {
+    "Complete": true,
+    "Failure": null,
+    "StartedAtUtc": "2026-11-13T13:29:20.0519319+00:00",
+    "UpdatedAtUtc": "2026-11-13T14:05:04.6721998+00:00",
+    "ExpectedMeasurements": 240,
+    "WarmupOperationsPerRound": 128,
+    "RequestedOperations": 512,
+    "Concurrency": 64,
+    "Repeats": 5,
+    "Baseline": "8b991bd",
+    "DotNextPackage": "5.26.2",
+    "DotNextCommit": "39ff4fe882e68a5ea90818b41adb97cdc3ec60d8",
+    "LatestDotNextAtInspection": "6.12.1 (net10.0 only; not executed)",
+    "Runtime": ".NET 8.0.34",
+    "OS": "Microsoft Windows 10.0.26200",
+    "Architecture": "X64",
+    "ProcessorCount": 12,
+    "ServerGC": false,
+    "DataRoot": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\winner\\data",
+    "BinarySha256": {
+      "Raft.Net8.dll": "C9A291AA0FEAC8C9493F49F20AAD970F4CF1C47481A81F7F6A87B14978E9F774",
+      "Raft.Baseline.Net8.dll": "7C648B5CA02E778FF12D52834F390B9B5CC6757946A89097A535AB306807052B",
+      "DotNext.Net.Cluster.dll": "9CDE6B4E5736B3622AA1913140E00773C61904B115FAC926F221040B0B2A3A3F",
+      "Raft.Comparison.dll": "0FE1B21FAE082E4F54BEB1456D4405ABBF9A07A75D6F3E8EBCEFA85F8274F70B"
+    },
+    "PackageLockSha256": "74795CF9EDF2203930D8E11FC24F3887D4F2167891145A6E5733978226091BE0",
+    "CurrentSourceSha256": "FE23EE38BD895375895FD4688A4F960ABA8F9348D9D4C67BF52A114C0B923B93",
+    "HarnessSourceSha256": "E0A4CE036796AAFED930889F117D0553558BC1C7BC4F3A5C168F0A7E842CD8C0",
+    "CurrentLayout": "UnifiedTableV3 (explicit)",
+    "CurrentLayoutSchema": "raft8/v3: ToIndex prefixes 1=meta,2=log,3=config; RF3M packed state/frontier; checked v2 entries",
+    "CurrentProposalBatchBytes": null,
+    "CurrentDefaultBatchedGroupBytes": 1051264,
+    "CurrentBatchedProposalDelayMilliseconds": 2,
+    "CurrentSingleVoterCollectionDelayMilliseconds": 1,
+    "CurrentProposalFlushPolicy": "drain queued group; flush full replication batch without waiting; bounded 2ms for multi-voter,1ms for single-voter groups",
+    "CommonApplicationSourceSha256": "707A6A29339C007CB710002116910B11466094A857580FD172F97B530FCDBAC7",
+    "Timing": "Raft.Net tick25ms,heartbeat1,election[5000,6000)ms,RPC2s; DotNext election5000..6000ms,heartbeat threshold0.005 (25..30ms),RPC2s",
+    "Storage": "Raft.Net: disk DBreeze log+application/engine/node. DotNext: native persistent WAL AutoFlush+IntegrityCheck, DBreeze application/engine/node.",
+    "Application": "same ComparisonMachine: payload ring256,count,CRC(index,term) atomic; validate all replicas + close/reopen every successful round",
+    "Batch": "count128, replication/application256KiB(21B accounting); Current durable proposal group default4x256KiB+128x21B metadata headroom (1051264 encoded bytes, bounded), override via --proposal-batch-bytes; baseline/DotNext proposal256KiB; Current delay up to2ms for multi-voter,1ms for single-voter with full-wire-batch early flush, DotNext1ms; baseline drains queued; native DotNext wire aggregation has its own limits",
+    "Order": "one cluster at a time; round outermost, topology/payload groups, rotate case order by round",
+    "RawFile": "short.json",
+    "RawSha256": "78ccda1d1bea5b08d10b3096c2967847c9c2fb59919af9ff31e197bc31767a2b",
+    "DotNextDiagnostics": [
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 1, 'PayloadBytes': 64, 'Mode': 'Batched'}",
+        "Round": 1,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 10,
+          "AppendedEntries": 640,
+          "ApplyBatches": 11,
+          "AppliedCommands": 640,
+          "MaxApplyBatch": 64
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 1, 'PayloadBytes': 64, 'Mode': 'Unbatched'}",
+        "Round": 1,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 640,
+          "AppendedEntries": 640,
+          "ApplyBatches": 641,
+          "AppliedCommands": 640,
+          "MaxApplyBatch": 1
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 1, 'PayloadBytes': 16384, 'Mode': 'Batched'}",
+        "Round": 1,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 50,
+          "AppendedEntries": 640,
+          "ApplyBatches": 51,
+          "AppliedCommands": 640,
+          "MaxApplyBatch": 15
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 1, 'PayloadBytes': 16384, 'Mode': 'Unbatched'}",
+        "Round": 1,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 640,
+          "AppendedEntries": 640,
+          "ApplyBatches": 641,
+          "AppliedCommands": 640,
+          "MaxApplyBatch": 1
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 3, 'PayloadBytes': 64, 'Mode': 'Batched'}",
+        "Round": 1,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 10,
+          "AppendedEntries": 640,
+          "ApplyBatches": 33,
+          "AppliedCommands": 1920,
+          "MaxApplyBatch": 64
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 3, 'PayloadBytes': 64, 'Mode': 'Unbatched'}",
+        "Round": 1,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 640,
+          "AppendedEntries": 640,
+          "ApplyBatches": 1923,
+          "AppliedCommands": 1920,
+          "MaxApplyBatch": 1
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 3, 'PayloadBytes': 16384, 'Mode': 'Batched'}",
+        "Round": 1,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 50,
+          "AppendedEntries": 640,
+          "ApplyBatches": 153,
+          "AppliedCommands": 1920,
+          "MaxApplyBatch": 15
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 3, 'PayloadBytes': 16384, 'Mode': 'Unbatched'}",
+        "Round": 1,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 640,
+          "AppendedEntries": 640,
+          "ApplyBatches": 1923,
+          "AppliedCommands": 1920,
+          "MaxApplyBatch": 1
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 5, 'PayloadBytes': 64, 'Mode': 'Batched'}",
+        "Round": 1,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 10,
+          "AppendedEntries": 640,
+          "ApplyBatches": 55,
+          "AppliedCommands": 3200,
+          "MaxApplyBatch": 64
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 5, 'PayloadBytes': 64, 'Mode': 'Unbatched'}",
+        "Round": 1,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 640,
+          "AppendedEntries": 640,
+          "ApplyBatches": 3205,
+          "AppliedCommands": 3200,
+          "MaxApplyBatch": 1
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 5, 'PayloadBytes': 16384, 'Mode': 'Batched'}",
+        "Round": 1,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 50,
+          "AppendedEntries": 640,
+          "ApplyBatches": 255,
+          "AppliedCommands": 3200,
+          "MaxApplyBatch": 15
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 5, 'PayloadBytes': 16384, 'Mode': 'Unbatched'}",
+        "Round": 1,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 640,
+          "AppendedEntries": 640,
+          "ApplyBatches": 3205,
+          "AppliedCommands": 3200,
+          "MaxApplyBatch": 1
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 1, 'PayloadBytes': 64, 'Mode': 'Batched'}",
+        "Round": 2,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 10,
+          "AppendedEntries": 640,
+          "ApplyBatches": 11,
+          "AppliedCommands": 640,
+          "MaxApplyBatch": 64
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 1, 'PayloadBytes': 64, 'Mode': 'Unbatched'}",
+        "Round": 2,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 640,
+          "AppendedEntries": 640,
+          "ApplyBatches": 641,
+          "AppliedCommands": 640,
+          "MaxApplyBatch": 1
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 1, 'PayloadBytes': 16384, 'Mode': 'Batched'}",
+        "Round": 2,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 50,
+          "AppendedEntries": 640,
+          "ApplyBatches": 51,
+          "AppliedCommands": 640,
+          "MaxApplyBatch": 15
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 1, 'PayloadBytes': 16384, 'Mode': 'Unbatched'}",
+        "Round": 2,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 640,
+          "AppendedEntries": 640,
+          "ApplyBatches": 641,
+          "AppliedCommands": 640,
+          "MaxApplyBatch": 1
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 3, 'PayloadBytes': 64, 'Mode': 'Batched'}",
+        "Round": 2,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 10,
+          "AppendedEntries": 640,
+          "ApplyBatches": 33,
+          "AppliedCommands": 1920,
+          "MaxApplyBatch": 64
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 3, 'PayloadBytes': 64, 'Mode': 'Unbatched'}",
+        "Round": 2,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 640,
+          "AppendedEntries": 640,
+          "ApplyBatches": 1923,
+          "AppliedCommands": 1920,
+          "MaxApplyBatch": 1
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 3, 'PayloadBytes': 16384, 'Mode': 'Batched'}",
+        "Round": 2,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 50,
+          "AppendedEntries": 640,
+          "ApplyBatches": 153,
+          "AppliedCommands": 1920,
+          "MaxApplyBatch": 15
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 3, 'PayloadBytes': 16384, 'Mode': 'Unbatched'}",
+        "Round": 2,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 640,
+          "AppendedEntries": 640,
+          "ApplyBatches": 1923,
+          "AppliedCommands": 1920,
+          "MaxApplyBatch": 1
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 5, 'PayloadBytes': 64, 'Mode': 'Batched'}",
+        "Round": 2,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 16,
+          "AppendedEntries": 640,
+          "ApplyBatches": 85,
+          "AppliedCommands": 3200,
+          "MaxApplyBatch": 64
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 5, 'PayloadBytes': 64, 'Mode': 'Unbatched'}",
+        "Round": 2,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 640,
+          "AppendedEntries": 640,
+          "ApplyBatches": 3205,
+          "AppliedCommands": 3200,
+          "MaxApplyBatch": 1
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 5, 'PayloadBytes': 16384, 'Mode': 'Batched'}",
+        "Round": 2,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 50,
+          "AppendedEntries": 640,
+          "ApplyBatches": 255,
+          "AppliedCommands": 3200,
+          "MaxApplyBatch": 15
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 5, 'PayloadBytes': 16384, 'Mode': 'Unbatched'}",
+        "Round": 2,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 640,
+          "AppendedEntries": 640,
+          "ApplyBatches": 3205,
+          "AppliedCommands": 3200,
+          "MaxApplyBatch": 1
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 1, 'PayloadBytes': 64, 'Mode': 'Batched'}",
+        "Round": 3,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 10,
+          "AppendedEntries": 640,
+          "ApplyBatches": 11,
+          "AppliedCommands": 640,
+          "MaxApplyBatch": 64
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 1, 'PayloadBytes': 64, 'Mode': 'Unbatched'}",
+        "Round": 3,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 640,
+          "AppendedEntries": 640,
+          "ApplyBatches": 641,
+          "AppliedCommands": 640,
+          "MaxApplyBatch": 1
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 1, 'PayloadBytes': 16384, 'Mode': 'Batched'}",
+        "Round": 3,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 50,
+          "AppendedEntries": 640,
+          "ApplyBatches": 51,
+          "AppliedCommands": 640,
+          "MaxApplyBatch": 15
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 1, 'PayloadBytes': 16384, 'Mode': 'Unbatched'}",
+        "Round": 3,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 640,
+          "AppendedEntries": 640,
+          "ApplyBatches": 641,
+          "AppliedCommands": 640,
+          "MaxApplyBatch": 1
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 3, 'PayloadBytes': 64, 'Mode': 'Batched'}",
+        "Round": 3,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 10,
+          "AppendedEntries": 640,
+          "ApplyBatches": 33,
+          "AppliedCommands": 1920,
+          "MaxApplyBatch": 64
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 3, 'PayloadBytes': 64, 'Mode': 'Unbatched'}",
+        "Round": 3,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 640,
+          "AppendedEntries": 640,
+          "ApplyBatches": 1923,
+          "AppliedCommands": 1920,
+          "MaxApplyBatch": 1
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 3, 'PayloadBytes': 16384, 'Mode': 'Batched'}",
+        "Round": 3,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 50,
+          "AppendedEntries": 640,
+          "ApplyBatches": 153,
+          "AppliedCommands": 1920,
+          "MaxApplyBatch": 15
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 3, 'PayloadBytes': 16384, 'Mode': 'Unbatched'}",
+        "Round": 3,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 640,
+          "AppendedEntries": 640,
+          "ApplyBatches": 1923,
+          "AppliedCommands": 1920,
+          "MaxApplyBatch": 1
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 5, 'PayloadBytes': 64, 'Mode': 'Batched'}",
+        "Round": 3,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 10,
+          "AppendedEntries": 640,
+          "ApplyBatches": 55,
+          "AppliedCommands": 3200,
+          "MaxApplyBatch": 64
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 5, 'PayloadBytes': 64, 'Mode': 'Unbatched'}",
+        "Round": 3,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 640,
+          "AppendedEntries": 640,
+          "ApplyBatches": 3205,
+          "AppliedCommands": 3200,
+          "MaxApplyBatch": 1
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 5, 'PayloadBytes': 16384, 'Mode': 'Batched'}",
+        "Round": 3,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 50,
+          "AppendedEntries": 640,
+          "ApplyBatches": 255,
+          "AppliedCommands": 3200,
+          "MaxApplyBatch": 15
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 5, 'PayloadBytes': 16384, 'Mode': 'Unbatched'}",
+        "Round": 3,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 640,
+          "AppendedEntries": 640,
+          "ApplyBatches": 3205,
+          "AppliedCommands": 3200,
+          "MaxApplyBatch": 1
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 1, 'PayloadBytes': 64, 'Mode': 'Batched'}",
+        "Round": 4,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 10,
+          "AppendedEntries": 640,
+          "ApplyBatches": 11,
+          "AppliedCommands": 640,
+          "MaxApplyBatch": 64
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 1, 'PayloadBytes': 64, 'Mode': 'Unbatched'}",
+        "Round": 4,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 640,
+          "AppendedEntries": 640,
+          "ApplyBatches": 641,
+          "AppliedCommands": 640,
+          "MaxApplyBatch": 1
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 1, 'PayloadBytes': 16384, 'Mode': 'Batched'}",
+        "Round": 4,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 50,
+          "AppendedEntries": 640,
+          "ApplyBatches": 51,
+          "AppliedCommands": 640,
+          "MaxApplyBatch": 15
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 1, 'PayloadBytes': 16384, 'Mode': 'Unbatched'}",
+        "Round": 4,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 640,
+          "AppendedEntries": 640,
+          "ApplyBatches": 641,
+          "AppliedCommands": 640,
+          "MaxApplyBatch": 1
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 3, 'PayloadBytes': 64, 'Mode': 'Batched'}",
+        "Round": 4,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 10,
+          "AppendedEntries": 640,
+          "ApplyBatches": 33,
+          "AppliedCommands": 1920,
+          "MaxApplyBatch": 64
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 3, 'PayloadBytes': 64, 'Mode': 'Unbatched'}",
+        "Round": 4,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 640,
+          "AppendedEntries": 640,
+          "ApplyBatches": 1923,
+          "AppliedCommands": 1920,
+          "MaxApplyBatch": 1
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 3, 'PayloadBytes': 16384, 'Mode': 'Batched'}",
+        "Round": 4,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 50,
+          "AppendedEntries": 640,
+          "ApplyBatches": 153,
+          "AppliedCommands": 1920,
+          "MaxApplyBatch": 15
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 3, 'PayloadBytes': 16384, 'Mode': 'Unbatched'}",
+        "Round": 4,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 640,
+          "AppendedEntries": 640,
+          "ApplyBatches": 1923,
+          "AppliedCommands": 1920,
+          "MaxApplyBatch": 1
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 5, 'PayloadBytes': 64, 'Mode': 'Batched'}",
+        "Round": 4,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 10,
+          "AppendedEntries": 640,
+          "ApplyBatches": 55,
+          "AppliedCommands": 3200,
+          "MaxApplyBatch": 64
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 5, 'PayloadBytes': 64, 'Mode': 'Unbatched'}",
+        "Round": 4,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 640,
+          "AppendedEntries": 640,
+          "ApplyBatches": 3205,
+          "AppliedCommands": 3200,
+          "MaxApplyBatch": 1
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 5, 'PayloadBytes': 16384, 'Mode': 'Batched'}",
+        "Round": 4,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 50,
+          "AppendedEntries": 640,
+          "ApplyBatches": 255,
+          "AppliedCommands": 3200,
+          "MaxApplyBatch": 15
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 5, 'PayloadBytes': 16384, 'Mode': 'Unbatched'}",
+        "Round": 4,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 640,
+          "AppendedEntries": 640,
+          "ApplyBatches": 3205,
+          "AppliedCommands": 3200,
+          "MaxApplyBatch": 1
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 1, 'PayloadBytes': 64, 'Mode': 'Unbatched'}",
+        "Round": 5,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 640,
+          "AppendedEntries": 640,
+          "ApplyBatches": 641,
+          "AppliedCommands": 640,
+          "MaxApplyBatch": 1
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 1, 'PayloadBytes': 64, 'Mode': 'Batched'}",
+        "Round": 5,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 10,
+          "AppendedEntries": 640,
+          "ApplyBatches": 11,
+          "AppliedCommands": 640,
+          "MaxApplyBatch": 64
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 1, 'PayloadBytes': 16384, 'Mode': 'Unbatched'}",
+        "Round": 5,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 640,
+          "AppendedEntries": 640,
+          "ApplyBatches": 641,
+          "AppliedCommands": 640,
+          "MaxApplyBatch": 1
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 1, 'PayloadBytes': 16384, 'Mode': 'Batched'}",
+        "Round": 5,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 50,
+          "AppendedEntries": 640,
+          "ApplyBatches": 51,
+          "AppliedCommands": 640,
+          "MaxApplyBatch": 15
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 3, 'PayloadBytes': 64, 'Mode': 'Unbatched'}",
+        "Round": 5,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 640,
+          "AppendedEntries": 640,
+          "ApplyBatches": 1923,
+          "AppliedCommands": 1920,
+          "MaxApplyBatch": 1
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 3, 'PayloadBytes': 64, 'Mode': 'Batched'}",
+        "Round": 5,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 10,
+          "AppendedEntries": 640,
+          "ApplyBatches": 33,
+          "AppliedCommands": 1920,
+          "MaxApplyBatch": 64
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 3, 'PayloadBytes': 16384, 'Mode': 'Unbatched'}",
+        "Round": 5,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 640,
+          "AppendedEntries": 640,
+          "ApplyBatches": 1923,
+          "AppliedCommands": 1920,
+          "MaxApplyBatch": 1
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 3, 'PayloadBytes': 16384, 'Mode': 'Batched'}",
+        "Round": 5,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 50,
+          "AppendedEntries": 640,
+          "ApplyBatches": 153,
+          "AppliedCommands": 1920,
+          "MaxApplyBatch": 15
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 5, 'PayloadBytes': 64, 'Mode': 'Unbatched'}",
+        "Round": 5,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 640,
+          "AppendedEntries": 640,
+          "ApplyBatches": 3205,
+          "AppliedCommands": 3200,
+          "MaxApplyBatch": 1
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 5, 'PayloadBytes': 64, 'Mode': 'Batched'}",
+        "Round": 5,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 10,
+          "AppendedEntries": 640,
+          "ApplyBatches": 55,
+          "AppliedCommands": 3200,
+          "MaxApplyBatch": 64
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 5, 'PayloadBytes': 16384, 'Mode': 'Unbatched'}",
+        "Round": 5,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 640,
+          "AppendedEntries": 640,
+          "ApplyBatches": 3205,
+          "AppliedCommands": 3200,
+          "MaxApplyBatch": 1
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 5, 'PayloadBytes': 16384, 'Mode': 'Batched'}",
+        "Round": 5,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 50,
+          "AppendedEntries": 640,
+          "ApplyBatches": 255,
+          "AppliedCommands": 3200,
+          "MaxApplyBatch": 15
+        }
+      }
+    ]
+  },
+  "Long": [
+    {
+      "Nodes": 1,
+      "PayloadBytes": 64,
+      "Implementation": "Baseline",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 20480,
+      "Ops": 3915.1909984253207,
+      "MinOps": 3592.7886346482182,
+      "MaxOps": 4126.240806244888,
+      "P50Ms": 16.152,
+      "P99Ms": 23.3122,
+      "AllocatedKiB": 5.8642578125,
+      "RoundOps": [
+        3891.905738727132,
+        4035.7657919781473,
+        3915.1909984253207,
+        4126.240806244888,
+        3592.7886346482182
+      ],
+      "RoundP99Ms": [
+        21.2753,
+        23.3081,
+        21.2245,
+        20.7606,
+        25.9561
+      ]
+    },
+    {
+      "Nodes": 1,
+      "PayloadBytes": 64,
+      "Implementation": "Current",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 20480,
+      "Ops": 8366.676117306682,
+      "MinOps": 7019.228676565219,
+      "MaxOps": 8758.475418000164,
+      "P50Ms": 7.4286,
+      "P99Ms": 11.1493,
+      "AllocatedKiB": 6.1181640625,
+      "RoundOps": [
+        7019.228676565219,
+        8366.676117306682,
+        8758.475418000164,
+        8626.58128541537,
+        8311.688311688311
+      ],
+      "RoundP99Ms": [
+        11.7151,
+        9.2456,
+        8.5913,
+        8.5062,
+        11.1466
+      ]
+    },
+    {
+      "Nodes": 1,
+      "PayloadBytes": 64,
+      "Implementation": "Current",
+      "Mode": "Pipeline",
+      "Rounds": 5,
+      "Requests": 20480,
+      "Ops": 8474.656927432026,
+      "MinOps": 6590.1473757103195,
+      "MaxOps": 8692.985444130696,
+      "P50Ms": 7.4096,
+      "P99Ms": 11.1577,
+      "AllocatedKiB": 6.1171875,
+      "RoundOps": [
+        6590.1473757103195,
+        8692.985444130696,
+        8403.166533076286,
+        8631.003931574009,
+        8474.656927432026
+      ],
+      "RoundP99Ms": [
+        12.3056,
+        8.6908,
+        9.1641,
+        9.1279,
+        9.649
+      ]
+    },
+    {
+      "Nodes": 1,
+      "PayloadBytes": 64,
+      "Implementation": "DotNext",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 20480,
+      "Ops": 7050.3677861535325,
+      "MinOps": 6107.442073238012,
+      "MaxOps": 7098.3759345646195,
+      "P50Ms": 9.0937,
+      "P99Ms": 12.4421,
+      "AllocatedKiB": 3.2685546875,
+      "RoundOps": [
+        7082.808160515523,
+        7050.3677861535325,
+        6536.456704272571,
+        7098.3759345646195,
+        6107.442073238012
+      ],
+      "RoundP99Ms": [
+        11.8321,
+        14.7942,
+        11.5749,
+        11.0054,
+        12.4573
+      ]
+    },
+    {
+      "Nodes": 1,
+      "PayloadBytes": 16384,
+      "Implementation": "Baseline",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 20480,
+      "Ops": 1961.0999357567407,
+      "MinOps": 1821.6152167844407,
+      "MaxOps": 1996.62066103645,
+      "P50Ms": 31.4335,
+      "P99Ms": 47.9183,
+      "AllocatedKiB": 118.9521484375,
+      "RoundOps": [
+        1821.6152167844407,
+        1982.6110106064366,
+        1996.62066103645,
+        1961.0999357567407,
+        1865.7612987083385
+      ],
+      "RoundP99Ms": [
+        52.5508,
+        45.2711,
+        41.0551,
+        46.2507,
+        47.8767
+      ]
+    },
+    {
+      "Nodes": 1,
+      "PayloadBytes": 16384,
+      "Implementation": "Current",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 20480,
+      "Ops": 2253.114658727665,
+      "MinOps": 2242.9286690638696,
+      "MaxOps": 2428.238756812896,
+      "P50Ms": 26.0876,
+      "P99Ms": 39.2864,
+      "AllocatedKiB": 121.498046875,
+      "RoundOps": [
+        2242.9286690638696,
+        2428.238756812896,
+        2419.4000443123514,
+        2253.114658727665,
+        2244.562265697099
+      ],
+      "RoundP99Ms": [
+        38.2289,
+        32.5427,
+        33.1708,
+        42.6331,
+        39.8426
+      ]
+    },
+    {
+      "Nodes": 1,
+      "PayloadBytes": 16384,
+      "Implementation": "Current",
+      "Mode": "Pipeline",
+      "Rounds": 5,
+      "Requests": 20480,
+      "Ops": 2382.159855953771,
+      "MinOps": 2315.1018684386845,
+      "MaxOps": 2438.343426622591,
+      "P50Ms": 25.3015,
+      "P99Ms": 37.0824,
+      "AllocatedKiB": 121.490234375,
+      "RoundOps": [
+        2382.159855953771,
+        2438.343426622591,
+        2344.774470306231,
+        2396.5904288393144,
+        2315.1018684386845
+      ],
+      "RoundP99Ms": [
+        36.4445,
+        33.1465,
+        38.5284,
+        34.8015,
+        36.4894
+      ]
+    },
+    {
+      "Nodes": 1,
+      "PayloadBytes": 16384,
+      "Implementation": "DotNext",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 20480,
+      "Ops": 2129.978838535436,
+      "MinOps": 2011.0535279014528,
+      "MaxOps": 2220.0455369496663,
+      "P50Ms": 29.5562,
+      "P99Ms": 37.8242,
+      "AllocatedKiB": 100.2861328125,
+      "RoundOps": [
+        2123.1921052916678,
+        2129.978838535436,
+        2220.0455369496663,
+        2178.870362107402,
+        2011.0535279014528
+      ],
+      "RoundP99Ms": [
+        33.9228,
+        37.9964,
+        31.2813,
+        39.929,
+        40.1293
+      ]
+    },
+    {
+      "Nodes": 3,
+      "PayloadBytes": 64,
+      "Implementation": "Baseline",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 20480,
+      "Ops": 2553.771510895645,
+      "MinOps": 1886.5229718945384,
+      "MaxOps": 2616.0309687994236,
+      "P50Ms": 27.9764,
+      "P99Ms": 43.95,
+      "AllocatedKiB": 15.9814453125,
+      "RoundOps": [
+        2553.771510895645,
+        2560.8415565565233,
+        2616.0309687994236,
+        1886.5229718945384,
+        2434.599558895258
+      ],
+      "RoundP99Ms": [
+        46.2192,
+        32.0442,
+        34.8291,
+        74.8277,
+        35.1871
+      ]
+    },
+    {
+      "Nodes": 3,
+      "PayloadBytes": 64,
+      "Implementation": "Current",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 20480,
+      "Ops": 4263.5409582016855,
+      "MinOps": 3734.000251060466,
+      "MaxOps": 4410.312378463376,
+      "P50Ms": 14.9299,
+      "P99Ms": 20.3092,
+      "AllocatedKiB": 18.470703125,
+      "RoundOps": [
+        4257.2174178396535,
+        4361.1630761957795,
+        4263.5409582016855,
+        3734.000251060466,
+        4410.312378463376
+      ],
+      "RoundP99Ms": [
+        20.3021,
+        16.7268,
+        18.2472,
+        29.2417,
+        18.264
+      ]
+    },
+    {
+      "Nodes": 3,
+      "PayloadBytes": 64,
+      "Implementation": "Current",
+      "Mode": "Pipeline",
+      "Rounds": 5,
+      "Requests": 20480,
+      "Ops": 4108.2681102307715,
+      "MinOps": 3956.9450374924404,
+      "MaxOps": 4399.63084347454,
+      "P50Ms": 15.0943,
+      "P99Ms": 22.4412,
+      "AllocatedKiB": 18.4794921875,
+      "RoundOps": [
+        3956.9450374924404,
+        4314.789605022937,
+        4399.63084347454,
+        4108.2681102307715,
+        4005.723803778994
+      ],
+      "RoundP99Ms": [
+        19.6688,
+        17.0835,
+        18.3316,
+        19.8378,
+        31.8648
+      ]
+    },
+    {
+      "Nodes": 3,
+      "PayloadBytes": 64,
+      "Implementation": "DotNext",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 20480,
+      "Ops": 2679.113030444431,
+      "MinOps": 2444.6458704255324,
+      "MaxOps": 3508.757802938533,
+      "P50Ms": 19.5654,
+      "P99Ms": 30.9537,
+      "AllocatedKiB": 9.81640625,
+      "RoundOps": [
+        2679.113030444431,
+        2464.925363793135,
+        3497.538914389879,
+        3508.757802938533,
+        2444.6458704255324
+      ],
+      "RoundP99Ms": [
+        30.875,
+        32.76,
+        19.8277,
+        20.9581,
+        33.8499
+      ]
+    },
+    {
+      "Nodes": 3,
+      "PayloadBytes": 16384,
+      "Implementation": "Baseline",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 20480,
+      "Ops": 1189.695390636162,
+      "MinOps": 491.07867348907945,
+      "MaxOps": 1240.8460340306872,
+      "P50Ms": 53.8614,
+      "P99Ms": 161.7871,
+      "AllocatedKiB": 348.1982421875,
+      "RoundOps": [
+        1189.695390636162,
+        1240.8460340306872,
+        1110.3239690048295,
+        491.07867348907945,
+        1205.3669197525207
+      ],
+      "RoundP99Ms": [
+        74.3807,
+        65.7187,
+        88.4624,
+        174.417,
+        79.6295
+      ]
+    },
+    {
+      "Nodes": 3,
+      "PayloadBytes": 16384,
+      "Implementation": "Current",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 20480,
+      "Ops": 1178.5292231512858,
+      "MinOps": 515.3021787456697,
+      "MaxOps": 1273.8579743524745,
+      "P50Ms": 53.1577,
+      "P99Ms": 153.8182,
+      "AllocatedKiB": 368.748046875,
+      "RoundOps": [
+        1127.78972734995,
+        1273.8579743524745,
+        1178.5292231512858,
+        515.3021787456697,
+        1231.3937338774153
+      ],
+      "RoundP99Ms": [
+        91.5607,
+        65.4579,
+        90.3336,
+        163.6804,
+        65.7898
+      ]
+    },
+    {
+      "Nodes": 3,
+      "PayloadBytes": 16384,
+      "Implementation": "Current",
+      "Mode": "Pipeline",
+      "Rounds": 5,
+      "Requests": 20480,
+      "Ops": 1153.5540066752362,
+      "MinOps": 1021.8190804456509,
+      "MaxOps": 1211.3913373689386,
+      "P50Ms": 54.3336,
+      "P99Ms": 84.0779,
+      "AllocatedKiB": 368.9111328125,
+      "RoundOps": [
+        1211.3913373689386,
+        1188.5680644993174,
+        1021.8190804456509,
+        1153.5540066752362,
+        1113.401763687108
+      ],
+      "RoundP99Ms": [
+        69.7944,
+        76.2621,
+        91.2315,
+        79.6319,
+        79.2717
+      ]
+    },
+    {
+      "Nodes": 3,
+      "PayloadBytes": 16384,
+      "Implementation": "DotNext",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 20480,
+      "Ops": 822.0199229051275,
+      "MinOps": 469.38730700629765,
+      "MaxOps": 868.8795802055826,
+      "P50Ms": 73.9771,
+      "P99Ms": 193.9095,
+      "AllocatedKiB": 297.83984375,
+      "RoundOps": [
+        822.0199229051275,
+        868.8795802055826,
+        767.607344855377,
+        469.38730700629765,
+        842.8905342220039
+      ],
+      "RoundP99Ms": [
+        120.7411,
+        109.6517,
+        134.3216,
+        203.7693,
+        115.431
+      ]
+    },
+    {
+      "Nodes": 5,
+      "PayloadBytes": 64,
+      "Implementation": "Baseline",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 20480,
+      "Ops": 1512.6027021598497,
+      "MinOps": 1496.2528109077998,
+      "MaxOps": 1567.0999006674444,
+      "P50Ms": 41.2249,
+      "P99Ms": 62.8887,
+      "AllocatedKiB": 27.4453125,
+      "RoundOps": [
+        1507.324452361169,
+        1496.2528109077998,
+        1557.3750701740812,
+        1512.6027021598497,
+        1567.0999006674444
+      ],
+      "RoundP99Ms": [
+        62.9002,
+        63.4642,
+        57.7577,
+        76.5566,
+        52.4438
+      ]
+    },
+    {
+      "Nodes": 5,
+      "PayloadBytes": 64,
+      "Implementation": "Current",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 20480,
+      "Ops": 3541.592703350627,
+      "MinOps": 2693.239790592716,
+      "MaxOps": 3559.324360985703,
+      "P50Ms": 18.3493,
+      "P99Ms": 28.7991,
+      "AllocatedKiB": 30.5439453125,
+      "RoundOps": [
+        3541.592703350627,
+        3530.7730229287336,
+        3559.324360985703,
+        2693.239790592716,
+        3542.912708460754
+      ],
+      "RoundP99Ms": [
+        22.2896,
+        22.7015,
+        22.5551,
+        31.7104,
+        21.6042
+      ]
+    },
+    {
+      "Nodes": 5,
+      "PayloadBytes": 64,
+      "Implementation": "Current",
+      "Mode": "Pipeline",
+      "Rounds": 5,
+      "Requests": 20480,
+      "Ops": 2589.264023826286,
+      "MinOps": 2547.144403001526,
+      "MaxOps": 3616.3772446525113,
+      "P50Ms": 23.2307,
+      "P99Ms": 29.8385,
+      "AllocatedKiB": 37.7109375,
+      "RoundOps": [
+        3465.0201729989144,
+        2547.144403001526,
+        2589.264023826286,
+        2559.1119881401155,
+        3616.3772446525113
+      ],
+      "RoundP99Ms": [
+        23.4704,
+        29.7716,
+        41.8092,
+        30.0033,
+        23.0685
+      ]
+    },
+    {
+      "Nodes": 5,
+      "PayloadBytes": 64,
+      "Implementation": "DotNext",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 20480,
+      "Ops": 2130.877275307159,
+      "MinOps": 1747.9243078789439,
+      "MaxOps": 2822.8607336557156,
+      "P50Ms": 26.9945,
+      "P99Ms": 44.7397,
+      "AllocatedKiB": 16.0009765625,
+      "RoundOps": [
+        2118.8462737196587,
+        2130.877275307159,
+        1747.9243078789439,
+        2822.8607336557156,
+        2647.480704933105
+      ],
+      "RoundP99Ms": [
+        58.7855,
+        42.5195,
+        54.0921,
+        32.266,
+        36.4699
+      ]
+    },
+    {
+      "Nodes": 5,
+      "PayloadBytes": 16384,
+      "Implementation": "Baseline",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 20480,
+      "Ops": 719.061193986015,
+      "MinOps": 333.9035725937752,
+      "MaxOps": 867.240675823551,
+      "P50Ms": 85.4115,
+      "P99Ms": 235.3577,
+      "AllocatedKiB": 593.47265625,
+      "RoundOps": [
+        867.240675823551,
+        333.9035725937752,
+        689.5739914239622,
+        719.061193986015,
+        815.0695373113304
+      ],
+      "RoundP99Ms": [
+        93.6501,
+        246.2524,
+        125.9987,
+        126.8424,
+        118.6472
+      ]
+    },
+    {
+      "Nodes": 5,
+      "PayloadBytes": 16384,
+      "Implementation": "Current",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 20480,
+      "Ops": 844.2205702668731,
+      "MinOps": 772.2820287238007,
+      "MaxOps": 873.6945667887023,
+      "P50Ms": 72.5999,
+      "P99Ms": 110.6554,
+      "AllocatedKiB": 614.5517578125,
+      "RoundOps": [
+        873.6945667887023,
+        862.279337749259,
+        772.2820287238007,
+        844.2205702668731,
+        809.146180692733
+      ],
+      "RoundP99Ms": [
+        92.7859,
+        99.2074,
+        116.656,
+        103.752,
+        107.3279
+      ]
+    },
+    {
+      "Nodes": 5,
+      "PayloadBytes": 16384,
+      "Implementation": "Current",
+      "Mode": "Pipeline",
+      "Rounds": 5,
+      "Requests": 20480,
+      "Ops": 811.9345337344031,
+      "MinOps": 371.3211522287541,
+      "MaxOps": 892.2366934039246,
+      "P50Ms": 76.9786,
+      "P99Ms": 212.2826,
+      "AllocatedKiB": 615.03125,
+      "RoundOps": [
+        892.2366934039246,
+        371.3211522287541,
+        883.4877837215003,
+        775.4213395536159,
+        811.9345337344031
+      ],
+      "RoundP99Ms": [
+        90.7,
+        225.0715,
+        90.3395,
+        115.0137,
+        116.4829
+      ]
+    },
+    {
+      "Nodes": 5,
+      "PayloadBytes": 16384,
+      "Implementation": "DotNext",
+      "Mode": "Batched",
+      "Rounds": 5,
+      "Requests": 20480,
+      "Ops": 647.640498301177,
+      "MinOps": 346.15685019306784,
+      "MaxOps": 669.2273216694222,
+      "P50Ms": 90.9665,
+      "P99Ms": 276.7315,
+      "AllocatedKiB": 496.525390625,
+      "RoundOps": [
+        659.746618319395,
+        346.15685019306784,
+        647.640498301177,
+        624.9657649674036,
+        669.2273216694222
+      ],
+      "RoundP99Ms": [
+        156.9203,
+        287.8015,
+        158.645,
+        177.977,
+        148.5851
+      ]
+    }
+  ],
+  "LongMetadata": {
+    "Complete": true,
+    "Failure": null,
+    "StartedAtUtc": "2026-11-13T13:10:12.5142672+00:00",
+    "UpdatedAtUtc": "2026-11-13T13:29:19.7678172+00:00",
+    "ExpectedMeasurements": 120,
+    "WarmupOperationsPerRound": 2048,
+    "RequestedOperations": 4096,
+    "Concurrency": 64,
+    "Repeats": 5,
+    "Baseline": "8b991bd",
+    "DotNextPackage": "5.26.2",
+    "DotNextCommit": "39ff4fe882e68a5ea90818b41adb97cdc3ec60d8",
+    "LatestDotNextAtInspection": "6.12.1 (net10.0 only; not executed)",
+    "Runtime": ".NET 8.0.34",
+    "OS": "Microsoft Windows 10.0.26200",
+    "Architecture": "X64",
+    "ProcessorCount": 12,
+    "ServerGC": false,
+    "DataRoot": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\winner\\data",
+    "BinarySha256": {
+      "Raft.Net8.dll": "C9A291AA0FEAC8C9493F49F20AAD970F4CF1C47481A81F7F6A87B14978E9F774",
+      "Raft.Baseline.Net8.dll": "7C648B5CA02E778FF12D52834F390B9B5CC6757946A89097A535AB306807052B",
+      "DotNext.Net.Cluster.dll": "9CDE6B4E5736B3622AA1913140E00773C61904B115FAC926F221040B0B2A3A3F",
+      "Raft.Comparison.dll": "0FE1B21FAE082E4F54BEB1456D4405ABBF9A07A75D6F3E8EBCEFA85F8274F70B"
+    },
+    "PackageLockSha256": "74795CF9EDF2203930D8E11FC24F3887D4F2167891145A6E5733978226091BE0",
+    "CurrentSourceSha256": "FE23EE38BD895375895FD4688A4F960ABA8F9348D9D4C67BF52A114C0B923B93",
+    "HarnessSourceSha256": "E0A4CE036796AAFED930889F117D0553558BC1C7BC4F3A5C168F0A7E842CD8C0",
+    "CurrentLayout": "UnifiedTableV3 (explicit)",
+    "CurrentLayoutSchema": "raft8/v3: ToIndex prefixes 1=meta,2=log,3=config; RF3M packed state/frontier; checked v2 entries",
+    "CurrentProposalBatchBytes": null,
+    "CurrentDefaultBatchedGroupBytes": 1051264,
+    "CurrentBatchedProposalDelayMilliseconds": 2,
+    "CurrentSingleVoterCollectionDelayMilliseconds": 1,
+    "CurrentProposalFlushPolicy": "drain queued group; flush full replication batch without waiting; bounded 2ms for multi-voter,1ms for single-voter groups",
+    "CommonApplicationSourceSha256": "707A6A29339C007CB710002116910B11466094A857580FD172F97B530FCDBAC7",
+    "Timing": "Raft.Net tick25ms,heartbeat1,election[5000,6000)ms,RPC2s; DotNext election5000..6000ms,heartbeat threshold0.005 (25..30ms),RPC2s",
+    "Storage": "Raft.Net: disk DBreeze log+application/engine/node. DotNext: native persistent WAL AutoFlush+IntegrityCheck, DBreeze application/engine/node.",
+    "Application": "same ComparisonMachine: payload ring256,count,CRC(index,term) atomic; validate all replicas + close/reopen every successful round",
+    "Batch": "count128, replication/application256KiB(21B accounting); Current durable proposal group default4x256KiB+128x21B metadata headroom (1051264 encoded bytes, bounded), override via --proposal-batch-bytes; baseline/DotNext proposal256KiB; Current delay up to2ms for multi-voter,1ms for single-voter with full-wire-batch early flush, DotNext1ms; baseline drains queued; native DotNext wire aggregation has its own limits",
+    "Order": "one cluster at a time; round outermost, topology/payload groups, rotate case order by round",
+    "RawFile": "long.json",
+    "RawSha256": "c542887af8b5807cb8815eefd152e93222afcdfc0b0c5378539b72057fda8e1a",
+    "DotNextDiagnostics": [
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 1, 'PayloadBytes': 64, 'Mode': 'Batched'}",
+        "Round": 1,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 96,
+          "AppendedEntries": 6144,
+          "ApplyBatches": 97,
+          "AppliedCommands": 6144,
+          "MaxApplyBatch": 64
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 1, 'PayloadBytes': 16384, 'Mode': 'Batched'}",
+        "Round": 1,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 482,
+          "AppendedEntries": 6144,
+          "ApplyBatches": 481,
+          "AppliedCommands": 6144,
+          "MaxApplyBatch": 15
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 3, 'PayloadBytes': 64, 'Mode': 'Batched'}",
+        "Round": 1,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 134,
+          "AppendedEntries": 6144,
+          "ApplyBatches": 405,
+          "AppliedCommands": 18432,
+          "MaxApplyBatch": 64
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 3, 'PayloadBytes': 16384, 'Mode': 'Batched'}",
+        "Round": 1,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 480,
+          "AppendedEntries": 6144,
+          "ApplyBatches": 1443,
+          "AppliedCommands": 18432,
+          "MaxApplyBatch": 15
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 5, 'PayloadBytes': 64, 'Mode': 'Batched'}",
+        "Round": 1,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 131,
+          "AppendedEntries": 6144,
+          "ApplyBatches": 660,
+          "AppliedCommands": 30720,
+          "MaxApplyBatch": 64
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 5, 'PayloadBytes': 16384, 'Mode': 'Batched'}",
+        "Round": 1,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 480,
+          "AppendedEntries": 6144,
+          "ApplyBatches": 2405,
+          "AppliedCommands": 30720,
+          "MaxApplyBatch": 15
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 1, 'PayloadBytes': 64, 'Mode': 'Batched'}",
+        "Round": 2,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 96,
+          "AppendedEntries": 6144,
+          "ApplyBatches": 97,
+          "AppliedCommands": 6144,
+          "MaxApplyBatch": 64
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 1, 'PayloadBytes': 16384, 'Mode': 'Batched'}",
+        "Round": 2,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 480,
+          "AppendedEntries": 6144,
+          "ApplyBatches": 481,
+          "AppliedCommands": 6144,
+          "MaxApplyBatch": 15
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 3, 'PayloadBytes': 64, 'Mode': 'Batched'}",
+        "Round": 2,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 152,
+          "AppendedEntries": 6144,
+          "ApplyBatches": 456,
+          "AppliedCommands": 18432,
+          "MaxApplyBatch": 64
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 3, 'PayloadBytes': 16384, 'Mode': 'Batched'}",
+        "Round": 2,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 480,
+          "AppendedEntries": 6144,
+          "ApplyBatches": 1443,
+          "AppliedCommands": 18432,
+          "MaxApplyBatch": 15
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 5, 'PayloadBytes': 64, 'Mode': 'Batched'}",
+        "Round": 2,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 141,
+          "AppendedEntries": 6144,
+          "ApplyBatches": 710,
+          "AppliedCommands": 30720,
+          "MaxApplyBatch": 64
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 5, 'PayloadBytes': 16384, 'Mode': 'Batched'}",
+        "Round": 2,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 480,
+          "AppendedEntries": 6144,
+          "ApplyBatches": 2405,
+          "AppliedCommands": 30720,
+          "MaxApplyBatch": 15
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 1, 'PayloadBytes': 64, 'Mode': 'Batched'}",
+        "Round": 3,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 140,
+          "AppendedEntries": 6144,
+          "ApplyBatches": 141,
+          "AppliedCommands": 6144,
+          "MaxApplyBatch": 64
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 1, 'PayloadBytes': 16384, 'Mode': 'Batched'}",
+        "Round": 3,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 480,
+          "AppendedEntries": 6144,
+          "ApplyBatches": 481,
+          "AppliedCommands": 6144,
+          "MaxApplyBatch": 15
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 3, 'PayloadBytes': 64, 'Mode': 'Batched'}",
+        "Round": 3,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 96,
+          "AppendedEntries": 6144,
+          "ApplyBatches": 291,
+          "AppliedCommands": 18432,
+          "MaxApplyBatch": 64
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 3, 'PayloadBytes': 16384, 'Mode': 'Batched'}",
+        "Round": 3,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 480,
+          "AppendedEntries": 6144,
+          "ApplyBatches": 1443,
+          "AppliedCommands": 18432,
+          "MaxApplyBatch": 15
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 5, 'PayloadBytes': 64, 'Mode': 'Batched'}",
+        "Round": 3,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 155,
+          "AppendedEntries": 6144,
+          "ApplyBatches": 780,
+          "AppliedCommands": 30720,
+          "MaxApplyBatch": 64
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 5, 'PayloadBytes': 16384, 'Mode': 'Batched'}",
+        "Round": 3,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 480,
+          "AppendedEntries": 6144,
+          "ApplyBatches": 2405,
+          "AppliedCommands": 30720,
+          "MaxApplyBatch": 15
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 1, 'PayloadBytes': 64, 'Mode': 'Batched'}",
+        "Round": 4,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 107,
+          "AppendedEntries": 6144,
+          "ApplyBatches": 108,
+          "AppliedCommands": 6144,
+          "MaxApplyBatch": 64
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 1, 'PayloadBytes': 16384, 'Mode': 'Batched'}",
+        "Round": 4,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 480,
+          "AppendedEntries": 6144,
+          "ApplyBatches": 481,
+          "AppliedCommands": 6144,
+          "MaxApplyBatch": 15
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 3, 'PayloadBytes': 64, 'Mode': 'Batched'}",
+        "Round": 4,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 122,
+          "AppendedEntries": 6144,
+          "ApplyBatches": 369,
+          "AppliedCommands": 18432,
+          "MaxApplyBatch": 64
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 3, 'PayloadBytes': 16384, 'Mode': 'Batched'}",
+        "Round": 4,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 480,
+          "AppendedEntries": 6144,
+          "ApplyBatches": 1443,
+          "AppliedCommands": 18432,
+          "MaxApplyBatch": 15
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 5, 'PayloadBytes': 64, 'Mode': 'Batched'}",
+        "Round": 4,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 96,
+          "AppendedEntries": 6144,
+          "ApplyBatches": 485,
+          "AppliedCommands": 30720,
+          "MaxApplyBatch": 64
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 5, 'PayloadBytes': 16384, 'Mode': 'Batched'}",
+        "Round": 4,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 480,
+          "AppendedEntries": 6144,
+          "ApplyBatches": 2405,
+          "AppliedCommands": 30720,
+          "MaxApplyBatch": 15
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 1, 'PayloadBytes': 64, 'Mode': 'Batched'}",
+        "Round": 5,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 132,
+          "AppendedEntries": 6144,
+          "ApplyBatches": 133,
+          "AppliedCommands": 6144,
+          "MaxApplyBatch": 64
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 1, 'PayloadBytes': 16384, 'Mode': 'Batched'}",
+        "Round": 5,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 480,
+          "AppendedEntries": 6144,
+          "ApplyBatches": 481,
+          "AppliedCommands": 6144,
+          "MaxApplyBatch": 15
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 3, 'PayloadBytes': 64, 'Mode': 'Batched'}",
+        "Round": 5,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 152,
+          "AppendedEntries": 6144,
+          "ApplyBatches": 459,
+          "AppliedCommands": 18432,
+          "MaxApplyBatch": 64
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 3, 'PayloadBytes': 16384, 'Mode': 'Batched'}",
+        "Round": 5,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 480,
+          "AppendedEntries": 6144,
+          "ApplyBatches": 1443,
+          "AppliedCommands": 18432,
+          "MaxApplyBatch": 15
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 5, 'PayloadBytes': 64, 'Mode': 'Batched'}",
+        "Round": 5,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 132,
+          "AppendedEntries": 6144,
+          "ApplyBatches": 665,
+          "AppliedCommands": 30720,
+          "MaxApplyBatch": 64
+        }
+      },
+      {
+        "Case": "{'Implementation': 'DotNext', 'Nodes': 5, 'PayloadBytes': 16384, 'Mode': 'Batched'}",
+        "Round": 5,
+        "Diagnostics": {
+          "NativeWal": "MemoryBasedStateMachine AutoFlush + IntegrityCheck; OnCommit cache eviction; no compaction",
+          "Configuration": "fixed prepopulated in-memory endpoints; not a membership-recovery benchmark",
+          "AppendBatches": 480,
+          "AppendedEntries": 6144,
+          "ApplyBatches": 2405,
+          "AppliedCommands": 30720,
+          "MaxApplyBatch": 15
+        }
+      }
+    ]
+  },
+  "WinnerAudit": {
+    "Mode": "Pipeline",
+    "Comparisons": 12,
+    "MedianWinsOverBoth": 11,
+    "WinnerByMedianThroughput": false,
+    "MultiNodeComparisons": 8,
+    "MultiNodeMedianWinsOverBoth": 7,
+    "AllocationLossesToBase": 12,
+    "AllocationLossesToDotNext": 12,
+    "MultiNodeGeometricRatioToBase": 1.3524230183181587,
+    "MultiNodeGeometricRatioToDotNext": 1.313799071967386,
+    "Rows": [
+      {
+        "Nodes": 1,
+        "PayloadBytes": 64,
+        "Ops": 7352.128168271834,
+        "Series": "Short",
+        "BaseRatio": 1.913668496561588,
+        "BaseRoundWins": 5,
+        "BaseRoundRatios": [
+          1.8482359918265014,
+          2.2286582459684503,
+          2.1938499411096846,
+          1.9220882728171902,
+          1.4988489647003198
+        ],
+        "BaseAllocationRatio": 1.057914402173913,
+        "BaseP99Ratio": 0.6801892072433154,
+        "DotRatio": 1.0015020168093773,
+        "DotRoundWins": 3,
+        "DotRoundRatios": [
+          1.0251350881752794,
+          1.166349204225623,
+          1.163665054320063,
+          0.9860624130961424,
+          0.8795553122712626
+        ],
+        "DotAllocationRatio": 1.891588217430914,
+        "DotP99Ratio": 1.439831844456122
+      },
+      {
+        "Nodes": 1,
+        "PayloadBytes": 16384,
+        "Ops": 2145.3616610462664,
+        "Series": "Short",
+        "BaseRatio": 1.1105540061276895,
+        "BaseRoundWins": 5,
+        "BaseRoundRatios": [
+          1.101971726097298,
+          1.265707786920294,
+          1.2585185737410594,
+          1.0980748731219707,
+          1.3400857686878462
+        ],
+        "BaseAllocationRatio": 1.022647717726127,
+        "BaseP99Ratio": 0.7341609651490176,
+        "DotRatio": 1.0883650165259893,
+        "DotRoundWins": 3,
+        "DotRoundRatios": [
+          0.9658807146202609,
+          1.2072045651438366,
+          1.0756188279247867,
+          1.1705864212015367,
+          0.9981666272524032
+        ],
+        "DotAllocationRatio": 1.2283855234250995,
+        "DotP99Ratio": 1.067236027838291
+      },
+      {
+        "Nodes": 3,
+        "PayloadBytes": 64,
+        "Ops": 4396.797208033773,
+        "Series": "Short",
+        "BaseRatio": 1.7210996458517251,
+        "BaseRoundWins": 5,
+        "BaseRoundRatios": [
+          1.4448769173947968,
+          1.62455744627227,
+          1.7270275324066533,
+          1.7658748439388174,
+          1.3239640905328025
+        ],
+        "BaseAllocationRatio": 1.1972344920299596,
+        "BaseP99Ratio": 0.5683550052519691,
+        "DotRatio": 1.243900302623308,
+        "DotRoundWins": 5,
+        "DotRoundRatios": [
+          1.2470562711304076,
+          1.0042078244273467,
+          1.2689103798663837,
+          1.1847155179895983,
+          1.297238090003813
+        ],
+        "DotAllocationRatio": 2.210377023992436,
+        "DotP99Ratio": 0.7950408842535214
+      },
+      {
+        "Nodes": 3,
+        "PayloadBytes": 16384,
+        "Ops": 1253.8871726852435,
+        "Series": "Short",
+        "BaseRatio": 1.0913324559388455,
+        "BaseRoundWins": 2,
+        "BaseRoundRatios": [
+          0.9883095768100256,
+          1.378427190337264,
+          0.903247644963338,
+          0.9902465732556786,
+          1.1240990747194306
+        ],
+        "BaseAllocationRatio": 1.0692465336225856,
+        "BaseP99Ratio": 0.6637752601637545,
+        "DotRatio": 1.4626890198177847,
+        "DotRoundWins": 5,
+        "DotRoundRatios": [
+          1.4690757708059177,
+          1.293263940207969,
+          1.2759169567706987,
+          2.4407851508529177,
+          1.3336018251895159
+        ],
+        "DotAllocationRatio": 1.3412991764404765,
+        "DotP99Ratio": 0.39093473936397694
+      },
+      {
+        "Nodes": 5,
+        "PayloadBytes": 64,
+        "Ops": 3583.2912249956958,
+        "Series": "Short",
+        "BaseRatio": 1.7962500017496539,
+        "BaseRoundWins": 5,
+        "BaseRoundRatios": [
+          1.7092502937686673,
+          1.5051624927280576,
+          1.5016273345928857,
+          1.7543257544295785,
+          2.0835963646390745
+        ],
+        "BaseAllocationRatio": 1.2309888192847513,
+        "BaseP99Ratio": 0.6266781281374666,
+        "DotRatio": 1.1889892179326929,
+        "DotRoundWins": 4,
+        "DotRoundRatios": [
+          1.232878889973341,
+          1.464096543246946,
+          0.9360642360508472,
+          1.1920698858372565,
+          1.1681207457164975
+        ],
+        "DotAllocationRatio": 2.25573961057832,
+        "DotP99Ratio": 0.7246386861970037
+      },
+      {
+        "Nodes": 5,
+        "PayloadBytes": 16384,
+        "Ops": 843.838045723826,
+        "Series": "Short",
+        "BaseRatio": 1.1002339508019345,
+        "BaseRoundWins": 3,
+        "BaseRoundRatios": [
+          0.7639264948245306,
+          0.47455687686733966,
+          1.1278569562662804,
+          1.1119434607786636,
+          1.0052214599156104
+        ],
+        "BaseAllocationRatio": 1.0852040611435019,
+        "BaseP99Ratio": 1.0047898234496813,
+        "DotRatio": 1.2516643139736778,
+        "DotRoundWins": 5,
+        "DotRoundRatios": [
+          1.0408955040848717,
+          1.0848192577199849,
+          1.2516643139736778,
+          1.169722767263751,
+          1.2207252247506641
+        ],
+        "DotAllocationRatio": 1.3352806545874352,
+        "DotP99Ratio": 0.7273566166695341
+      },
+      {
+        "Nodes": 1,
+        "PayloadBytes": 64,
+        "Ops": 8474.656927432026,
+        "Series": "Long",
+        "BaseRatio": 2.1645577267725917,
+        "BaseRoundWins": 5,
+        "BaseRoundRatios": [
+          1.6932957317372392,
+          2.1539866018512916,
+          2.1462979804704334,
+          2.0917353922997797,
+          2.3587964083675654
+        ],
+        "BaseAllocationRatio": 1.0431307243963364,
+        "BaseP99Ratio": 0.4786206364049725,
+        "DotRatio": 1.202016289714092,
+        "DotRoundWins": 4,
+        "DotRoundRatios": [
+          0.9304427320858927,
+          1.2329832581504696,
+          1.2855843637093987,
+          1.2159124863402142,
+          1.3875951381621499
+        ],
+        "DotAllocationRatio": 1.8715267403645055,
+        "DotP99Ratio": 0.8967698378891024
+      },
+      {
+        "Nodes": 1,
+        "PayloadBytes": 16384,
+        "Ops": 2382.159855953771,
+        "Series": "Long",
+        "BaseRatio": 1.2147059986693405,
+        "BaseRoundWins": 5,
+        "BaseRoundRatios": [
+          1.3077184654610086,
+          1.2298647659970152,
+          1.1743715348958943,
+          1.2220644063784176,
+          1.240834971784131
+        ],
+        "BaseAllocationRatio": 1.0213370331754332,
+        "BaseP99Ratio": 0.7738671864402534,
+        "DotRatio": 1.1183960201180843,
+        "DotRoundWins": 5,
+        "DotRoundRatios": [
+          1.1219709464898036,
+          1.1447735454025378,
+          1.0561830517800737,
+          1.0999233687869956,
+          1.1511885866382225
+        ],
+        "DotAllocationRatio": 1.2114360277720975,
+        "DotP99Ratio": 0.9803882170673802
+      },
+      {
+        "Nodes": 3,
+        "PayloadBytes": 64,
+        "Ops": 4108.2681102307715,
+        "Series": "Long",
+        "BaseRatio": 1.6087062185097138,
+        "BaseRoundWins": 5,
+        "BaseRoundRatios": [
+          1.5494514762225857,
+          1.6849108036285105,
+          1.6817961621813922,
+          2.1776931272164943,
+          1.6453316887959435
+        ],
+        "BaseAllocationRatio": 1.156309196455851,
+        "BaseP99Ratio": 0.5106075085324231,
+        "DotRatio": 1.5334433685872753,
+        "DotRoundWins": 5,
+        "DotRoundRatios": [
+          1.4769608420873654,
+          1.7504747479993268,
+          1.2579219134269515,
+          1.1708611254929473,
+          1.638570171753232
+        ],
+        "DotAllocationRatio": 1.8825109430959013,
+        "DotP99Ratio": 0.7249924887816318
+      },
+      {
+        "Nodes": 3,
+        "PayloadBytes": 16384,
+        "Ops": 1153.5540066752362,
+        "Series": "Long",
+        "BaseRatio": 0.9696213129466694,
+        "BaseRoundWins": 2,
+        "BaseRoundRatios": [
+          1.0182365560996038,
+          0.9578690924598008,
+          0.9202891308934775,
+          2.3490207759976953,
+          0.9237036004901359
+        ],
+        "BaseAllocationRatio": 1.0594859138141381,
+        "BaseP99Ratio": 0.5196823479745912,
+        "DotRatio": 1.403316360750021,
+        "DotRoundWins": 5,
+        "DotRoundRatios": [
+          1.473676371599025,
+          1.367931864871418,
+          1.3311741833816992,
+          2.4575739255338647,
+          1.3209328121293813
+        ],
+        "DotAllocationRatio": 1.238622503180453,
+        "DotP99Ratio": 0.43359350624904913
+      },
+      {
+        "Nodes": 5,
+        "PayloadBytes": 64,
+        "Ops": 2589.264023826286,
+        "Series": "Long",
+        "BaseRatio": 1.7117938637350498,
+        "BaseRoundWins": 5,
+        "BaseRoundRatios": [
+          2.2987885372463017,
+          1.7023489509477572,
+          1.6625821700978312,
+          1.6918599870844817,
+          2.3076877505462527
+        ],
+        "BaseAllocationRatio": 1.3740392826643895,
+        "BaseP99Ratio": 0.47446520599090136,
+        "DotRatio": 1.215116447029101,
+        "DotRoundWins": 4,
+        "DotRoundRatios": [
+          1.6353334434763085,
+          1.1953501182438409,
+          1.4813364698659544,
+          0.9065668587999964,
+          1.365969254436507
+        ],
+        "DotAllocationRatio": 2.3567897467195604,
+        "DotP99Ratio": 0.6669356298768209
+      },
+      {
+        "Nodes": 5,
+        "PayloadBytes": 16384,
+        "Ops": 811.9345337344031,
+        "Series": "Long",
+        "BaseRatio": 1.1291591599228956,
+        "BaseRoundWins": 4,
+        "BaseRoundRatios": [
+          1.0288224690990617,
+          1.1120610341013057,
+          1.281208100521756,
+          1.0783801796550532,
+          0.9961536980178787
+        ],
+        "BaseAllocationRatio": 1.0363261786755655,
+        "BaseP99Ratio": 0.9019573185835857,
+        "DotRatio": 1.253680916904031,
+        "DotRoundWins": 5,
+        "DotRoundRatios": [
+          1.3523929772868908,
+          1.0726962416651613,
+          1.364163893454738,
+          1.2407421062401067,
+          1.2132417602272878
+        ],
+        "DotAllocationRatio": 1.2386702908099645,
+        "DotP99Ratio": 0.7671067442629409
+      }
+    ]
+  }
+}

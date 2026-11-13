@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using Raft.Storage;
 using Raft.Transport;
+using Microsoft.Extensions.Logging;
 
 namespace Raft.Tests;
 
@@ -37,26 +38,38 @@ internal sealed class RuntimeCluster : IAsyncDisposable
     public ConcurrentDictionary<string, RaftNode> Nodes { get; } = new(StringComparer.Ordinal);
     public Dictionary<string, TestStateMachine> Machines { get; } = new(StringComparer.Ordinal);
     public Dictionary<string, TcpRaftTransport> Tcp { get; } = new(StringComparer.Ordinal);
+    public ConcurrentDictionary<string, IRaftStorage> Stores { get; } = new(StringComparer.Ordinal);
     private readonly Dictionary<string, RaftOptions> _options = new();
     private readonly Dictionary<string, IPEndPoint> _endpoints = new();
     private readonly HashSet<(string, string)> _blocked = new();
     private readonly List<TestDirectory> _directories = new();
     private readonly Dictionary<string, string> _paths = new();
-    private readonly bool _disk, _tcp;
+    private readonly bool _disk, _tcp, _modern;
+    private readonly ILoggerFactory? _loggerFactory;
 
-    public RuntimeCluster(int count = 3, bool disk = false, bool tcp = false, int pending = 128)
+    public RuntimeCluster(int count = 3, bool disk = false, bool tcp = false, int pending = 128, bool modern = false, int spares = 0,
+        Func<RaftOptions, RaftOptions>? configure = null, ILoggerFactory? loggerFactory = null)
     {
         _disk = disk;
         _tcp = tcp;
+        _modern = modern;
+        _loggerFactory = loggerFactory;
         var members = Enumerable.Range(1, count).Select(i => $"n{i}").ToArray();
-        foreach (var id in members)
+        var all = Enumerable.Range(1, count + spares).Select(i => $"n{i}").ToArray();
+        foreach (var id in all)
         {
-            _options.Add(id, new RaftOptions
+            var options = new RaftOptions
             {
-                NodeId = id, Members = members, TickInterval = TimeSpan.FromMilliseconds(10),
-                ElectionMinTicks = 15, ElectionMaxTicks = 30, RpcTimeout = TimeSpan.FromMilliseconds(100),
+                NodeId = id, Members = members, Learners = members.Contains(id) ? [] : [id], KnownPeers = all,
+                TickInterval = TimeSpan.FromMilliseconds(10),
+                // Native coverage and concurrent real disk commits are not a 150ms failure detector.
+                // Fast virtual/in-memory runtime cases retain the short deadlines; disk/TCP cases
+                // exercise the same protocol with room for measured filesystem/scheduler tails.
+                ElectionMinTicks = disk ? 60 : 15, ElectionMaxTicks = disk ? 100 : 30,
+                RpcTimeout = TimeSpan.FromMilliseconds(disk ? 300 : 100),
                 MaxPendingProposals = pending
-            });
+            };
+            _options.Add(id, configure is null ? options : configure(options));
             if (disk)
             {
                 var directory = new TestDirectory();
@@ -67,13 +80,13 @@ internal sealed class RuntimeCluster : IAsyncDisposable
         if (tcp)
         {
             // Reserve distinct OS-assigned ports together, then hand them to the transports.
-            var listeners = members.Select(_ => new TcpListener(IPAddress.Loopback, 0)).ToArray();
+            var listeners = all.Select(_ => new TcpListener(IPAddress.Loopback, 0)).ToArray();
             try
             {
                 for (var i = 0; i < listeners.Length; i++)
                 {
                     listeners[i].Start();
-                    _endpoints.Add(members[i], (IPEndPoint)listeners[i].LocalEndpoint);
+                    _endpoints.Add(all[i], (IPEndPoint)listeners[i].LocalEndpoint);
                 }
             }
             finally { foreach (var listener in listeners) listener.Stop(); }
@@ -90,7 +103,10 @@ internal sealed class RuntimeCluster : IAsyncDisposable
         var options = _options[id];
         var machine = new TestStateMachine();
         Machines[id] = machine;
-        var storage = _disk ? new DBreezeRaftStorage(_paths[id], options) : DBreezeRaftStorage.CreateInMemory(options);
+        IRaftStorage storage = _modern
+            ? _disk ? new DBreezeLogStorage(_paths[id], options) : DBreezeLogStorage.CreateInMemory(options)
+            : _disk ? new DBreezeRaftStorage(_paths[id], options) : DBreezeRaftStorage.CreateInMemory(options);
+        Stores[id] = storage;
         IRaftTransport transport;
         if (_tcp)
         {
@@ -99,7 +115,7 @@ internal sealed class RuntimeCluster : IAsyncDisposable
             transport = tcp;
         }
         else transport = new MemoryTransport(id, this);
-        var node = new RaftNode(options, storage, transport, machine);
+        var node = new RaftNode(options, storage, transport, machine, _loggerFactory);
         Assert.True(Nodes.TryAdd(id, node));
         await node.StartAsync();
         if (_tcp) Tcp[id].Start(node.HandleAsync);

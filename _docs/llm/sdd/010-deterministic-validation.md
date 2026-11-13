@@ -1,0 +1,23 @@
+# Deterministic validation and histories
+
+Status: implemented and validated: 42,000 runs / 132,010,316 events, 221 full tests, actual 3/5-process crash/rolling membership, generated properties and core coverage. Scheduled nightly CI is configured; remote execution is not claimed.
+
+Provide a standalone seed runner using the actual immutable reducer and explicit effect completions, without DBreeze engines or wall-clock tasks in simulated nodes. One seeded PRNG drives every node's timeout sampling, scheduler, disk delays/failures, network drop/duplication/reordering/asymmetric partitions, crashes/restarts, and clock skew. Print exact seed/scenario/steps and a bounded trace on failure. Recovery distinguishes queued/unsynced state, flushed state, unpromised torn tails/journals and corruption of promised data.
+
+Run invariants after every event: one leader per term, leader append-only, log matching/prefix agreement, leader completeness, no lost committed entries, term/commit monotonicity, state-machine safety and configuration-change gates. Verify outgoing dependent acknowledgments against actual flushed state. Queue inputs while correlated I/O is pending and discard callbacks from old node instances after restart. Application flushes are independent and checkpoint/effects remain atomic.
+
+Record writes and ReadIndex operations through actual local apply fences. Check complete client histories with a small backtracking real-time order checker; timed-out writes are optional unknown outcomes whose effects may occur later. Check both valid concurrent histories and deliberately invalid/stale-read histories. Add randomized log/configuration/codec properties, repeatability assertions, and replayable regression seeds for every finding.
+
+Use smaller PR seed counts and at least several thousand seeds per scenario in scheduled CI. Keep real DBreeze/TCP/process-kill tests as independent evidence for modeled assumptions. Add a live 3/5-node process runner for OS kills and rolling transfer/configuration, collect core coverage, then run the 1/3/5-node batching/pipeline/payload benchmark matrix with per-request p50/p99 and the original baseline. No safety/performance claims from unexecuted smoke cases.
+
+## Current implementation
+
+`tools/Raft.Simulator` directly advances `Raft.Core.RaftCore.Step`. A single per-run Random drives all scheduled events. Node instances queue inputs while correlated reads/writes are pending. Disk flush and completion are separate events; crashes drop pending work, retain flushed metadata/entries/application checkpoints and acknowledged snapshot offsets, and add an unpromised torn tail. Uncertain flush failures may retain either a complete transaction or the prior state before fail-stop. Instance epochs discard old callbacks after restart. Metadata and records use the production CRC codec; the model never serves its oracle-only retained history as a log query.
+
+The application is an atomic durable key/value register model with deduplication. Reads go through real ReadIndex contexts and applied fences. Snapshot creation captures a committed applied prefix without pausing apply; multi-chunk staging, durable progress, term changes, generation activation and install intent are modeled. Real filesystem/mTLS/TCP/DBreeze ordering remains covered independently by the actual-process tests.
+
+After each event check durable commit monotonicity and committed entries, core term/commit bounds, atomic application state, election safety, leader completeness/append-only, active config recovery and non-voter roles, windows/bytes and log matching. Exact application signatures are compared; log prefixes use chained SHA-256 fingerprints. Check dependent sends/replies at effect emission against flushed state, before the host's buffered dispatch, so buffering cannot hide an unsafe core ordering.
+
+`LinearizabilityChecker` is a bounded real-time backtracking checker for at most 63 relevant operations. Unknown writes are optional and can commit after their error/timeout; unadmitted rejected writes have no effect. Search exhaustion fails simulation, never counts as passing. The runner reports a replay command, bounded event trace, node states and full history on failure. History timestamps are a unique logical client clock, not wall-clock timing.
+
+Initial evidence: 6 checker tests including deliberately stale reads and 200 generated valid concurrent histories; 32×160 randomized DBreeze/model/list operations with repeated reopening plus promised/unpromised corruption; 8 simulator tests (7 scenarios × 3/5 voters × 8 seeds and exact-repeatability). Standalone CLI example: `dotnet run --project tools/Raft.Simulator -c Release -- --seed 17 --scenario Mixed --steps 3000 --voters 3`.
