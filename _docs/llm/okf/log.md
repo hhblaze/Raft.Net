@@ -2,6 +2,8 @@
 
 ## 2026-11-14
 
+- **Baseline accepted by user**: current Hot Add/Remove implementation at commit d44147effdb20271854dd758cc6f9073543a554d becomes the reference for future fresh paired comparisons. Verified current production sources against the measured release (36 C# files, normalized SHA8851CD78…), measured DLL91FD2E34… . Recorded machine-readable identity in RaftNet8/benchmarks/baselines/hot-membership-2026-11-14.json. Preserve original14/16 and the separate passing lower-load recheck; acceptance does not rewrite benchmark results. No code changes, new benchmark, agent-created commit/tag/push or publication.
+
 - **Performance recovery, spec031 remains open**: fixed proposal-ready reservation/deadline ownership, reused one timer, avoided full recovery DTOs for cached progress and linked CTS for immediate admission.410 tests, HumanTest,29 Dry,36 regression measurements and4 completed full-Add workloads pass. Final DLL91FD2E34… /source16690FDA…;300 fresh e06/R19/current measurements,691200 latencies,14/16 all-metric gates. Throughput/allocation pass16/16; two5-voter p99 failures (+13.09%,+101.65%) and smaller Pipeline throughput losses stay explicit. Offline HTML/CSV/JSON and independent raw/numeric/browser QA pass. All rejected candidates/rounds preserved; profiling did not uniquely attribute the residual tail. No phase questions, commit or publication. See [memory](performance-recovery.md).
 
 ## 2026-11-13

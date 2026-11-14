@@ -1,8 +1,8 @@
 ---
 type: Engineering Record
 title: e06 performance recovery
-description: Validated runtime improvements and fresh evidence, with two open p99 gates.
-status: draft
+description: User-accepted hot-membership baseline, with preserved measurements and latency limitations.
+status: accepted
 sources:
   - resource: ../sdd/031-performance-recovery.md
   - resource: ../../../RaftNet8/benchmarks/results/performance-recovery-e06-2026-11-14.html
@@ -10,7 +10,9 @@ sources:
 
 # Status, 2026-11-14
 
-**Performance acceptance remains OPEN: 14/16 cells.** Throughput and allocation pass16/16; p99 passes14/16. Do not mark spec031 complete, hide bad observations, or ask for phase approvals. The user authorized autonomous iteration. No commit, push or publication.
+**Accepted by the user as the new baseline on 2026-11-14**, explicitly including Hot Add/Remove. Source commit `d44147effdb20271854dd758cc6f9073543a554d`; [machine-readable baseline](../../../RaftNet8/benchmarks/baselines/hot-membership-2026-11-14.json). Current production sources were verified against the measured release (36 normalized C# files, SHA2568851CD78E3A5042138F12E367805DDBB50CA51F28119347DB9EF0EACC29E58E5). Future regressions compare fresh paired runs against this version with membership enabled; e06/R18/R19 are historical unless requested. No further phase approval is needed.
+
+The original numeric comparison remains14/16, not16/16: throughput/allocation pass16/16, p99 passes14/16. The requested lower-load repeat passes its single-point tolerances. User acceptance closes adoption of this baseline without erasing bad observations or proving a unique cause for the tail. The user committed the measured implementation as d44147e; the agent has not created a commit, tag, push or publication for this acceptance.
 
 Final source: release-source.zip SHA256 **16690FDAB4563C603FC91EC9B41FAB4F2BCAC0A83E545E0046D33828D7F3E07F**. Live/tested/frozen DLL SHA256 **91FD2E34E822614B182E3257F797D0CAD29A0E856E4FF1318207EE8E87E3CF75**. Runtime/CWD are release-runtime and release-cwd under RaftNet8/.artifacts/performance-recovery/.
 
@@ -34,7 +36,7 @@ Final full suite **410/410**, zero skips,2m31s (validation/admission-full.trx). 
 
 The [HTML](../../../RaftNet8/benchmarks/results/performance-recovery-e06-2026-11-14.html), CSV/JSON compare fresh e06c4f95edd6836c9a8782ecad2542bef298fa32 / frozen R19 b6ba58a (production source unchanged from bfcc523) / final working tree.300 fresh processes,691200 latencies,5–10 paired rounds, unchanged business/checkpoint transaction, H-drive data,64 clients and original128+512 /2048+4096 workloads. Main raw sets release-five, release-extra-short, release-extra-long. No8b991bd/DotNext rerun. R18/R19 preserved.
 
-Open p99 points, both after ten pairs: short5n64B Batched **+13.09%**; long5n16KiB Pipeline **+101.65%**. Pipeline and16KiB each pass7/8. Smaller throughput losses remain: short3n64B Pipeline−3.63% (7/10 paired losses), long5n64B Pipeline−3.85%. Being within measurement tolerance does not prove absence of systematic loss. Long3n64B Batched+14.84% throughput/−16.32% allocation; long5n64B Batched+20.88%/−21.23% in this cohort. Do not generalize modal gains into universal product claims.
+Historical failed p99 points, both after ten pairs: short5n64B Batched **+13.09%**; long5n16KiB Pipeline **+101.65%**. Pipeline and16KiB each pass7/8. Smaller throughput losses remain: short3n64B Pipeline−3.63% (7/10 paired losses), long5n64B Pipeline−3.85%. These observations are retained with the accepted baseline. Being within measurement tolerance does not prove absence of systematic loss. Long3n64B Batched+14.84% throughput/−16.32% allocation; long5n64B Batched+20.88%/−21.23% in this cohort. Do not generalize modal gains into universal product claims.
 
 Independent numeric QA recomputes300 raw SHA hashes,48 aggregates,16 decisions and691200 samples. Offline browser QA checks144 SVG values, filters, desktop/mobile widths, print and no-JavaScript fallback; screenshots visually inspected. Reports contain PerformanceAccepted=false.
 

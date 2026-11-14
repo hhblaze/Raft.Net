@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "baseline_id": "hot-membership-2026-11-14",
+  "status": "accepted_by_user",
+  "accepted_on": "2026-11-14",
+  "source_commit": "d44147effdb20271854dd758cc6f9073543a554d",
+  "target_framework": "net8.0",
+  "dbreeze_version": "1.142.2026.1016-beta",
+  "wire_version": 3,
+  "storage_format": "raft8-v4",
+  "hot_add_remove_enabled": true,
+  "measured_dll_sha256": "91FD2E34E822614B182E3257F797D0CAD29A0E856E4FF1318207EE8E87E3CF75",
+  "measured_source_zip_sha256": "16690FDAB4563C603FC91EC9B41FAB4F2BCAC0A83E545E0046D33828D7F3E07F",
+  "production_source_fingerprint": {
+    "sha256": "8851CD78E3A5042138F12E367805DDBB50CA51F28119347DB9EF0EACC29E58E5",
+    "files": 36,
+    "algorithm": "Sorted src/Raft/**/*.cs excluding bin/obj: hash UTF-8 relative path with forward slashes plus LF, then UTF-8 file text without BOM with LF line endings."
+  },
+  "evidence": {
+    "full_comparison": "benchmarks/results/performance-recovery-e06-2026-11-14.html",
+    "targeted_recheck": "benchmarks/results/p99-recheck-5n-16k-pipeline-2026-11-14.html",
+    "functional_tests_passed": 410,
+    "human_scenario": "passed",
+    "benchmark_smoke_cases_passed": 29,
+    "historical_full_matrix_passed_cells": 14,
+    "historical_full_matrix_total_cells": 16,
+    "targeted_recheck_passed": true
+  },
+  "future_comparisons": "Use fresh paired runs against this source commit with Hot Add/Remove enabled. Preserve workload, durability, storage volume and raw observations. e06 and older baselines are historical unless explicitly requested.",
+  "acceptance_note": "The user accepted this implementation as the new baseline, including Hot Add/Remove. Acceptance does not rewrite historical FAIL results or claim that the earlier 16/16 numeric criterion was met. Binary hashes identify the measured local build, not every future rebuild."
+}

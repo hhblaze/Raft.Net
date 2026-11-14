@@ -20,6 +20,7 @@
 
 ## DBreeze and performance
 
+- The user accepted commit `d44147effdb20271854dd758cc6f9073543a554d` as the new performance baseline, including Hot Add/Remove, on 2026-11-14. Use fresh paired comparisons against it for subsequent work; e06/R18/R19 and older competitors are historical unless requested. See `RaftNet8/benchmarks/baselines/hot-membership-2026-11-14.json`. Preserve the historical measurements and their FAIL results; user acceptance does not imply every old numeric gate passed.
 - Follow the downloaded [DBreeze skill](_docs/llm/skill/DBreeze_skill.md). Reuse engines, use short synchronous transactions, and never await inside a transaction. Reserve all write tables before dependent reads.
 - Follow the [project DBreeze preferences](_docs/llm/skill/DBreeze_project_patterns.md): when appropriate, prefer one physical table with numeric ToIndex type/index prefixes and bounded composite-key ranges; compare with nested roots rather than defaulting to them.
 - Cache hard state and the log tail with bounded memory. Batch ascending log writes and replication. Use key ranges for catch-up and suffix deletion. Heartbeats must not write unchanged state.

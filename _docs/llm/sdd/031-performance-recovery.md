@@ -1,6 +1,8 @@
 # Recover e06 performance without losing hot membership
 
-Status: runtime fixes and functional validation delivered; performance acceptance remains OPEN (14/16 cells), authorized 2026-11-14.
+Status: accepted by the user as the new baseline on 2026-11-14, including Hot Add/Remove. Source commit `d44147effdb20271854dd758cc6f9073543a554d`; baseline identity is `RaftNet8/benchmarks/baselines/hot-membership-2026-11-14.json`.
+
+User decision supersedes the previous adoption gate. Preserve the historical14/16 result and both FAIL observations; acceptance does not claim the original16/16 numeric target was achieved. The subsequent10-round lower-load repeat of5n16KiB Pipeline passes the working tolerances (fresh e06/current p99227.69/212.27ms), while absolute current p99 remains around its previous level. Future comparisons use fresh paired runs against this accepted hot-membership version. Remaining latency variability is recorded for future regression work, without reopening phase approvals.
 
 Preserve net8.0, DBreeze 1.142.2026.1016-beta, wire3/raft8-v4, all membership APIs and persistence/CRC guarantees. Never increase collection deadlines to improve benchmark scores. Preserve R18/R19 and do not rerun 8b991bd or DotNext.
 
