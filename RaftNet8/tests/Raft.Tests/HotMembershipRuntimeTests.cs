@@ -121,6 +121,71 @@ internal sealed class HotRuntimeCluster : IAsyncDisposable
 [Collection("OS process clusters")]
 public sealed class HotMembershipRuntimeTests
 {
+    [Theory]
+    [InlineData(3)]
+    [InlineData(5)]
+    public async Task Add_and_leader_removal_preserve_progress_under_continuous_proposals(int voters)
+    {
+        await using var cluster = new HotRuntimeCluster(voters);
+        await cluster.StartAsync();
+        await cluster.LeaderAsync();
+        var original = cluster.Hosts.ToDictionary(pair => pair.Key, pair => pair.Value.Node);
+        var joiningId = "n" + (voters + 1);
+        await cluster.StartNodeAsync(joiningId); // keep the host dictionary stable while producers enumerate it
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+        using var stopLoad = CancellationTokenSource.CreateLinkedTokenSource(deadline.Token);
+        long issued = 0, acknowledged = 0;
+        var producers = Task.WhenAll(Enumerable.Range(0, 4).Select(_ => Task.Run(Produce)));
+        try
+        {
+            await RuntimeCluster.EventuallyAsync(() => Interlocked.Read(ref acknowledged) >= 32);
+            var addId = Guid.NewGuid();
+            var added = await cluster.OnLeaderAsync(node => node.AddNodeAsync(cluster.Peer(joiningId), addId, deadline.Token), deadline.Token);
+            Assert.Equal(MembershipOperationStage.Completed, added.Stage);
+            var oldLeader = (await cluster.LeaderAsync()).Status.NodeId;
+            var removeId = Guid.NewGuid();
+            var removed = await cluster.OnLeaderAsync(node => node.RemoveNodeAsync(oldLeader, removeId, deadline.Token), deadline.Token);
+            Assert.Equal(MembershipOperationStage.Completed, removed.Stage);
+            var afterRemoval = Interlocked.Read(ref acknowledged);
+            await RuntimeCluster.EventuallyAsync(() => Interlocked.Read(ref acknowledged) >= afterRemoval + 32);
+            var leader = await cluster.LeaderAsync();
+            Assert.NotEqual(oldLeader, leader.Status.NodeId);
+            Assert.DoesNotContain(oldLeader, leader.Status.Configuration!.Voters);
+            Assert.Contains(joiningId, leader.Status.Configuration.Voters);
+            foreach (var pair in original) Assert.Same(pair.Value, cluster.Hosts[pair.Key].Node);
+        }
+        finally
+        {
+            stopLoad.Cancel();
+            await producers.WaitAsync(TimeSpan.FromSeconds(10));
+        }
+        await RuntimeCluster.EventuallyAsync(() => cluster.Hosts.Values.All(host => host.Node.Metrics.PendingProposals == 0));
+        var finalLeader = await cluster.LeaderAsync();
+        var fence = await finalLeader.ReadIndexAsync(deadline.Token);
+        var active = finalLeader.Status.Configuration!.Voters.Select(id => cluster.Hosts[id]).ToArray();
+        await RuntimeCluster.EventuallyAsync(() => active.All(host => host.Node.Status.LastApplied >= fence.Index));
+        var counts = active.Select(host => host.Application.Read(tx => tx.Select<string, long>("hot/values", "count").Value)).ToArray();
+        Assert.All(counts, count => Assert.Equal(counts[0], count));
+        // A retried/abandoned caller can have committed before losing leadership.
+        Assert.True(counts[0] >= Interlocked.Read(ref acknowledged));
+
+        async Task Produce()
+        {
+            while (!stopLoad.IsCancellationRequested)
+            {
+                try
+                {
+                    var leader = await cluster.LeaderAsync();
+                    await leader.ProposeAsync(BitConverter.GetBytes(Interlocked.Increment(ref issued)), stopLoad.Token);
+                    Interlocked.Increment(ref acknowledged);
+                }
+                catch (NotLeaderException) { }
+                catch (LeadershipTransferInProgressException) { }
+                catch (OperationCanceledException) when (stopLoad.IsCancellationRequested) { return; }
+            }
+        }
+    }
+
     [Fact]
     public async Task Offline_replica_learns_new_leaders_routes_after_both_original_contacts_are_retired()
     {

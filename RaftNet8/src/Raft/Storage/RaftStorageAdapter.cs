@@ -26,7 +26,7 @@ public sealed class RaftStorageAdapter : ILogStore, ILogStoreProgress
     public RaftStorageAdapter(IRaftStorage storage)
     {
         _storage = storage ?? throw new ArgumentNullException(nameof(storage));
-        _uncommittedBytes = Recover(storage).UncommittedBytes;
+        _uncommittedBytes = Uncommitted(storage);
         // DBreeze operations are synchronous, including durable flushes. Keep them
         // off the shared ThreadPool so blocked disks cannot starve Raft/TCP continuations.
         var stopped = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -102,6 +102,7 @@ public sealed class RaftStorageAdapter : ILogStore, ILogStoreProgress
     // V2 reads cached frontier metadata. The compatibility adapter scans only the uncommitted suffix.
     internal static long Uncommitted(IRaftStorage storage)
     {
+        if (storage is ILogStoreProgress progress) return progress.UncommittedBytes;
         if (storage is IExtendedRaftStorage extended) return extended.Recover().UncommittedBytes;
         long bytes = 0;
         var through = storage.LastIndex;

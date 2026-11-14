@@ -1,12 +1,29 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Diagnostics.Tracing;
 using Raft.Storage;
+using Raft.Transport;
 
 namespace Raft.Benchmarks;
 
 /// <summary>Opt-in diagnostic counters. Never enabled for uninstrumented capacity runs.</summary>
-internal sealed class ComparativeDiagnostics
+internal sealed class ComparativeDiagnostics : IDisposable
 {
+    private readonly QueueListener _queue;
+    internal ComparativeDiagnostics() => _queue = new(this);
+    public void Dispose() => _queue.Dispose();
+    private sealed class QueueListener(ComparativeDiagnostics owner) : EventListener
+    {
+        protected override void OnEventSourceCreated(EventSource source)
+        {
+            if (source.Name == "Raft.Net8.QueueDiagnostics") EnableEvents(source, EventLevel.Informational);
+        }
+        protected override void OnEventWritten(EventWrittenEventArgs args)
+        {
+            if (args.Payload is { Count: 3 } payload)
+                owner.Record(payload[0] + "/Queue/" + payload[1], (int)payload[2]!);
+        }
+    }
     private sealed class Count
     {
         internal long Calls, Units, Ticks, Max;
@@ -34,11 +51,23 @@ internal sealed class ComparativeDiagnostics
     }
     internal void Applied(string node, int count) => Record(node + "/ApplicationBatch", count);
     internal ILogStore Wrap(string node, ILogStore store) => new ObservedStore(this, node, store);
+    internal ITransport WrapTransport(string node, TcpRaftTransport transport) => new ObservedTransport(this, node, transport);
     internal object Snapshot() => _counts.OrderBy(kv => kv.Key).ToDictionary(kv => kv.Key, kv => new
     {
         kv.Value.Calls, kv.Value.Units, kv.Value.Max,
         TotalMilliseconds = kv.Value.Ticks * 1000d / Stopwatch.Frequency
     });
+
+    private sealed class ObservedTransport(ComparativeDiagnostics owner, string node, TcpRaftTransport transport) : IPeerDirectoryTransport
+    {
+        public IReadOnlyList<PeerDescriptor> BootstrapPeers => transport.BootstrapPeers;
+        public ValueTask UpdateDirectoryAsync(MembershipState state, CancellationToken token) => transport.UpdateDirectoryAsync(state, token);
+        public async ValueTask<RaftRpc> SendAsync(string peerId, RaftRpc request, CancellationToken token)
+        {
+            owner.Record(node + "/RPC/" + request.GetType().Name, request is AppendRequest append ? append.Entries.Count : 1);
+            return await transport.SendAsync(peerId, request, token);
+        }
+    }
 
     private sealed class ObservedStore(ComparativeDiagnostics owner, string node, ILogStore store) : ILogStore, ILogStoreProgress
     {

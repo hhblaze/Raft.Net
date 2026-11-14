@@ -1,0 +1,695 @@
+{
+  "Complete": true,
+  "Case": "long / 5 nodes / 16384 bytes / Pipeline",
+  "Measurements": 30,
+  "Samples": 122880,
+  "Rounds": 10,
+  "PerformanceAccepted": true,
+  "Summary": {
+    "e06": {
+      "Throughput": 706.8672578135128,
+      "P99": 227.6949,
+      "P50": 92.0081,
+      "Allocation": 652994.0,
+      "MinThroughput": 352.00441463036566,
+      "MaxThroughput": 779.9995620119647,
+      "Samples": 40960,
+      "DllSha256": "268C8F2A5DD121D2F65C44A60507413A974A57B22C7D5FD4BA0AE11C7AB856C9"
+    },
+    "before": {
+      "Throughput": 682.753928898042,
+      "P99": 215.2042,
+      "P50": 92.0972,
+      "Allocation": 653890.0,
+      "MinThroughput": 371.20455015577494,
+      "MaxThroughput": 755.3006022637185,
+      "Samples": 40960,
+      "DllSha256": "518E02CDE99E5B7C54CB5D540FEF6106822C392D9833C5E269C6FFF67107CA28"
+    },
+    "after": {
+      "Throughput": 680.7488355462834,
+      "P99": 212.2702,
+      "P50": 88.9432,
+      "Allocation": 652786.5,
+      "MinThroughput": 363.10792619834945,
+      "MaxThroughput": 796.3098039403999,
+      "Samples": 40960,
+      "DllSha256": "91FD2E34E822614B182E3257F797D0CAD29A0E856E4FF1318207EE8E87E3CF75"
+    }
+  },
+  "Ratios": {
+    "Throughput": 0.9630504568169997,
+    "P99": 0.932257156396564,
+    "Allocation": 0.9996822329148507
+  },
+  "Previous": {
+    "Series": "long",
+    "Case": "5-16384-Pipeline",
+    "Nodes": 5,
+    "Payload": 16384,
+    "Mode": "Pipeline",
+    "Rounds": 10,
+    "Variants": {
+      "e06": {
+        "Throughput": 817.5801460760351,
+        "P99": 101.6069,
+        "MedianRoundP99": 101.14179999999999,
+        "Allocation": 635698.5,
+        "MinThroughput": 780.1396556643358,
+        "MaxThroughput": 829.4936680329482,
+        "Samples": 40960
+      },
+      "before": {
+        "Throughput": 815.7696356600891,
+        "P99": 210.8699,
+        "MedianRoundP99": 104.58595,
+        "Allocation": 637536.5,
+        "MinThroughput": 361.2514498124897,
+        "MaxThroughput": 828.1350806390469,
+        "Samples": 40960
+      },
+      "after": {
+        "Throughput": 823.8061644938686,
+        "P99": 204.8946,
+        "MedianRoundP99": 101.88495,
+        "Allocation": 633592.5,
+        "MinThroughput": 368.7377708199329,
+        "MaxThroughput": 831.4321292574919,
+        "Samples": 40960
+      }
+    },
+    "Ratios": {
+      "Throughput": 1.0076151780932,
+      "P99": 2.0165421836509134,
+      "Allocation": 0.9966871087473071
+    },
+    "Pass": false
+  },
+  "PreviousReport": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\benchmarks\\results\\performance-recovery-e06-2026-11-14.json",
+  "PreviousReportSha256": "BFA0848108B480841D5F32445431921FB9DAE93E20CA25C535207E7E7FC781FD",
+  "Runs": [
+    {
+      "Variant": "e06",
+      "Round": 1,
+      "File": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\recheck-low-load-20261114-182029\\long-r1-5-16384-Pipeline-e06.json",
+      "Sha256": "1620EA93AE58565CEB2C73D5C1A3E199F844D601F90FA617674D52A94B69B515",
+      "Throughput": 779.9995620119647,
+      "P99": 105.8013,
+      "Allocation": 653322
+    },
+    {
+      "Variant": "before",
+      "Round": 1,
+      "File": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\recheck-low-load-20261114-182029\\long-r1-5-16384-Pipeline-before.json",
+      "Sha256": "86FDBC5D2F0C99A3FD154E02B488D90206A2DAACF1D222EE00FF00ECEAE93B45",
+      "Throughput": 742.8455234598089,
+      "P99": 114.8786,
+      "Allocation": 654087
+    },
+    {
+      "Variant": "after",
+      "Round": 1,
+      "File": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\recheck-low-load-20261114-182029\\long-r1-5-16384-Pipeline-after.json",
+      "Sha256": "1AC1A5E60028688A823548202CA803B569E8954F6B702B1F2111ABCC3F282AFE",
+      "Throughput": 760.0816969061409,
+      "P99": 111.808,
+      "Allocation": 647987
+    },
+    {
+      "Variant": "e06",
+      "Round": 2,
+      "File": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\recheck-low-load-20261114-182029\\long-r2-5-16384-Pipeline-e06.json",
+      "Sha256": "2B6FF2CF7010731FF91B4B795901EC996979BC33889F10C596036B5AE9859A93",
+      "Throughput": 738.7549893466697,
+      "P99": 115.7314,
+      "Allocation": 652666
+    },
+    {
+      "Variant": "after",
+      "Round": 2,
+      "File": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\recheck-low-load-20261114-182029\\long-r2-5-16384-Pipeline-after.json",
+      "Sha256": "F90B5BD810C6747A9E886521B24B584A268AD4509B851ED4054218DBB468916F",
+      "Throughput": 796.3098039403999,
+      "P99": 101.6562,
+      "Allocation": 653758
+    },
+    {
+      "Variant": "before",
+      "Round": 2,
+      "File": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\recheck-low-load-20261114-182029\\long-r2-5-16384-Pipeline-before.json",
+      "Sha256": "CFE9007EA45D2D046E53DF5A778D8874071DF51BABC79BBC7E0C2D8D939C67FB",
+      "Throughput": 414.2813125467685,
+      "P99": 237.2556,
+      "Allocation": 650423
+    },
+    {
+      "Variant": "after",
+      "Round": 3,
+      "File": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\recheck-low-load-20261114-182029\\long-r3-5-16384-Pipeline-after.json",
+      "Sha256": "9D7BB76C3CACE5244B3104637B475CFDC9724578F08B9DAF9476A161459A35B6",
+      "Throughput": 363.10792619834945,
+      "P99": 226.8351,
+      "Allocation": 652764
+    },
+    {
+      "Variant": "e06",
+      "Round": 3,
+      "File": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\recheck-low-load-20261114-182029\\long-r3-5-16384-Pipeline-e06.json",
+      "Sha256": "AE0A3BC403D00A516C83F18AE47630B4B8C54BCBDE65FB636CFF466AF862F19D",
+      "Throughput": 352.37058428944397,
+      "P99": 240.2829,
+      "Allocation": 639589
+    },
+    {
+      "Variant": "before",
+      "Round": 3,
+      "File": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\recheck-low-load-20261114-182029\\long-r3-5-16384-Pipeline-before.json",
+      "Sha256": "6E62C710E74DA8F89305176FEF4C815C1B29045AA6FC07290E3998F0E900713E",
+      "Throughput": 687.7027482774397,
+      "P99": 145.6818,
+      "Allocation": 641626
+    },
+    {
+      "Variant": "after",
+      "Round": 4,
+      "File": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\recheck-low-load-20261114-182029\\long-r4-5-16384-Pipeline-after.json",
+      "Sha256": "43CB58DBEAB759032C219B1C7A5B5700FB02013073095069B20E563577687700",
+      "Throughput": 767.846920118388,
+      "P99": 108.0953,
+      "Allocation": 654024
+    },
+    {
+      "Variant": "before",
+      "Round": 4,
+      "File": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\recheck-low-load-20261114-182029\\long-r4-5-16384-Pipeline-before.json",
+      "Sha256": "62C795D0490F1272311D54D6F556D875AE75B3269C94C68A6E8B0F3213D7B35A",
+      "Throughput": 749.6129775282648,
+      "P99": 118.8614,
+      "Allocation": 654422
+    },
+    {
+      "Variant": "e06",
+      "Round": 4,
+      "File": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\recheck-low-load-20261114-182029\\long-r4-5-16384-Pipeline-e06.json",
+      "Sha256": "CF1118E1B0A840E21320F8C5C80820ACF6D37A524AB8F54AD7BD0D4748702A11",
+      "Throughput": 771.9574689127865,
+      "P99": 106.4935,
+      "Allocation": 654705
+    },
+    {
+      "Variant": "before",
+      "Round": 5,
+      "File": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\recheck-low-load-20261114-182029\\long-r5-5-16384-Pipeline-before.json",
+      "Sha256": "F5390FE91913DC003168D06F60E5B13F473062DA9CE22104F085F68E7755B108",
+      "Throughput": 755.3006022637185,
+      "P99": 111.709,
+      "Allocation": 654295
+    },
+    {
+      "Variant": "after",
+      "Round": 5,
+      "File": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\recheck-low-load-20261114-182029\\long-r5-5-16384-Pipeline-after.json",
+      "Sha256": "7D9B1F8C57963A76D0FE396E54FFBA6A5722B0CF3E0630A363FDCC36C8AD6BF4",
+      "Throughput": 678.8437017897293,
+      "P99": 132.3028,
+      "Allocation": 658199
+    },
+    {
+      "Variant": "e06",
+      "Round": 5,
+      "File": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\recheck-low-load-20261114-182029\\long-r5-5-16384-Pipeline-e06.json",
+      "Sha256": "27949ADE1D3D5A62F55B44CB9E57F5E1E41386BC8CEE8864D8C30794088813A7",
+      "Throughput": 422.5646860030245,
+      "P99": 226.149,
+      "Allocation": 654616
+    },
+    {
+      "Variant": "before",
+      "Round": 6,
+      "File": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\recheck-low-load-20261114-182029\\long-r6-5-16384-Pipeline-before.json",
+      "Sha256": "E1ED68529E5160812E0E6522BAF6D1B0CB6D15D22007ACB49038AC191C647146",
+      "Throughput": 371.20455015577494,
+      "P99": 219.2608,
+      "Allocation": 655169
+    },
+    {
+      "Variant": "e06",
+      "Round": 6,
+      "File": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\recheck-low-load-20261114-182029\\long-r6-5-16384-Pipeline-e06.json",
+      "Sha256": "A732E318A627E9022AA8F0D3FC78906253EA8C0A760E2C18B65AA8E2D6143311",
+      "Throughput": 352.00441463036566,
+      "P99": 246.9215,
+      "Allocation": 653861
+    },
+    {
+      "Variant": "after",
+      "Round": 6,
+      "File": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\recheck-low-load-20261114-182029\\long-r6-5-16384-Pipeline-after.json",
+      "Sha256": "831BCCA1601DA7858FF08982475B29505457A207514489556B06D380D6D5205F",
+      "Throughput": 771.4431775126725,
+      "P99": 109.2975,
+      "Allocation": 647798
+    },
+    {
+      "Variant": "e06",
+      "Round": 7,
+      "File": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\recheck-low-load-20261114-182029\\long-r7-5-16384-Pipeline-e06.json",
+      "Sha256": "3497CB65513BD99286231FBBE6E062CEB7CAE965858E17D0801F265EC713CF66",
+      "Throughput": 716.5267095477114,
+      "P99": 127.8224,
+      "Allocation": 652633
+    },
+    {
+      "Variant": "before",
+      "Round": 7,
+      "File": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\recheck-low-load-20261114-182029\\long-r7-5-16384-Pipeline-before.json",
+      "Sha256": "58C8FAFB3C9C34DC91F5888C5328DA9E1183363E8CB0079570B23FDD5E44982D",
+      "Throughput": 677.8051095186443,
+      "P99": 130.15,
+      "Allocation": 648969
+    },
+    {
+      "Variant": "after",
+      "Round": 7,
+      "File": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\recheck-low-load-20261114-182029\\long-r7-5-16384-Pipeline-after.json",
+      "Sha256": "8BC031AE836375B7E2ED2AE8FCA1E9DA4C491F5E2ACCA276E8F4BD46DCCCA92D",
+      "Throughput": 678.0825461204979,
+      "P99": 155.2898,
+      "Allocation": 652809
+    },
+    {
+      "Variant": "e06",
+      "Round": 8,
+      "File": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\recheck-low-load-20261114-182029\\long-r8-5-16384-Pipeline-e06.json",
+      "Sha256": "AE6938F63BA5F8B48D55A93C511EB5146E7BC87B842F32116D9C5B42EE778627",
+      "Throughput": 696.4552620587208,
+      "P99": 162.4055,
+      "Allocation": 659406
+    },
+    {
+      "Variant": "after",
+      "Round": 8,
+      "File": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\recheck-low-load-20261114-182029\\long-r8-5-16384-Pipeline-after.json",
+      "Sha256": "59943A2A7CBA1A6F2504353E23FBC69DF39CD9E0EAF005E66D88091F2BC0722A",
+      "Throughput": 621.561862651551,
+      "P99": 231.1862,
+      "Allocation": 656171
+    },
+    {
+      "Variant": "before",
+      "Round": 8,
+      "File": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\recheck-low-load-20261114-182029\\long-r8-5-16384-Pipeline-before.json",
+      "Sha256": "E940E3673CFF2E7070BF87E9BC2CD9E46AA83D2285BABCF7EE525E6E1D0B2FC4",
+      "Throughput": 676.3620368490823,
+      "P99": 147.1198,
+      "Allocation": 653693
+    },
+    {
+      "Variant": "after",
+      "Round": 9,
+      "File": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\recheck-low-load-20261114-182029\\long-r9-5-16384-Pipeline-after.json",
+      "Sha256": "4CDE04779D39E2EB970985A0132739325B330FCEF11C88271B444FC7998ECD47",
+      "Throughput": 682.6539693028376,
+      "P99": 134.2253,
+      "Allocation": 652502
+    },
+    {
+      "Variant": "e06",
+      "Round": 9,
+      "File": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\recheck-low-load-20261114-182029\\long-r9-5-16384-Pipeline-e06.json",
+      "Sha256": "ADA004A119F8548C2585624C8DE8229B45736B00DDCF6A5BD725C54483C00E4A",
+      "Throughput": 712.414297438361,
+      "P99": 119.6472,
+      "Allocation": 652098
+    },
+    {
+      "Variant": "before",
+      "Round": 9,
+      "File": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\recheck-low-load-20261114-182029\\long-r9-5-16384-Pipeline-before.json",
+      "Sha256": "6E0680F8F34C385B5BDC032D1F04F50C92BE9AE90E94633D286002925CD4A7CE",
+      "Throughput": 617.7667391522023,
+      "P99": 210.1245,
+      "Allocation": 655152
+    },
+    {
+      "Variant": "after",
+      "Round": 10,
+      "File": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\recheck-low-load-20261114-182029\\long-r10-5-16384-Pipeline-after.json",
+      "Sha256": "08938BAD7217849D3125C15751B08D270F13629C5692BFAB6A7EE16AAB335454",
+      "Throughput": 651.3885724625417,
+      "P99": 134.0041,
+      "Allocation": 638119
+    },
+    {
+      "Variant": "before",
+      "Round": 10,
+      "File": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\recheck-low-load-20261114-182029\\long-r10-5-16384-Pipeline-before.json",
+      "Sha256": "2B4FBF7D4A1105944E5A466C4A3F9A82FCE14DB8C95E865882AC9A9FF538B90A",
+      "Throughput": 743.6101404531777,
+      "P99": 113.5864,
+      "Allocation": 648366
+    },
+    {
+      "Variant": "e06",
+      "Round": 10,
+      "File": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\recheck-low-load-20261114-182029\\long-r10-5-16384-Pipeline-e06.json",
+      "Sha256": "026FF8920BFCF50E72B65277838C3C4DBF830ABDB0A1029BE591222CB4543BD6",
+      "Throughput": 701.3202181886645,
+      "P99": 130.7173,
+      "Allocation": 640964
+    }
+  ],
+  "Manifest": {
+    "complete": true,
+    "config": {
+      "data_root": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\winner\\data",
+      "variants": {
+        "e06": {
+          "dll": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\hot-membership\\baseline-runtime\\comparison\\Raft.Comparison.dll",
+          "cwd": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\hot-membership\\performance-delivery\\baseline-cwd",
+          "wire": 2,
+          "binary_sha256": {
+            "DBreeze.dll": "A4FD6D59492DE81BBAB6C22A67B69F741B1E6C9906D23EE7BC68EA602FE90FDA",
+            "DotNext.dll": "3474AB0D04CCCCAD5728CBBD31EDAF47D2DFC33D42B974E8C62862FC95BDAA8A",
+            "DotNext.IO.dll": "5C933A14CF8BBA2B46A271DECA6249A91799FFF84B871F840121B09E9DC0F825",
+            "DotNext.Net.Cluster.dll": "9CDE6B4E5736B3622AA1913140E00773C61904B115FAC926F221040B0B2A3A3F",
+            "DotNext.Threading.dll": "4E253E7D80CA61CC1F0C5624278D7504EB5409F881DE5FB872738522F7C736A0",
+            "DotNext.Unsafe.dll": "FD7F829F90613B9629AC08642D6AB76AA9872BB36F09A19123EFE64A4BD3731F",
+            "Microsoft.AspNetCore.Connections.Abstractions.dll": "3829BA9D6D1A82728243B9EE731160AEE38E889F6660310700C26855F1D4FFC0",
+            "Microsoft.Extensions.DependencyInjection.Abstractions.dll": "67FA4325000DB017DC0C35829B416F024F042D24EFB868BCF17A895EE6500A93",
+            "Microsoft.Extensions.Features.dll": "183807581237A8AFC7A1A116FC50B9ECDD49A49D66778E051C29649B4682063F",
+            "Microsoft.Extensions.Logging.Abstractions.dll": "BB853130F5AFAF335BE7858D661F8212EC653835100F5A4E3AA2C66A4D4F685D",
+            "Raft.Baseline.Net8.dll": "F8629FDE220CCD953E09AEB69B6EC96324BB9B8977FECD51B8C4485458106D0F",
+            "Raft.Comparison.dll": "D9FFAA7E1F9C45AA307F1FB46C865F007E64933D4A5BEFB5F5FE142154321B3F",
+            "Raft.Net8.dll": "268C8F2A5DD121D2F65C44A60507413A974A57B22C7D5FD4BA0AE11C7AB856C9",
+            "System.IO.Hashing.dll": "53726755857B538B3676CABC39989874BE072028FD5B39360A7580D73A14E562",
+            "System.IO.Pipelines.dll": "86D0F5BFAAF1B2AB19331B543A736D87B5B58E72158F4DED282122B2E6665F83"
+          },
+          "source_sha256": "DB7D70388DE61FDDA8F57156EA953C442FB634DFB04477DA10D5345B82D4801A",
+          "harness_sha256": "E5E8A7F152D80C6606F29C55DBB612B1B0CFF3EAF5E98B7722A335782F3FD4C8"
+        },
+        "before-v3": {
+          "dll": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\before-runtime\\Raft.Comparison.dll",
+          "cwd": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\before-cwd",
+          "wire": 2
+        },
+        "before": {
+          "dll": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\before-runtime\\Raft.Comparison.dll",
+          "cwd": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\before-cwd",
+          "wire": 3,
+          "binary_sha256": {
+            "DBreeze.dll": "A4FD6D59492DE81BBAB6C22A67B69F741B1E6C9906D23EE7BC68EA602FE90FDA",
+            "DotNext.dll": "3474AB0D04CCCCAD5728CBBD31EDAF47D2DFC33D42B974E8C62862FC95BDAA8A",
+            "DotNext.IO.dll": "5C933A14CF8BBA2B46A271DECA6249A91799FFF84B871F840121B09E9DC0F825",
+            "DotNext.Net.Cluster.dll": "9CDE6B4E5736B3622AA1913140E00773C61904B115FAC926F221040B0B2A3A3F",
+            "DotNext.Threading.dll": "4E253E7D80CA61CC1F0C5624278D7504EB5409F881DE5FB872738522F7C736A0",
+            "DotNext.Unsafe.dll": "FD7F829F90613B9629AC08642D6AB76AA9872BB36F09A19123EFE64A4BD3731F",
+            "Microsoft.AspNetCore.Connections.Abstractions.dll": "3829BA9D6D1A82728243B9EE731160AEE38E889F6660310700C26855F1D4FFC0",
+            "Microsoft.Extensions.DependencyInjection.Abstractions.dll": "67FA4325000DB017DC0C35829B416F024F042D24EFB868BCF17A895EE6500A93",
+            "Microsoft.Extensions.Features.dll": "183807581237A8AFC7A1A116FC50B9ECDD49A49D66778E051C29649B4682063F",
+            "Microsoft.Extensions.Logging.Abstractions.dll": "BB853130F5AFAF335BE7858D661F8212EC653835100F5A4E3AA2C66A4D4F685D",
+            "Raft.Baseline.Net8.dll": "9C3CA7B580CD35ED62F2E5725AF4A9709D30B15AE9DA575CF28BB9D775E92A94",
+            "Raft.Comparison.dll": "08C34181E59FEB3885F40217511430859AEA7BABE5C923B5522ADB513C1F8019",
+            "Raft.Net8.dll": "518E02CDE99E5B7C54CB5D540FEF6106822C392D9833C5E269C6FFF67107CA28",
+            "System.IO.Hashing.dll": "53726755857B538B3676CABC39989874BE072028FD5B39360A7580D73A14E562",
+            "System.IO.Pipelines.dll": "86D0F5BFAAF1B2AB19331B543A736D87B5B58E72158F4DED282122B2E6665F83"
+          },
+          "source_sha256": "AF2BD44F100348AF70B2369B0573BCFEBC66E9D63B2CDBD28069F6C57B698E8C",
+          "harness_sha256": "DE18D7BD7442251D569A1FBBECEA394152AFED34DB3E8C39064F749D9A3D0360"
+        },
+        "after": {
+          "dll": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\release-runtime\\Raft.Comparison.dll",
+          "cwd": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\performance-recovery\\release-cwd",
+          "wire": 3,
+          "binary_sha256": {
+            "DBreeze.dll": "A4FD6D59492DE81BBAB6C22A67B69F741B1E6C9906D23EE7BC68EA602FE90FDA",
+            "DotNext.dll": "3474AB0D04CCCCAD5728CBBD31EDAF47D2DFC33D42B974E8C62862FC95BDAA8A",
+            "DotNext.IO.dll": "5C933A14CF8BBA2B46A271DECA6249A91799FFF84B871F840121B09E9DC0F825",
+            "DotNext.Net.Cluster.dll": "9CDE6B4E5736B3622AA1913140E00773C61904B115FAC926F221040B0B2A3A3F",
+            "DotNext.Threading.dll": "4E253E7D80CA61CC1F0C5624278D7504EB5409F881DE5FB872738522F7C736A0",
+            "DotNext.Unsafe.dll": "FD7F829F90613B9629AC08642D6AB76AA9872BB36F09A19123EFE64A4BD3731F",
+            "Microsoft.AspNetCore.Connections.Abstractions.dll": "3829BA9D6D1A82728243B9EE731160AEE38E889F6660310700C26855F1D4FFC0",
+            "Microsoft.Extensions.DependencyInjection.Abstractions.dll": "67FA4325000DB017DC0C35829B416F024F042D24EFB868BCF17A895EE6500A93",
+            "Microsoft.Extensions.Features.dll": "183807581237A8AFC7A1A116FC50B9ECDD49A49D66778E051C29649B4682063F",
+            "Microsoft.Extensions.Logging.Abstractions.dll": "BB853130F5AFAF335BE7858D661F8212EC653835100F5A4E3AA2C66A4D4F685D",
+            "Raft.Baseline.Net8.dll": "266E820FD874FED0A56C9A673617B5DA80BC73F763A0920A4ED486F52739BDDF",
+            "Raft.Comparison.dll": "16B7C907141F9117DDE5FFB9D8BCEB36C69794366F5328E5EE99DBABBF831DB2",
+            "Raft.Net8.dll": "91FD2E34E822614B182E3257F797D0CAD29A0E856E4FF1318207EE8E87E3CF75",
+            "System.IO.Hashing.dll": "53726755857B538B3676CABC39989874BE072028FD5B39360A7580D73A14E562",
+            "System.IO.Pipelines.dll": "86D0F5BFAAF1B2AB19331B543A736D87B5B58E72158F4DED282122B2E6665F83"
+          },
+          "source_sha256": "D798B6F09D33E3FB29E265B79953BFC2AEBC021A099FFB65846AC79EB6291E55",
+          "harness_sha256": "1C07A04DD7B2D6AF51065AFDB070C000595570A2EC16F5D35868E095A76A8F45"
+        }
+      }
+    },
+    "config_sha256": "CB255FB37A925BF43E6E63544681D2982293D9287E9B0322308483FC216D6631",
+    "runs": [
+      {
+        "variant": "e06",
+        "series": "long",
+        "case": "5-16384-Pipeline",
+        "round": 1,
+        "file": "long-r1-5-16384-Pipeline-e06.json",
+        "sha256": "1620EA93AE58565CEB2C73D5C1A3E199F844D601F90FA617674D52A94B69B515"
+      },
+      {
+        "variant": "before",
+        "series": "long",
+        "case": "5-16384-Pipeline",
+        "round": 1,
+        "file": "long-r1-5-16384-Pipeline-before.json",
+        "sha256": "86FDBC5D2F0C99A3FD154E02B488D90206A2DAACF1D222EE00FF00ECEAE93B45"
+      },
+      {
+        "variant": "after",
+        "series": "long",
+        "case": "5-16384-Pipeline",
+        "round": 1,
+        "file": "long-r1-5-16384-Pipeline-after.json",
+        "sha256": "1AC1A5E60028688A823548202CA803B569E8954F6B702B1F2111ABCC3F282AFE"
+      },
+      {
+        "variant": "e06",
+        "series": "long",
+        "case": "5-16384-Pipeline",
+        "round": 2,
+        "file": "long-r2-5-16384-Pipeline-e06.json",
+        "sha256": "2B6FF2CF7010731FF91B4B795901EC996979BC33889F10C596036B5AE9859A93"
+      },
+      {
+        "variant": "after",
+        "series": "long",
+        "case": "5-16384-Pipeline",
+        "round": 2,
+        "file": "long-r2-5-16384-Pipeline-after.json",
+        "sha256": "F90B5BD810C6747A9E886521B24B584A268AD4509B851ED4054218DBB468916F"
+      },
+      {
+        "variant": "before",
+        "series": "long",
+        "case": "5-16384-Pipeline",
+        "round": 2,
+        "file": "long-r2-5-16384-Pipeline-before.json",
+        "sha256": "CFE9007EA45D2D046E53DF5A778D8874071DF51BABC79BBC7E0C2D8D939C67FB"
+      },
+      {
+        "variant": "after",
+        "series": "long",
+        "case": "5-16384-Pipeline",
+        "round": 3,
+        "file": "long-r3-5-16384-Pipeline-after.json",
+        "sha256": "9D7BB76C3CACE5244B3104637B475CFDC9724578F08B9DAF9476A161459A35B6"
+      },
+      {
+        "variant": "e06",
+        "series": "long",
+        "case": "5-16384-Pipeline",
+        "round": 3,
+        "file": "long-r3-5-16384-Pipeline-e06.json",
+        "sha256": "AE0A3BC403D00A516C83F18AE47630B4B8C54BCBDE65FB636CFF466AF862F19D"
+      },
+      {
+        "variant": "before",
+        "series": "long",
+        "case": "5-16384-Pipeline",
+        "round": 3,
+        "file": "long-r3-5-16384-Pipeline-before.json",
+        "sha256": "6E62C710E74DA8F89305176FEF4C815C1B29045AA6FC07290E3998F0E900713E"
+      },
+      {
+        "variant": "after",
+        "series": "long",
+        "case": "5-16384-Pipeline",
+        "round": 4,
+        "file": "long-r4-5-16384-Pipeline-after.json",
+        "sha256": "43CB58DBEAB759032C219B1C7A5B5700FB02013073095069B20E563577687700"
+      },
+      {
+        "variant": "before",
+        "series": "long",
+        "case": "5-16384-Pipeline",
+        "round": 4,
+        "file": "long-r4-5-16384-Pipeline-before.json",
+        "sha256": "62C795D0490F1272311D54D6F556D875AE75B3269C94C68A6E8B0F3213D7B35A"
+      },
+      {
+        "variant": "e06",
+        "series": "long",
+        "case": "5-16384-Pipeline",
+        "round": 4,
+        "file": "long-r4-5-16384-Pipeline-e06.json",
+        "sha256": "CF1118E1B0A840E21320F8C5C80820ACF6D37A524AB8F54AD7BD0D4748702A11"
+      },
+      {
+        "variant": "before",
+        "series": "long",
+        "case": "5-16384-Pipeline",
+        "round": 5,
+        "file": "long-r5-5-16384-Pipeline-before.json",
+        "sha256": "F5390FE91913DC003168D06F60E5B13F473062DA9CE22104F085F68E7755B108"
+      },
+      {
+        "variant": "after",
+        "series": "long",
+        "case": "5-16384-Pipeline",
+        "round": 5,
+        "file": "long-r5-5-16384-Pipeline-after.json",
+        "sha256": "7D9B1F8C57963A76D0FE396E54FFBA6A5722B0CF3E0630A363FDCC36C8AD6BF4"
+      },
+      {
+        "variant": "e06",
+        "series": "long",
+        "case": "5-16384-Pipeline",
+        "round": 5,
+        "file": "long-r5-5-16384-Pipeline-e06.json",
+        "sha256": "27949ADE1D3D5A62F55B44CB9E57F5E1E41386BC8CEE8864D8C30794088813A7"
+      },
+      {
+        "variant": "before",
+        "series": "long",
+        "case": "5-16384-Pipeline",
+        "round": 6,
+        "file": "long-r6-5-16384-Pipeline-before.json",
+        "sha256": "E1ED68529E5160812E0E6522BAF6D1B0CB6D15D22007ACB49038AC191C647146"
+      },
+      {
+        "variant": "e06",
+        "series": "long",
+        "case": "5-16384-Pipeline",
+        "round": 6,
+        "file": "long-r6-5-16384-Pipeline-e06.json",
+        "sha256": "A732E318A627E9022AA8F0D3FC78906253EA8C0A760E2C18B65AA8E2D6143311"
+      },
+      {
+        "variant": "after",
+        "series": "long",
+        "case": "5-16384-Pipeline",
+        "round": 6,
+        "file": "long-r6-5-16384-Pipeline-after.json",
+        "sha256": "831BCCA1601DA7858FF08982475B29505457A207514489556B06D380D6D5205F"
+      },
+      {
+        "variant": "e06",
+        "series": "long",
+        "case": "5-16384-Pipeline",
+        "round": 7,
+        "file": "long-r7-5-16384-Pipeline-e06.json",
+        "sha256": "3497CB65513BD99286231FBBE6E062CEB7CAE965858E17D0801F265EC713CF66"
+      },
+      {
+        "variant": "before",
+        "series": "long",
+        "case": "5-16384-Pipeline",
+        "round": 7,
+        "file": "long-r7-5-16384-Pipeline-before.json",
+        "sha256": "58C8FAFB3C9C34DC91F5888C5328DA9E1183363E8CB0079570B23FDD5E44982D"
+      },
+      {
+        "variant": "after",
+        "series": "long",
+        "case": "5-16384-Pipeline",
+        "round": 7,
+        "file": "long-r7-5-16384-Pipeline-after.json",
+        "sha256": "8BC031AE836375B7E2ED2AE8FCA1E9DA4C491F5E2ACCA276E8F4BD46DCCCA92D"
+      },
+      {
+        "variant": "e06",
+        "series": "long",
+        "case": "5-16384-Pipeline",
+        "round": 8,
+        "file": "long-r8-5-16384-Pipeline-e06.json",
+        "sha256": "AE6938F63BA5F8B48D55A93C511EB5146E7BC87B842F32116D9C5B42EE778627"
+      },
+      {
+        "variant": "after",
+        "series": "long",
+        "case": "5-16384-Pipeline",
+        "round": 8,
+        "file": "long-r8-5-16384-Pipeline-after.json",
+        "sha256": "59943A2A7CBA1A6F2504353E23FBC69DF39CD9E0EAF005E66D88091F2BC0722A"
+      },
+      {
+        "variant": "before",
+        "series": "long",
+        "case": "5-16384-Pipeline",
+        "round": 8,
+        "file": "long-r8-5-16384-Pipeline-before.json",
+        "sha256": "E940E3673CFF2E7070BF87E9BC2CD9E46AA83D2285BABCF7EE525E6E1D0B2FC4"
+      },
+      {
+        "variant": "after",
+        "series": "long",
+        "case": "5-16384-Pipeline",
+        "round": 9,
+        "file": "long-r9-5-16384-Pipeline-after.json",
+        "sha256": "4CDE04779D39E2EB970985A0132739325B330FCEF11C88271B444FC7998ECD47"
+      },
+      {
+        "variant": "e06",
+        "series": "long",
+        "case": "5-16384-Pipeline",
+        "round": 9,
+        "file": "long-r9-5-16384-Pipeline-e06.json",
+        "sha256": "ADA004A119F8548C2585624C8DE8229B45736B00DDCF6A5BD725C54483C00E4A"
+      },
+      {
+        "variant": "before",
+        "series": "long",
+        "case": "5-16384-Pipeline",
+        "round": 9,
+        "file": "long-r9-5-16384-Pipeline-before.json",
+        "sha256": "6E0680F8F34C385B5BDC032D1F04F50C92BE9AE90E94633D286002925CD4A7CE"
+      },
+      {
+        "variant": "after",
+        "series": "long",
+        "case": "5-16384-Pipeline",
+        "round": 10,
+        "file": "long-r10-5-16384-Pipeline-after.json",
+        "sha256": "08938BAD7217849D3125C15751B08D270F13629C5692BFAB6A7EE16AAB335454"
+      },
+      {
+        "variant": "before",
+        "series": "long",
+        "case": "5-16384-Pipeline",
+        "round": 10,
+        "file": "long-r10-5-16384-Pipeline-before.json",
+        "sha256": "2B4FBF7D4A1105944E5A466C4A3F9A82FCE14DB8C95E865882AC9A9FF538B90A"
+      },
+      {
+        "variant": "e06",
+        "series": "long",
+        "case": "5-16384-Pipeline",
+        "round": 10,
+        "file": "long-r10-5-16384-Pipeline-e06.json",
+        "sha256": "026FF8920BFCF50E72B65277838C3C4DBF830ABDB0A1029BE591222CB4543BD6"
+      }
+    ],
+    "diagnose": false,
+    "hot_add": false,
+    "fresh_process_per_measurement": true,
+    "concurrency": 64,
+    "business_sha256": "EE235C18ADEC90101BEB30DD4188FDBA22DE970C9C58749BB270DAAA06DDEA7F"
+  }
+}

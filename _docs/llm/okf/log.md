@@ -1,5 +1,9 @@
 # Work log
 
+## 2026-11-14
+
+- **Performance recovery, spec031 remains open**: fixed proposal-ready reservation/deadline ownership, reused one timer, avoided full recovery DTOs for cached progress and linked CTS for immediate admission.410 tests, HumanTest,29 Dry,36 regression measurements and4 completed full-Add workloads pass. Final DLL91FD2E34… /source16690FDA…;300 fresh e06/R19/current measurements,691200 latencies,14/16 all-metric gates. Throughput/allocation pass16/16; two5-voter p99 failures (+13.09%,+101.65%) and smaller Pipeline throughput losses stay explicit. Offline HTML/CSV/JSON and independent raw/numeric/browser QA pass. All rejected candidates/rounds preserved; profiling did not uniquely attribute the residual tail. No phase questions, commit or publication. See [memory](performance-recovery.md).
+
 ## 2026-11-13
 
 - **Human books**: delivered offline English/Russian HTML books under RaftNet8/docs/human/tutorial/,26 chapters each, compiled source-backed C# companion, three-process startup and explicit disk/RAM, read/retry, snapshots, membership, security, recovery and buffer-limit explanations. Fixed the new sample's redirected Windows Cyrillic input with explicit UTF-8;13 process checks/11 starts pass, including abrupt leader death, minority rejection, snapshot/disk restart/dedup and memory reset. Main/companion Release builds,342 existing tests (with OS certificate-key access), HumanTest scenario and independent source/default/link/regeneration plus offline/mobile/no-JS/print browser checks pass. Current print QA is51/54 pages with no blank/clipped-text pages; selected rendered pages visually reviewed. Corrected stale4x8ms batching and modern wire-budget prose. All generated evidence is RaftNet8/.artifacts/human-tutorial/; no consensus/storage behavior, commits or pushes. See spec028 and human-tutorial memory.

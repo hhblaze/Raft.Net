@@ -11,7 +11,7 @@ public enum PersistenceBoundary { BeforeTransaction, AfterLogMutation, BeforeCom
 /// Checked DBreeze store with explicit v2 separate tables or v3 prefixed single-table layout.
 /// The durable frontier is committed atomically with log/config changes. Layout changes require offline copy migration.
 /// </summary>
-public sealed partial class DBreezeLogStorage : IExtendedRaftStorage, IRaftStorageIdentity
+public sealed partial class DBreezeLogStorage : IExtendedRaftStorage, IRaftStorageIdentity, ILogStoreProgress
 {
     public const string MetaTable = "raft8/v2/meta";
     public const string LogTable = "raft8/v2/log";
@@ -281,6 +281,19 @@ public sealed partial class DBreezeLogStorage : IExtendedRaftStorage, IRaftStora
             if (entry.Kind != LogEntryKind.Configuration ||
                 !StorageCodecV2.Open(row.Value).SequenceEqual(ConfigValue(entry)))
                 throw new InvalidDataException("Configuration index differs from the log.");
+        }
+    }
+
+    /// <summary>Cached durable frontier; does not materialize recovery or membership state.</summary>
+    public long UncommittedBytes
+    {
+        get
+        {
+            lock (_gate)
+            {
+                Check();
+                return _frontier.TotalBytes - _frontier.CommittedBytes;
+            }
         }
     }
 

@@ -68,6 +68,7 @@ internal static class ThreeWayRunner
         Directory.CreateDirectory(parent);
         Directory.CreateDirectory(Path.GetDirectoryName(output)!);
         var results = new List<Result>();
+        var trace = MeasurementTrace.Log; // initialize outside warmup/timed/allocation fences
         var started = DateTimeOffset.UtcNow;
         var hashes = new Dictionary<string, string>();
         foreach (var name in new[] { "Raft.Net8.dll", "Raft.Baseline.Net8.dll", "DotNext.Net.Cluster.dll", "Raft.Comparison.dll" })
@@ -130,7 +131,7 @@ internal static class ThreeWayRunner
                     string? root = null;
                     var success = false;
                     object? diagnostics = null;
-                    var profile = args.Contains("--diagnose") ? new ComparativeDiagnostics() : null;
+                    using var profile = args.Contains("--diagnose") ? new ComparativeDiagnostics() : null;
                     try
                     {
                         if (configuration.Implementation == "DotNext")
@@ -149,6 +150,7 @@ internal static class ThreeWayRunner
                                 UseHotMembership = args.Contains("--hot-membership") || args.Contains("--hot-add"),
                                 CurrentProposalBatchBytes = args.Contains("--proposal-batch-bytes") ? Count("--proposal-batch-bytes", 262144) : null,
                                 DecorateLogStore = profile is null ? null : profile.Wrap,
+                                DecorateTransport = profile is null ? null : profile.WrapTransport,
                                 AppliedBatch = profile is null ? null : profile.Applied
                             };
                             root = ours.DataDirectory;
@@ -166,8 +168,10 @@ internal static class ThreeWayRunner
                         }
                         profile?.Begin();
                         var latencies = new double[operations];
+                        var runtimeBefore = profile is null ? null : RuntimeSample.Capture();
                         var allocated = GC.GetTotalAllocatedBytes(precise: true);
                         var timer = Stopwatch.StartNew();
+                        if (trace.IsEnabled()) trace.Start(configuration.ToString(), round + 1, Stopwatch.GetTimestamp());
                         var membership = args.Contains("--hot-add") ? TimedAddAsync(ours!, deadline.Token) : null;
                         await WorkloadAsync(Propose, operations, concurrency, latencies, deadline.Token);
                         var commandMilliseconds = timer.Elapsed.TotalMilliseconds;
@@ -181,11 +185,13 @@ internal static class ThreeWayRunner
                                 IncludesWaitingForFullAdd = true };
                         }
                         timer.Stop();
+                        if (trace.IsEnabled()) trace.Stop(Stopwatch.GetTimestamp());
                         allocated = GC.GetTotalAllocatedBytes(precise: true) - allocated;
                         profile?.End();
+                        var runtimeAfter = profile is null ? null : RuntimeSample.Capture();
                         await Validate();
                         if (dotnext is not null) diagnostics = dotnext.Diagnostics;
-                        else if (profile is not null) diagnostics = profile.Snapshot();
+                        else if (profile is not null) diagnostics = new { Counters = profile.Snapshot(), RuntimeBefore = runtimeBefore, RuntimeAfter = runtimeAfter };
                         var sorted = latencies.Order().ToArray();
                         var result = new Result(configuration, round + 1, operations, concurrency, timer.Elapsed.TotalSeconds,
                             operations / timer.Elapsed.TotalSeconds, sorted[(int)Math.Ceiling(operations * .5) - 1],

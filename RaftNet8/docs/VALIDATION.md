@@ -2,6 +2,18 @@
 
 Local host: Windows x64, .NET 8. Raw test/coverage/simulation/benchmark evidence is retained under the ignored `.artifacts/autonomous/` directory. The active GitHub Actions workflow was removed at the user's request; remote Windows/Linux CI has not been executed here. Local validation commands remain available. These results are regression evidence, not formal verification or a hardware power-loss guarantee.
 
+## Runtime performance recovery,2026-11-14
+
+Final candidate: **410/410 tests**, zero skips,2m31s ([TRX](../.artifacts/performance-recovery/validation/admission-full.trx)); zero-warning locked restore/Release build, [HumanTest](../.artifacts/performance-recovery/validation/admission-human.log) and [29 BDN Dry cases](../.artifacts/performance-recovery/validation/admission-bdn.log) pass. Four producers continue through full Add and automatic current-leader removal on3/5 voters, using stable retry operation IDs. Existing node objects remain and active durable applications agree.
+
+Live/tested/frozen DLL: **91FD2E34E822614B182E3257F797D0CAD29A0E856E4FF1318207EE8E87E3CF75**. Source ZIP: **16690FDAB4563C603FC91EC9B41FAB4F2BCAC0A83E545E0046D33828D7F3E07F**. New tests also cover cached durable byte progress through commit/rollback/reopen in all layouts, zero-allocation polling, and cancellation of an entire queued wave followed by further progress.
+
+The [HTML comparison](../benchmarks/results/performance-recovery-e06-2026-11-14.html) **does not meet full performance readiness**:14/16 cells pass all three tolerances,300 fresh measurements,691200 latencies,5–10 paired rounds. Throughput/allocation pass16/16; two p99 failures remain after ten pairs: short5n64B Batched+13.09%, long5n16KiB Pipeline+101.65%. Smaller throughput losses−3.63%/−3.85% remain visible; tolerance alone does not establish absence of systematic loss.
+
+All36 final single-voter/unbatched controls completed; all four full Add workloads finished before ordinary commands ended. Numeric QA independently checked300 raw hashes,48 aggregates,16 decisions and all691200 latencies. Offline SVG/filter/desktop/mobile/print/noJS QA passed and screenshots were visually inspected. Final-source profiling with exact QPC fences is separate from capacity timing and did not reproduce the long slow p99 period. Its unique cause remains unresolved.
+
+Earlier candidates remain historical evidence: reservation/frontier408-test candidate,360 observations/10-of16 cells (DLL752F8967…); timer-only410-test candidate,345 observations/12-of16 (DLL2007AE4C…). Their source/runtimes/raw data remain under `.artifacts/performance-recovery/`; timer report is archived in timer-delivery-report. R18/R19 are unchanged; no8b991bd/DotNext rerun, commit, push or publication.
+
 ## Hot membership,2026-11-14
 
 The wire3/raft8-v4 candidate passed **402/402 tests**, zero skips, in2m18s: [TRX](../.artifacts/hot-membership/tests/final-validated-full.trx). Release solution build passed with zero warnings/errors. Restore used cached pinned packages with process-only NuGetAudit=false because the vulnerability feed was inaccessible; repository audit policy was not changed. DBreeze remains1.142.2026.1016-beta and the target remainsnet8.0.

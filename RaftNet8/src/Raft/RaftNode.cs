@@ -269,8 +269,10 @@ public sealed partial class RaftNode : IAsyncDisposable
 
     private async Task<ProposalResult> EnqueueProposalAsync(ReadOnlyMemory<byte> command, bool isNoOp, CancellationToken cancellationToken)
     {
-        using var enqueueToken = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _lifetime.Token);
-        await _admission.WaitAsync(enqueueToken.Token).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+        _lifetime.Token.ThrowIfCancellationRequested();
+        if (!_admission.Wait(0))
+            await WaitForProposalAdmissionAsync(cancellationToken).ConfigureAwait(false);
         Interlocked.Increment(ref _admitted);
         ProposalWork proposal;
         try { proposal = new ProposalWork(command.ToArray(), isNoOp, cancellationToken); }
@@ -279,7 +281,8 @@ public sealed partial class RaftNode : IAsyncDisposable
         {
             lock (_proposalGate)
             {
-                enqueueToken.Token.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
+                _lifetime.Token.ThrowIfCancellationRequested();
                 proposal.QueuedAt = System.Diagnostics.Stopwatch.GetTimestamp();
                 // Admission counts queued plus in-flight commands, so an admitted
                 // command always fits this equally bounded channel unless closed.
@@ -296,6 +299,12 @@ public sealed partial class RaftNode : IAsyncDisposable
         _proposalChanges.Writer.TryWrite(0);
         // Cancellation stops waiting; it cannot roll back a command that has reached the durable log.
         return await proposal.Completion.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    private async ValueTask WaitForProposalAdmissionAsync(CancellationToken token)
+    {
+        using var stop = CancellationTokenSource.CreateLinkedTokenSource(token, _lifetime.Token);
+        await _admission.WaitAsync(stop.Token).ConfigureAwait(false);
     }
 
     /// <summary>Connect a transport's inbound handler here. Storage is durable before the reply completes.</summary>
@@ -375,6 +384,12 @@ public sealed partial class RaftNode : IAsyncDisposable
                                 active = proposal; // failure before batch ownership must still release this admission
                                 await ProcessProposalsAsync(proposal).ConfigureAwait(false);
                             }
+                            else
+                            {
+                                ProposalQueueTrace.Record(_options.NodeId, "EmptyDispatch", 0);
+                                Interlocked.Exchange(ref _proposalQueued, 0);
+                                _proposalChanges.Writer.TryWrite(0);
+                            }
                             break;
                         case ReadWork read:
                             await ProcessReadsAsync(read).ConfigureAwait(false);
@@ -420,14 +435,7 @@ public sealed partial class RaftNode : IAsyncDisposable
     }
 
     private bool TryReadWork(out Work? work)
-    {
-        if (_work.Reader.TryRead(out work))
-        {
-            if (work is ProposalReadyWork) Interlocked.Exchange(ref _proposalQueued, 0);
-            return true;
-        }
-        return false;
-    }
+        => _work.Reader.TryRead(out work);
 
     private bool TryTakeProposal([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out ProposalWork? proposal)
     {
@@ -438,7 +446,6 @@ public sealed partial class RaftNode : IAsyncDisposable
             _queuedProposalBytes -= proposal.Bytes.Length + LogEntry.EncodedOverhead;
             UpdateFirstProposal();
         }
-        _proposalChanges.Writer.TryWrite(0);
         return true;
     }
 
@@ -452,45 +459,48 @@ public sealed partial class RaftNode : IAsyncDisposable
 
     private async Task CollectProposalsAsync()
     {
+        // A reusable wake timer owns no consensus state. Its callback only signals
+        // the bounded metadata channel; the worker rechecks the actual deadline.
+        using var deadline = new Timer(static state =>
+            ((ChannelWriter<byte>)state!).TryWrite(0), _proposalChanges.Writer,
+            Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         try
         {
             while (await _proposalChanges.Reader.WaitToReadAsync(_lifetime.Token).ConfigureAwait(false))
             {
+                ProposalQueueTrace.Record(_options.NodeId, "CollectorWake");
                 while (_proposalChanges.Reader.TryRead(out _)) { }
-                while (!_lifetime.IsCancellationRequested)
+                var remaining = Timeout.InfiniteTimeSpan;
+                var ready = false;
+                lock (_proposalGate)
                 {
-                    int count, firstBytes;
-                    long bytes, firstAt;
-                    lock (_proposalGate)
-                    { count = _queuedProposalCount; bytes = _queuedProposalBytes; firstAt = _firstProposalTimestamp; firstBytes = _firstProposalBytes; }
-                    if (count == 0 || Volatile.Read(ref _proposalQueued) != 0) break;
-                    var status = Volatile.Read(ref _status); // immutable published state; never access the reducer here
-                    var delay = (long)firstBytes * _options.MaxAppendEntries > _options.MaxAppendBytes || bytes + firstBytes > _options.MaxAppendBytes
-                        ? _options.BulkProposalBatchDelayLimit : _options.ProposalBatchDelay;
-                    // Assigned proposals awaiting quorum/application can generate the
-                    // next feedback wave too. Shorten only when all admitted work is
-                    // already queued here; the owner never waits for this deadline.
-                    if (Volatile.Read(ref _admitted) <= count && delay > _options.ProposalBatchDelay)
-                        delay = _options.ProposalBatchDelay;
-                    if (status.Role != RaftRole.Leader || count >= _options.MaxAppendEntries || bytes >= _options.ProposalBatchByteLimit)
-                        delay = TimeSpan.Zero;
-                    else if (status.Configuration?.Voters.Length == 1 && delay > TimeSpan.FromMilliseconds(1))
-                        delay = TimeSpan.FromMilliseconds(1);
-                    var remaining = delay - System.Diagnostics.Stopwatch.GetElapsedTime(firstAt);
-                    if (remaining <= TimeSpan.Zero)
+                    var count = _queuedProposalCount;
+                    if (count > 0 && Volatile.Read(ref _proposalQueued) == 0)
                     {
-                        if (Interlocked.CompareExchange(ref _proposalQueued, 1, 0) == 0)
-                            await _work.Writer.WriteAsync(ProposalMessage, _lifetime.Token).ConfigureAwait(false);
-                        break;
+                        var firstBytes = _firstProposalBytes;
+                        var status = Volatile.Read(ref _status);
+                        var delay = (long)firstBytes * _options.MaxAppendEntries > _options.MaxAppendBytes || _queuedProposalBytes + firstBytes > _options.MaxAppendBytes
+                            ? _options.BulkProposalBatchDelayLimit : _options.ProposalBatchDelay;
+                        if (Volatile.Read(ref _admitted) <= count && delay > _options.ProposalBatchDelay)
+                            delay = _options.ProposalBatchDelay;
+                        if (status.Role != RaftRole.Leader || count >= _options.MaxAppendEntries || _queuedProposalBytes >= _options.ProposalBatchByteLimit)
+                            delay = TimeSpan.Zero;
+                        else if (status.Configuration?.Voters.Length == 1 && delay > TimeSpan.FromMilliseconds(1))
+                            delay = TimeSpan.FromMilliseconds(1);
+                        remaining = delay - System.Diagnostics.Stopwatch.GetElapsedTime(_firstProposalTimestamp);
+                        if (remaining <= TimeSpan.Zero)
+                        {
+                            Volatile.Write(ref _proposalQueued, 1);
+                            ready = true;
+                            remaining = Timeout.InfiniteTimeSpan;
+                        }
                     }
-                    using var deadline = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token);
-                    deadline.CancelAfter(remaining);
-                    try
-                    {
-                        if (!await _proposalChanges.Reader.WaitToReadAsync(deadline.Token).ConfigureAwait(false)) return;
-                        while (_proposalChanges.Reader.TryRead(out _)) { }
-                    }
-                    catch (OperationCanceledException) when (!_lifetime.IsCancellationRequested) { }
+                }
+                deadline.Change(remaining, Timeout.InfiniteTimeSpan);
+                if (ready)
+                {
+                    ProposalQueueTrace.Record(_options.NodeId, "ReadySignal");
+                    await _work.Writer.WriteAsync(ProposalMessage, _lifetime.Token).ConfigureAwait(false);
                 }
             }
         }
@@ -618,8 +628,10 @@ public sealed partial class RaftNode : IAsyncDisposable
                     _queuedProposalBytes -= candidate.Bytes.Length + LogEntry.EncodedOverhead;
                 }
                 UpdateFirstProposal();
+                Volatile.Write(ref _proposalQueued, 0);
             }
             _proposalChanges.Writer.TryWrite(0);
+            ProposalQueueTrace.Record(_options.NodeId, "Group", proposals.Count);
             if (proposals.Count == 0) return;
             if (_core.Role != RaftRole.Leader || _core.State.Transfer is not null)
             {

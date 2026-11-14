@@ -174,6 +174,33 @@ public sealed class ProposalChannelTests
         Assert.Equal(5, store.Batches.Count); // blocked first + 16 + 16 + 16 + 15
     }
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(2)]
+    public async Task A_cancelled_queued_wave_releases_its_signal_and_the_next_wave_progresses(int delayMs)
+    {
+        var options = new RaftOptions { NodeId = "n1", Members = ["n1"], TickInterval = TimeSpan.FromMilliseconds(10),
+            ElectionMinTicks = 20, ElectionMaxTicks = 30, RpcTimeout = TimeSpan.FromMilliseconds(5),
+            MaxAppendEntries = 16, ProposalBatchDelay = TimeSpan.FromMilliseconds(delayMs) };
+        var store = new PausedStore(new RaftStorageAdapter(DBreezeLogStorage.CreateInMemory(options)));
+        await using var node = await RaftNode.CreateAsync(options, store, new NoPeers(), new TestStateMachine());
+        await node.StartAsync();
+        await RuntimeCluster.EventuallyAsync(() => node.Status.Role == RaftRole.Leader && node.Status.LastApplied == 1);
+        Volatile.Write(ref store.Pause, 1);
+        var first = node.ProposeAsync(new byte[64]);
+        await store.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        using var cancelled = new CancellationTokenSource();
+        var wave = Enumerable.Range(0, 64).Select(_ => node.ProposeAsync(new byte[64], cancelled.Token)).ToArray();
+        cancelled.Cancel();
+        store.Release.TrySetResult();
+        await first.WaitAsync(TimeSpan.FromSeconds(5));
+        foreach (var task in wave) await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
+        var next = await node.ProposeAsync(new byte[64]).WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.Equal(3, next.Index);
+        await RuntimeCluster.EventuallyAsync(() => node.Metrics.PendingProposals == 0);
+        Assert.Null(node.Status.Fault);
+    }
+
     [Fact]
     public void Automatic_bulk_collection_is_bounded_by_the_heartbeat_and_can_be_disabled()
     {

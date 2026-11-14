@@ -70,6 +70,7 @@ public sealed class StoragePropertyTests
                     Assert.Equal(actual.LastIndex, simulated.LastIndex);
                     Assert.Equal(oracle.Where(e => e.Index > hard.CommitIndex).Sum(e => (long)ModelDisk.Size(e)), actual.UncommittedBytes);
                     Assert.Equal(actual.UncommittedBytes, simulated.UncommittedBytes);
+                    Assert.Equal(actual.UncommittedBytes, store.UncommittedBytes);
                     var actualEntries = store.Read(1, 10000, 16 * 1024 * 1024);
                     Assert.Equal(oracle.Count, actualEntries.Count);
                     for (var i = 0; i < oracle.Count; i++) Assert.True(ModelDisk.Same(oracle[i], actualEntries[i]), $"seed={seed}, step={step}, index={i + 1}");

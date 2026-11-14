@@ -85,6 +85,7 @@ internal sealed class ComparisonCluster : IAsyncDisposable
     internal bool RetainDataForValidation { get; init; }
     internal string DataDirectory => _root;
     internal Func<string, ILogStore, ILogStore>? DecorateLogStore { get; init; }
+    internal Func<string, TcpRaftTransport, ITransport>? DecorateTransport { get; init; }
     internal Action<string, int>? AppliedBatch { get; init; }
     internal bool UseUnifiedLogLayout { get; init; }
     internal bool UseHotMembership { get; init; }
@@ -153,7 +154,7 @@ internal sealed class ComparisonCluster : IAsyncDisposable
                     UseHotMembership ? DBreezeLogLayout.UnifiedTableV4 :
                         UseUnifiedLogLayout ? DBreezeLogLayout.UnifiedTableV3 : DBreezeLogLayout.SeparateTablesV2));
                 if (DecorateLogStore is not null) log = DecorateLogStore(id, log);
-                var node = await RaftNode.CreateAsync(options, log, tcp, machine);
+                var node = await RaftNode.CreateAsync(options, log, DecorateTransport?.Invoke(id, tcp) ?? tcp, machine);
                 _nodes.Add(node);
                 await node.StartAsync();
                 tcp.Start(node.HandleAsync);

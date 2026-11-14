@@ -15,6 +15,7 @@ OKF v0.2. Concept IDs are paths relative to this directory, without `.md`.
 - [Human tutorials](human-tutorial.md) — English/Russian offline HTML books, compiled three-process C# example, disk/RAM semantics and limits.
 - [Hot membership](hot-membership.md) — delivered wire3/v4 journaled hot add/remove, validation and measured p99 limitations.
 - [R19 report](benchmark-r19.md) — current-only benchmark refresh with explicitly reused R18 reference data.
+- [e06 performance recovery](performance-recovery.md) — queue reservation, cached frontier and fresh e06/before/after controls.
 - [Work log](log.md) — dated implementation and validation evidence.
 
 The upstream specification is stored as `OKF-SPEC.reference.txt`; it is a reference, not a concept document. Specifications live in `../sdd/`; the original DBreeze skill lives in `../skill/`.
