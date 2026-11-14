@@ -2,7 +2,28 @@
 
 Run from RaftNet8/. The standalone .NET8 runner compares baseline8b991bd, current Raft.Net and **DotNext.Net.Cluster 5.26.2**. NuGet package inspection found5.26.2 to be the last5.x/net8.0 package; latest6.12.1 targets net10.0 only and is not measured. The production library remains net8.0 and does not depend on DotNext.
 
-## Current optimization comparison
+## R19 current-only refresh
+
+The [R19 report](../results/winner-r19-2026-11-14.html) uses newly measured current wire3/v4 and **unchanged historical baseline/DotNext values from R18**, as requested. The library and common business handler were not modified for R19. The former402-test validation is linked as historical evidence; only a fresh restore/zero-warning Release build was run before this report's measurements.
+
+Fresh coverage:24 short configurations ×5 rounds (512 commands after128 warmup),12 long configurations ×5 (4096 after2048 warmup),1/3/5 voters,64B/16KiB, concurrency64, all original Current modes. Each round validates every replica, closes engines and reopens business data before publication. The same recorded H-drive data parent and unchanged business transaction are used. Runtime/source ZIPs, SDK, full raw/logs and manifest are in `.artifacts/winner/r19/`. No baseline or DotNext workload was executed.
+
+R19's combined72 rows contain307,200 new latencies and307,200 reused reference latencies. The report distinguishes dates/sources and does not pair round numbers across dates. A separate12-point Pipeline table compares our old/new versions; it is outside the main360-observation count. Registered runtime/OS/CPU-count/GC/data root match R18, but OS caches and background load across dates are uncontrolled.
+
+To rerun on this workspace, preserve the frozen R18 source ZIP (`.artifacts/winner/final-sources-r18.zip`) for the common-business source check and use a **new** artifacts/output folder:
+
+~~~sh
+dotnet restore Raft.Net8.sln --locked-mode
+dotnet build Raft.Net8.sln -c Release --no-restore
+python -X utf8 -B benchmarks/run_r19.py --out .artifacts/winner/r19-reproduction
+python -X utf8 -B benchmarks/render_r19.py --artifacts .artifacts/winner/r19-reproduction --output .artifacts/winner/r19-reproduction/report
+# Recreate the delivered HTML/CSVs from the saved self-contained summary, without raw artifacts:
+python -X utf8 -B benchmarks/render_r19.py --summary benchmarks/results/winner-r19-summary-2026-11-14.json
+~~~
+
+The renderer verifies full current-only coverage, pooled latency statistics, policies, hashes and exact reference-row reuse. The saved summary embeds the byte-exact R18 summary and both periods/environments, so later HTML regeneration needs only the JSON and repository assets. Independent raw/CSV/source/binary numeric checks and offline desktop/mobile/print/noJS/four-chart/sorting/filter QA passed; regeneration is byte-identical. No production C# changed, and R18 files remain untouched.
+
+## Historical R18 optimization comparison
 
 The completed [R18 five-round report](../results/winner-r18-2026-11-13.html) meets the fixed Pipeline local median-throughput criterion at12/12points over both references, including8/8distributed. It is validated by342tests, a fresh1400-run current-reducer fault matrix, all614400samples, independent numeric/hash/CSV QA and offline browser/chart/mobile/print/noJS QA. Allocations lose all12points to both refs, and individual p99 losses remain explicit. Earlier [R11](../results/winner-r11-2026-11-13.html) and [R5](../results/winner-r5-2026-11-13.html) remain historical evidence. Preserve all completed reports/raw archives; exploratory results are not combined with them.
 
