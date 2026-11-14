@@ -18,6 +18,7 @@ public sealed class SnapshotBuildContext
     public AppliedCheckpoint Checkpoint { get; }
     public ClusterConfiguration Configuration { get; }
     public SnapshotImage? Previous { get; }
+    internal MembershipState? Membership { get; init; }
     public long MaxUnpackedBytes { get; }
     private readonly int _batchEntries, _batchBytes;
 
@@ -37,6 +38,20 @@ public sealed class SnapshotBuildContext
         _batchEntries = options.MaxAppendEntries;
         _batchBytes = options.MaxAppendBytes;
     }
+
+    private SnapshotBuildContext(SnapshotBuildContext source, SnapshotImage? previous)
+    {
+        Checkpoint = source.Checkpoint;
+        Configuration = source.Configuration;
+        Previous = previous;
+        MaxUnpackedBytes = source.MaxUnpackedBytes;
+        _read = source._read;
+        _batchEntries = source._batchEntries;
+        _batchBytes = source._batchBytes;
+        Membership = source.Membership;
+    }
+
+    internal SnapshotBuildContext WithPrevious(SnapshotImage? previous) => new(this, previous);
 
     public async IAsyncEnumerable<IReadOnlyList<LogEntry>> ReadBatchesAsync([EnumeratorCancellation] CancellationToken token = default)
     {

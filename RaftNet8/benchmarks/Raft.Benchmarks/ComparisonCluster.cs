@@ -87,6 +87,7 @@ internal sealed class ComparisonCluster : IAsyncDisposable
     internal Func<string, ILogStore, ILogStore>? DecorateLogStore { get; init; }
     internal Action<string, int>? AppliedBatch { get; init; }
     internal bool UseUnifiedLogLayout { get; init; }
+    internal bool UseHotMembership { get; init; }
     internal int? CurrentProposalBatchBytes { get; init; }
     private readonly string _parent = Path.GetFullPath(Environment.GetEnvironmentVariable("RAFT_BENCHMARK_ROOT") ??
         Path.Combine(".artifacts", "autonomous", "benchmarks", "data"));
@@ -101,6 +102,8 @@ internal sealed class ComparisonCluster : IAsyncDisposable
     private Old.RaftNode? _oldLeader;
     private readonly byte[] _payload;
     private long _completed;
+    private RaftOptions? _hotTemplate;
+    private PeerDescriptor? _joiningPeer;
     public ClusterCase Case { get; }
     public ComparisonCluster(ClusterCase configuration)
     {
@@ -138,10 +141,17 @@ internal sealed class ComparisonCluster : IAsyncDisposable
                     MaxAppendEntries = batch, EnablePipelining = Case.Mode is ClusterMode.Pipeline or ClusterMode.UnbatchedPipeline,
                     MaxProposalBatchBytes = CurrentProposalBatchBytes,
                     ProposalBatchDelay = batch == 1 ? TimeSpan.Zero : TimeSpan.FromMilliseconds(2) };
+                if (UseHotMembership)
+                {
+                    options = options with { WireVersion = 3, InitialPeers = endpoints.Select(pair =>
+                        new PeerDescriptor(pair.Key, pair.Value.Address.ToString(), pair.Value.Port)).ToArray() };
+                    _hotTemplate = options;
+                }
                 var tcp = new TcpRaftTransport(options, endpoints);
                 _tcp.Add(tcp);
                 ILogStore log = new RaftStorageAdapter(new DBreezeLogStorage(engine, options,
-                    UseUnifiedLogLayout ? DBreezeLogLayout.UnifiedTableV3 : DBreezeLogLayout.SeparateTablesV2));
+                    UseHotMembership ? DBreezeLogLayout.UnifiedTableV4 :
+                        UseUnifiedLogLayout ? DBreezeLogLayout.UnifiedTableV3 : DBreezeLogLayout.SeparateTablesV2));
                 if (DecorateLogStore is not null) log = DecorateLogStore(id, log);
                 var node = await RaftNode.CreateAsync(options, log, tcp, machine);
                 _nodes.Add(node);
@@ -170,6 +180,31 @@ internal sealed class ComparisonCluster : IAsyncDisposable
             await Task.Delay(10, timeout.Token);
         }
     }
+    internal async Task PrepareJoiningPeerAsync()
+    {
+        if (!UseHotMembership || _hotTemplate is null || _leader is null) throw new InvalidOperationException("Start a hot membership cluster first.");
+        var id = "n" + (Case.Nodes + 1);
+        var reservation = new TcpListener(IPAddress.Loopback, 0);
+        reservation.Start();
+        var endpoint = (IPEndPoint)reservation.LocalEndpoint;
+        reservation.Stop();
+        _joiningPeer = new(id, endpoint.Address.ToString(), endpoint.Port);
+        var options = _hotTemplate with { NodeId = id, JoiningNode = true };
+        var engine = new DBreezeEngine(Path.Combine(_root, id));
+        _engines.Add(engine);
+        var machine = new ComparisonMachine(engine);
+        _machines.Add(machine);
+        var tcp = new TcpRaftTransport(options, _joiningPeer);
+        _tcp.Add(tcp);
+        var log = new RaftStorageAdapter(new DBreezeLogStorage(engine, options, DBreezeLogLayout.UnifiedTableV4));
+        var node = await RaftNode.CreateAsync(options, log, tcp, machine);
+        _nodes.Add(node);
+        await node.StartAsync();
+        tcp.Start(node.HandleAsync);
+    }
+
+    internal Task<MembershipOperationStatus> AddJoiningPeerAsync(CancellationToken token) =>
+        _leader!.AddNodeAsync(_joiningPeer ?? throw new InvalidOperationException("Prepare a new ID first."), Guid.NewGuid(), token);
     public async Task ProposeAsync(CancellationToken token)
     {
         if (_leader is not null) await _leader.ProposeAsync(_payload, token);

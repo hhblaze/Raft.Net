@@ -36,13 +36,15 @@ public static class Program
             : new DiskBookState(Path.Combine(settings.Root, "application"));
         // book:start startup
         var storage = settings.InMemory
-            ? DBreezeLogStorage.CreateInMemory(options, DBreezeLogLayout.UnifiedTableV3)
+            ? DBreezeLogStorage.CreateInMemory(options, DBreezeLogLayout.UnifiedTableV4)
             : new DBreezeLogStorage(Path.Combine(settings.Root, "log"), options,
-                DBreezeLogLayout.UnifiedTableV3);
+                DBreezeLogLayout.UnifiedTableV4);
         // The guard disposes the log even if CreateAsync fails.
         // After successful creation, the node also owns it; disposal is idempotent.
         await using var log = new RaftStorageAdapter(storage);
-        await using var tcp = new TcpRaftTransport(options, settings.Endpoints);
+        var localEndpoint = settings.Endpoints[options.NodeId];
+        await using var tcp = new TcpRaftTransport(options,
+            new PeerDescriptor(options.NodeId, localEndpoint.Address.ToString(), localEndpoint.Port));
         RaftNode? node = null;
         try
         {
@@ -56,7 +58,8 @@ public static class Program
                 ? "LAB ONLY: log, votes, values and request IDs disappear on exit."
                 : $"DATA {settings.Root}");
             Console.WriteLine("Commands: status | put <request-id> <key> <value> | get <key> | " +
-                "local <key> | snapshot | quit");
+                "local <key> | snapshot | add <operation-guid> <node-id> <IP:port> | " +
+                "remove <operation-guid> <node-id> | operation <guid> | cancel <guid> | quit");
             await CommandLoopAsync(node, app, options.MaxCommandBytes, token);
         }
         finally
@@ -99,6 +102,23 @@ public static class Program
                 }
                 catch (ArgumentException error) { Console.WriteLine($"INPUT {error.Message}"); continue; }
             }
+            var membershipCommand = parts[0] is "add" or "remove" or "operation" or "cancel";
+            Guid operationId = default;
+            Raft.PeerDescriptor? peer = null;
+            if (membershipCommand)
+            {
+                if (parts.Length < 2 || !Guid.TryParse(parts[1], out operationId) || operationId == Guid.Empty ||
+                    (parts[0] == "add" && (parts.Length != 4 || !System.Net.IPEndPoint.TryParse(parts[3], out _))) ||
+                    (parts[0] == "remove" && parts.Length != 3) ||
+                    (parts[0] is "operation" or "cancel" && parts.Length != 2) ||
+                    (parts[0] is "add" or "remove" && !System.Text.RegularExpressions.Regex.IsMatch(parts[2], "^[A-Za-z0-9_-]{1,128}$")))
+                { Console.WriteLine("INPUT membership command needs a non-empty GUID and valid arguments."); continue; }
+                if (parts[0] == "add")
+                {
+                    var endpoint = System.Net.IPEndPoint.Parse(parts[3]);
+                    peer = new(parts[2], endpoint.Address.ToString(), endpoint.Port);
+                }
+            }
 
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(token);
             deadline.CancelAfter(TimeSpan.FromSeconds(15));
@@ -107,6 +127,10 @@ public static class Program
                 switch (parts[0])
                 {
                     case "status": PrintStatus(node); break;
+                    case "add": Console.WriteLine("MEMBERSHIP " + JsonSerializer.Serialize(await node.AddNodeAsync(peer!, operationId, deadline.Token))); break;
+                    case "remove": Console.WriteLine("MEMBERSHIP " + JsonSerializer.Serialize(await node.RemoveNodeAsync(parts[2], operationId, deadline.Token))); break;
+                    case "operation": Console.WriteLine("MEMBERSHIP " + JsonSerializer.Serialize(await node.GetMembershipOperationAsync(operationId, deadline.Token))); break;
+                    case "cancel": Console.WriteLine("MEMBERSHIP " + JsonSerializer.Serialize(await node.CancelMembershipOperationAsync(operationId, deadline.Token))); break;
                     case "put":
                         // book:start propose
                         var written = await node.ProposeAsync(bytes!, deadline.Token);
@@ -140,6 +164,9 @@ public static class Program
             catch (NotLeaderException error) { Console.WriteLine($"NOT_LEADER leader={error.LeaderId ?? "unknown"}"); }
             catch (UncommittedLogLimitException error) { Console.WriteLine($"BACKPRESSURE {error.Message}"); }
             catch (LeadershipTransferInProgressException error) { Console.WriteLine($"TRANSFER {error.Target}"); }
+            catch (MembershipChangeInProgressException error) { Console.WriteLine($"MEMBERSHIP_BUSY active={error.OperationId}"); }
+            catch (MembershipOperationConflictException error) { Console.WriteLine($"MEMBERSHIP_CONFLICT {error.OperationId}"); }
+            catch (MembershipCancellationTooLateException error) { Console.WriteLine($"MEMBERSHIP_TOO_LATE {error.OperationId}"); }
             catch (OperationCanceledException) when (deadline.IsCancellationRequested && !token.IsCancellationRequested)
             {
                 Console.WriteLine("TIMEOUT outcome may be committed; retry with the SAME request ID and payload.");
@@ -155,5 +182,6 @@ public static class Program
             $"leader={status.LeaderId ?? "unknown"} commit={status.CommitIndex} applied={status.LastApplied} " +
             $"tail={status.LastLogIndex} snapshot={status.Snapshot?.LastIncludedIndex ?? 0} " +
             $"fault={status.Fault?.GetType().Name ?? "none"}");
+        Console.WriteLine("DIRECTORY " + JsonSerializer.Serialize(status.Membership));
     }
 }

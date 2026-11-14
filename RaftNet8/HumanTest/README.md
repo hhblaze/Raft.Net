@@ -6,7 +6,7 @@ Open `Raft.HumanTest.sln`, select `Raft.Demo`, or run from `RaftNet8/`:
 dotnet run --project HumanTest/Raft.Demo -c Release
 ```
 
-Three voters start with real loopback TCP and separate DBreeze log/application/snapshot directories. Status prints roles, terms, frontiers, snapshot index, voters/learners and replication windows. Commands print applied values and election transitions. Ports are automatic; `--base-port 5000` reserves 5000–5003, including the spare `n4`.
+Three voters start with real loopback TCP and separate DBreeze log/application/snapshot directories. New directories use wire3/v4. Status prints roles, terms, frontiers, snapshot index, membership operation ID/stage and replication windows. Ports are automatic; `--base-port 5000` selects5000–5005 for n1..n6. V4 saves endpoints in demo-endpoints.json and reuses them after full restart.
 
 ```text
 status
@@ -28,9 +28,9 @@ status
 exit
 ```
 
-Replace node IDs with those shown by `status`. Isolating/stopping the current leader causes failover; it cannot commit without quorum. `get` runs a fresh **ReadIndex** before querying. `add n4` starts the provisioned spare and commits it as learner; `promote` waits for leader-acknowledged catch-up. `transfer` requires an eligible voter. Configuration changes may report a gate/busy/leadership error during an election; wait for stable status and retry. Removed nodes remain Removed after restart.
+Replace IDs with those shown by `status`. Isolating/stopping the leader causes failover; it cannot commit without quorum. `get` uses fresh ReadIndex. In v4, `add n4` starts a new node in the demo process and executes registration→learner→catch-up→voter without restarting old nodes; `add n5` reaches five voters. `remove <leader-id>` transfers automatically and continues the same journaled ID on the successor. Results print MEMBERSHIP ID/stage. Use `operation <guid>` or explicit `cancel <guid>`. Wait timeout does not cancel an accepted operation. Standalone transfer requires an eligible voter and an unoccupied membership lane. Removed IDs remain retired across restart.
 
-The default `.data/human-test-v3/` is reused on restart and uses the prefixed single-table log. The demo recognizes its `demo-format` marker; existing `raft-demo-v2` directories remain readable with `--data` using v2 storage. It refuses to reinterpret an unrecognized non-empty directory. Use `--data <new-directory>` for a fresh cluster. It never deletes previous demo databases. Do not reuse a modified-membership scenario directory to request a brand-new initial scenario; choose a fresh one.
+The default `.data/human-test-v4/` is reused on restart. V2/v3 marker directories remain explicit compatibility paths using the old learner/promote workflow. No old directory is implicitly converted; an unrecognized non-empty directory is rejected. Use `--data <new-directory>` for a fresh group; previous data is preserved. Do not reuse a modified-membership scenario directory for a brand-new initial scenario. See [hot membership](../docs/HOT-MEMBERSHIP.md) for API semantics, snapshots and limits.
 
 ```sh
 dotnet run --project HumanTest/Raft.Demo -c Release -- --scenario

@@ -1,3 +1,4 @@
+from membership_chapters import membership_chapter, membership_state_chapter
 """English edition. HTML is authored here; C# comes from compiled examples."""
 from build import (p, h, ul, ol, callout, table, code, excerpt, source_link,
                    path_tree, flow, quorum_lab, memory_lab, EXAMPLES)
@@ -19,7 +20,7 @@ def chapters():
         "All commands below start in the repository's <code>RaftNet8/</code> directory unless stated otherwise. The two editions have identical chapter anchors; the language switch preserves your current chapter. Everything needed to read this HTML is embedded. The adjacent C# project is needed only to run the examples."))
 
     add("consensus", "The cluster, the log and a quorum", p(
-        "A <strong>voter</strong> participates in elections and commitment. A <strong>learner</strong> receives history but contributes no vote. The <strong>leader</strong> coordinates replication; followers receive its entries. A term is an election epoch, and a log index is an entry's position. A committed entry is part of the agreed history. An applied entry has also reached the local application.") + table(
+        "A <strong>voter</strong> participates in elections and commitment. A <strong>learner</strong> receives history and is excluded from quorum counting; it cannot campaign. The <strong>leader</strong> coordinates replication; followers receive its entries. A term is an election epoch, and a log index is an entry's position. A committed entry is part of the agreed history. An applied entry has also reached the local application.") + table(
         ["Voters", "Quorum", "Unavailable voters tolerated", "Meaning"], [
             ["1", "1", "0", "Useful for learning; no replica fault tolerance."],
             ["2", "2", "0", "Two copies but both are required for progress."],
@@ -36,7 +37,7 @@ def chapters():
         "dotnet restore docs/human/tutorial/examples/TutorialNode/TutorialNode.csproj --locked-mode\ndotnet build docs/human/tutorial/examples/TutorialNode/TutorialNode.csproj -c Release --no-restore", "shell") + h("Reference the source project") + code(
         (EXAMPLES / "TutorialNode.csproj").read_text(encoding="utf-8"), "xml", "TutorialNode.csproj") + p(
         "The relative path above is correct for this companion project's location. For your own project, adjust the path to <code>src/Raft/Raft.csproj</code> and target <code>net8.0</code>. Central package management and lock files supply the exact DBreeze version. Do not assume that the assembly version in the source implies an already published NuGet release.") + callout(
-        "Keep dependency and data compatibility separate", "Restoring a newer database package does not migrate a Raft database, an application schema, or a wire protocol. This book uses the repository's pinned dependency and explicit v3 layout."))
+        "Keep dependency and data compatibility separate", "Restoring a newer database package does not migrate a Raft database, an application schema, or a wire protocol. This book uses the pinned dependency and explicit wire3/v4 mode."))
 
     add("demo", "Watch the existing human demo", p(
         "The quickest experiment uses the existing human-test solution. Its three nodes live in one process, but communicate through real loopback TCP and use separate disk databases and snapshot directories.") + code(
@@ -46,7 +47,7 @@ def chapters():
         "isolate n1\nstatus\nheal\nstop n2\nstart n2\nadd n4\npromote n4\ntransfer n4\nremove n1\nstatus\nexit", "text") + p(
         "The demo routes its <code>set</code>/<code>get</code> commands to the known leader; your own host must implement such routing. Its <code>get</code> performs ReadIndex before reading. The administration commands may report a transition gate while an election or configuration change settles. Wait for stable status and retry one operation at a time.") + code(
         "dotnet run --project HumanTest/Raft.Demo -c Release --no-build -- --scenario", "shell") + p(
-        "The scripted scenario prints <code>SCENARIO PASS</code> on success. The interactive default reuses <code>.data/human-test-v3/</code>; scenarios normally create a fresh directory under <code>.data/scenarios/</code>. Use <code>--data &lt;new-directory&gt;</code> to start a fresh exercise without deleting old data. The tutorial application in the next chapter has different commands and directories.") + p(
+        "The scripted scenario prints <code>SCENARIO PASS</code> on success. The interactive default reuses <code>.data/human-test-v4/</code>; scenarios normally create a fresh directory under <code>.data/scenarios/</code>. Use <code>--data &lt;new-directory&gt;</code> to start a fresh exercise without deleting old data. The tutorial application in the next chapter has different commands and directories.") + p(
         source_link("HumanTest/README.md", "Full human-demo instructions") + " · " + source_link("HumanTest/Raft.HumanTest.sln", "Human-test solution")))
 
     add("cluster-lab", "Start three independent C# processes", p(
@@ -68,11 +69,11 @@ def chapters():
             ["<code>NodeId</code>", "Stable and unique per replica.", "Changing it cannot rename an existing database."],
             ["<code>GroupId</code>", "The same logical group on every member.", "It is not a secret or authentication credential."],
             ["<code>Members</code> / <code>Learners</code>", "Common bootstrap configuration for a new group.", "Options do not overwrite recovered membership."],
-            ["<code>KnownPeers</code>", "Provision future/retired transport identities in advance.", "It grants no voting rights."],
-            ["Endpoint dictionary", "One compatible route per configured member, including self.", "Updating a route does not change membership."],
+            ["<code>KnownPeers</code>", "Legacy bootstrap IDs; wire3 uses InitialPeers and the committed directory.", "It grants no voting rights."],
+            ["PeerDescriptor / InitialPeers", "Canonical initial routes plus a local listen descriptor; new routes are replicated.", "A route never grants voting rights."],
             ["Paths", "Distinct stable log, application and image roots per node.", "A fresh path is not a safe replacement for lost committed history."]]) + excerpt("Program.cs", "startup") + p(
         "<code>CreateAsync</code> validates recovery and application checkpoints, completes pending snapshot-install recovery, and prepares the runtime. <code>StartAsync</code> starts participation. <code>tcp.Start(node.HandleAsync)</code> exposes the inbound RPC handler. A recovered application may need committed-log replay after startup; use a successful ReadIndex as an application-readiness fence on the leader.") + callout(
-        "Choose v3 explicitly for new data", "<code>DBreezeLogLayout.UnifiedTableV3</code> is an explicit constructor argument. Constructors without it still select separate-table v2 for compatibility. Selecting v3 on an existing v2 database is rejected; it is not an in-place upgrade."))
+        "Choose wire3/v4 explicitly for new data", "<code>DBreezeLogLayout.UnifiedTableV4</code> is an explicit constructor argument. Constructors without it still select separate-table v2 for compatibility. Wire3 requires v4; opening v2/v3 data as v4 is rejected. There is no v4 converter."))
 
     add("application", "Implement deterministic business state", p(
         "Raft replicates command bytes, not arbitrary mutations made directly to your database. Generate request IDs, timestamps and other decisions before submitting, include them in the command, and make every replica interpret that command identically. A schema/version field makes unsupported commands visible instead of silently changing meaning.") + excerpt("BookState.cs", "encode") + p(
@@ -99,7 +100,7 @@ def chapters():
         "ReadIndex is a fence, not a returned database snapshot. The leader confirms a fresh voter-quorum context, requires current-term commitment, captures a committed index, and waits for local application through that index. Then read the <strong>same leader's concurrency-safe application</strong>. The read may include later applied writes, which is acceptable for a current read.") + p(
         "Do not obtain ReadIndex on n1 and then read n2's local database. Do not cache the fence and reuse it for unrelated future requests. <code>Status.Role == Leader</code>, a recent heartbeat, or <code>LastApplied == CommitIndex</code> is not a fresh quorum confirmation. During a partition, a stale former leader can still expose old local data.") + table(
         ["API", "Purpose", "Cost / boundary"], [
-            ["<code>ReadIndexAsync</code>", "Fresh leader read fence; no new log entry.", "Needs a quorum and local application; wire2 only."],
+            ["<code>ReadIndexAsync</code>", "Fresh leader read fence; no new log entry.", "Needs a quorum and local application; wire2/3."],
             ["<code>ReadBarrierAsync</code>", "Compatibility read fence by committed no-op.", "Adds a durable log entry; available for wire1."],
             ["Application Get / local", "Read the node's currently applied state.", "May be stale; safe only when that is the explicit contract."],
             ["<code>Status</code>", "Published diagnostics.", "Not a data-read consistency guarantee."]]) + p(
@@ -107,23 +108,23 @@ def chapters():
         "There are no lease reads or automatic follower-to-leader forwarding. The host chooses the public query endpoint and handles leadership changes. A stale-read API can be useful, but should say so explicitly to its consumers."))
 
     add("disk", "Exactly what is stored on disk", path_tree() + p(
-        "Every node owns its own copy. The sample's root is <code>.data/tutorial/n1</code> (and n2/n3). It uses one DBreeze engine for the Raft log and another for the active business generation. The directory tree above is logical: DBreeze chooses physical file numbers, schemes, journals and rollback/helper files. Table names are not guaranteed filenames.") + table(
+        "Every node owns its own copy. The sample's root is <code>.data/tutorial-v4/n1</code> (and n2/n3). It uses one DBreeze engine for the Raft log and another for the active business generation. The directory tree above is logical: DBreeze chooses physical file numbers, schemes, journals and rollback/helper files. Table names are not guaranteed filenames.") + table(
         ["Layer", "Persistent information", "Why it is needed"], [
             ["Raft identity", "Node/group identity, bootstrap identity and known members.", "Refuses accidental reuse as another replica/group."],
             ["Hard state/frontier", "Current term, vote, committed frontier and checked retained-log bounds/tail.", "Restart must not vote twice in a term or invent a different durable prefix."],
-            ["Log", "Index, term, entry kind and command/configuration bytes, including uncommitted suffixes.", "Replication, conflict repair, restart and application replay."],
+            ["Log", "Index, term, entry kind and command/configuration/service bytes, including uncommitted suffixes.", "Replication, conflict repair, restart and application replay."],
             ["Configuration index", "Persisted membership changes and recoverable configuration history.", "Recovery and rollback use logged membership, not edited startup lists."],
             ["Snapshot metadata/intent", "Included index/term, membership, image ID/digest; pending install intent when present.", "Binds a compacted prefix to an image and recovers interrupted installation."],
             ["Business generation", "Values, request-result rows and CRC-checked applied index/term.", "Application effects survive restart and duplicate requests."],
-            ["Image repository", "Published archive/descriptor pairs, partial incoming files/progress and temporary builds.", "Catch-up after compaction, resumable transfer and local recovery."]]) + h("V3 is one primary table, not one file") + p(
-        "<code>raft8/v3</code> holds the changing consensus data under ordered prefixes: <code>1.ToIndex(metadataKey)</code>, <code>2.ToIndex(logIndex)</code> and <code>3.ToIndex(configurationIndex)</code>. Hard state and the durable frontier share the checked RF3M manifest. Small guard records also exist in legacy metadata tables so incompatible readers fail closed. DBreeze system and rollback files remain. The word unified does not mean that a backup consists of one table file.") + p(
-        "V2 uses <code>raft8/v2/meta</code>, <code>raft8/v2/log</code> and <code>raft8/v2/config</code>. V2/v3 records have integrity checks; this is corruption detection, not encryption or Byzantine protection. The internal accounting overhead of 21 bytes per entry is a memory/wire-budget convention; the checked disk entry record adds 37 bytes before DBreeze's own key/index/journal overhead. Do not estimate filesystem capacity from payload size alone.") + h("What is not durable") + p(
+            ["Image repository", "Published archive/descriptor pairs, partial incoming files/progress and temporary builds.", "Catch-up after compaction, resumable transfer and local recovery."]]) + h("V4 is one primary table, not one file") + p(
+        "<code>raft8/v4</code> holds the changing consensus data under ordered prefixes: <code>1.ToIndex(metadataKey)</code>, <code>2.ToIndex(logIndex)</code> and <code>3.ToIndex(configurationIndex)</code>, plus 4 for the service index and 5 for results. Hard state and the durable frontier share the checked RF4M manifest. Small guard records also exist in legacy metadata tables so incompatible readers fail closed. DBreeze system and rollback files remain. The word unified does not mean that a backup consists of one table file.") + p(
+        "V2 uses <code>raft8/v2/meta</code>, <code>raft8/v2/log</code> and <code>raft8/v2/config</code>. V2/v3/v4 records have integrity checks; this is corruption detection, not encryption or Byzantine protection. The internal accounting overhead of 21 bytes per entry is a memory/wire-budget convention; the checked disk entry record adds 37 bytes before DBreeze's own key/index/journal overhead. Do not estimate filesystem capacity from payload size alone.") + h("What is not durable") + p(
         "Open sockets, pending caller tasks, read contexts, volatile leader role, in-flight RPCs and the bounded log cache are runtime state. The log cache accelerates access to durable entries; its 8 MiB default is not the entire database and is not a durability mode. After restart the runtime reconstructs participation and catches up from persisted state.") + callout(
         "No automatic log retention without snapshots", "With SnapshotIntervalEntries=0 and no manual snapshots, the log keeps growing. With snapshots, old log entries may be removed, but business data and deduplication rows remain in the application image. Snapshot retention is not application-data retention.", "warn"))
 
     add("memory", "In-memory mode and its real limits", p(
         "The modern implementation does have a memory log factory. It runs the DBreeze storage engine with <code>Storage = MEMORY</code>. For a completely volatile lab, the example also uses a separate memory DBreeze engine for business effects and checkpoint, and leaves <code>SnapshotDirectory</code> null.") + code(
-        "var storage = DBreezeLogStorage.CreateInMemory(\n    options, DBreezeLogLayout.UnifiedTableV3);\nawait using var log = new RaftStorageAdapter(storage);", title="The memory log factory") + excerpt("BookState.cs", "memory-state") + code(
+        "var storage = DBreezeLogStorage.CreateInMemory(\n    options, DBreezeLogLayout.UnifiedTableV4);\nawait using var log = new RaftStorageAdapter(storage);", title="The memory log factory") + excerpt("BookState.cs", "memory-state") + code(
         "dotnet run --project docs/human/tutorial/examples/TutorialNode -c Release --no-build -- n1 --single --memory", "shell") + p(
         "Wait for Leader, put a value, then quit. Run the same command again and read after the new election: the value and request-result rows are gone. This mode does not persist Raft or business data to a database folder; TCP still uses sockets, the CLR still allocates memory, and the operating system can page process memory. It is not a promise that bytes never reach the machine's swap or diagnostics storage.") + table(
         ["Combination", "Restart behavior", "Appropriate use"], [
@@ -146,17 +147,9 @@ def chapters():
         "Cancellation stops the caller's wait; it need not cancel an already running snapshot build. Concurrent retention, reception or another build may make manual creation report busy. Published/transfer/prepared images can be pinned beyond the ordinary retention count. Never delete pinned files, modify generation pointers, or truncate the log manually.") + callout(
         "A snapshot is not a disaster-recovery reset button", "An image alone is not a supported force-new-cluster API. Keep the log, business generation and snapshot repository in a coherent backup, with the same identities and application format. A compacted log cannot rebuild a fresh app without its compatible image.", "warn"))
 
-    add("membership", "Add learners and change voters", p(
-        "Use logged membership APIs, not edits to DBreeze or a restart with a different <code>Members</code> list. The library uses corrected single-server/role changes, one at a time. It does not implement arbitrary joint-consensus transitions. The previous configuration and a current-term entry must be committed before the next change is accepted.") + ol(
-        "Provision the future ID in KnownPeers and compatible routes/certificate policy on existing hosts. Keep the same group and command/application format.",
-        "Start the new process with the compatible bootstrap context as a non-voting learner; the existing human demo's add command is the complete runnable example.",
-        "Commit AddLearnerAsync, then wait for the leader's acknowledged peer MatchIndex to reach the required promotion lag.",
-        "Commit PromoteToVoterAsync. Await completion before another configuration operation.",
-        "Remove obsolete members using RemoveNodeAsync only while the required quorum remains available.") + excerpt("IntegrationRecipes.cs", "membership") + p(
-        "This recipe pauses writes so the catch-up target is stable and uses exact catch-up. The default <code>MaxLearnerPromotionLag</code> is zero; larger allowed lag is an explicit availability trade-off. A learner's own local status is not proof that the leader has acknowledged its progress. <code>MinimumVoters</code>, default 1, blocks removal below that floor; select a meaningful floor for your deployment, keeping it consistent across nodes.") + code(
-        "await leader.RemoveNodeAsync(\"n1\", token);", title="Only after a safe replacement is committed") + p(
-        "Recovered membership overrides bootstrap options. The latest configuration becomes active on append and rolls back if its uncommitted suffix is replaced. A removed node remains removed after restart; its files do not grant it a vote. A removed leader retires after committing its removal. A new process with a provisioned route is not automatically a voter.") + callout(
-        "Do not confuse four provisioned peers with four voters", "KnownPeers and endpoint updates identify who may communicate. Only committed/logged configuration operations change the cluster roles. A membership call timeout has the same uncertain-outcome principle as a proposal; inspect the current leader/configuration before repeating a transition.", "warn"))
+    add("membership", "Hot Add/Remove without restarting replicas", membership_chapter("en"))
+
+    add("membership-state", "Membership storage, trust and limits", membership_state_chapter("en"))
 
     add("transfer", "Transfer leadership for maintenance", code(
         "await oldLeader.TransferLeadershipAsync(\"n2\", token);\n// Route to n2 through your host/client layer, then establish readiness:\nawait newLeader.ReadIndexAsync(token);", title="oldLeader/newLeader are local handles in their respective hosts") + p(
@@ -192,9 +185,9 @@ def chapters():
             ["LogCacheEntries / LogCacheBytes", "1024 / 8 MiB", "Both bounds apply; entry count zero disables the cache. Object/DBreeze overhead is additional."],
             ["Known peer IDs", "At most 1024", "Node/group/application IDs use 1..128 ASCII letters, digits, dash or underscore; voters/learners disjoint."],
             ["EnablePipelining / CoalesceCommitNotifications", "true / true", "Modern bounded flights and deferred idle commit-only notifications."]]) + h("Automatic byte budgets") + code(
-        "entryAccounting = commandBytes + 21\nlocalGroup = min(4 * MaxAppendBytes + 21 * MaxAppendEntries,\n                 MaxUncommittedBytes, 64 MiB)\nwire2Packet = min(4 * MaxAppendBytes + 21 * MaxAppendEntries,\n                  MaxInFlightBytes - 64, 64 MiB)\nmaxFrame = max(wirePacket, SnapshotChunkBytes + 280000) + 1024", "text", "Current automatic formulas; explicit nullable overrides replace the first two results") + p(
+        "entryAccounting = commandBytes + 21\nlocalGroup = min(4 * MaxAppendBytes + 21 * MaxAppendEntries,\n                 MaxUncommittedBytes, 64 MiB)\nwire2or3Packet = min(4 * MaxAppendBytes + 21 * MaxAppendEntries,\n                  MaxInFlightBytes - 64, 64 MiB)\nmaxFrame = max(wirePacket, SnapshotChunkBytes + (wire3 ? 900000 : 280000)) + 1024", "text", "Current automatic formulas; explicit nullable overrides replace the first two results") + p(
         "With defaults, the automatic packet/local limit is <strong>1,051,264 B</strong> (1 MiB + 2,688 B), and the internal frame-body limit is <strong>1,052,288 B</strong>; the TCP length prefix adds another 4 bytes. For wire1, wirePacket in the formula means MaxAppendBytes. The 21 bytes are entry accounting; the 64-byte per-flight allowance and frame allowances are different constants. A frame just above 1 MiB can rent a 2 MiB ArrayPool bucket. Do not equate frame length with exact managed heap consumption.") + p(
-        "For example, an already encoded 16 KiB command accounts for 16,405 bytes. A default application batch fits 15 such entries, while a default local group or wire2 packet fits 64, subject to the count cap. With full 64 KiB encoded commands, those byte limits fit 3 and 16 entries respectively. JSON size includes its metadata and escaping; a 16 KiB value is not necessarily a 16 KiB command.") + h("Transport and worker bounds") + table(
+        "For example, an already encoded 16 KiB command accounts for 16,405 bytes. A default application batch fits 15 such entries, while a default local group or wire2/3 packet fits 64, subject to the count cap. With full 64 KiB encoded commands, those byte limits fit 3 and 16 entries respectively. JSON size includes its metadata and escaping; a 16 KiB value is not necessarily a 16 KiB command.") + h("Transport and worker bounds") + table(
         ["Implementation bound", "Current rule", "Default three-peer example"], [
             ["Inbound TCP connections", "max(4, endpointCount × 2)", "6 accepted concurrent connections for 3 configured endpoints."],
             ["Decoded handlers per connection", "Wire2: max(1, min(MaxInFlightMessages + 4, MaxInFlightBytes / MaxFrameBytes))", "Integer division gives 3, not 4 or 8."],
@@ -225,7 +218,7 @@ def chapters():
         "Validation requires <code>ElectionMinTicks ≥ 10 × HeartbeatTicks</code> and <code>ElectionMaxTicks &gt; ElectionMinTicks</code>. These are minimum consistency checks, not proof your timing is operationally sound. Size deadlines from slow disk commits, network/TLS setup, CPU scheduling, GC pauses, application work and admitted backlog. Too-small timeouts create election churn; making them enormous increases failure-detection time.") + p(
         "The small/bulk windows collect proposals outside the consensus owner. Bulk delay applies to byte-limited groups while other admitted work is awaiting quorum/application; it shortens when all admitted work is already queued. A full count/byte group can flush immediately. The deadline starts at the oldest queued proposal and is not extended by every new arrival.") + p(
         "To remove intentional collection waits, set both <code>ProposalBatchDelay = TimeSpan.Zero</code> and <code>BulkProposalBatchDelay = TimeSpan.Zero</code>. Explicit nonzero bulk delay remains an override even if the small delay is zero. Measure the latency/transaction trade-off; one request at a time cannot exercise the same batching behavior as 64 concurrent callers.") + callout(
-        "Commit notification lag is an explicit trade-off", "With modern wire2 and CoalesceCommitNotifications=true, an idle caught-up follower may learn the new commit index on the next data packet or scheduled heartbeat. Follower application can lag by that logical heartbeat plus I/O/network/owner delay. Leader quorum persistence and leader application still precede client success. Setting false restores an immediate send attempt; an existing flight can still delay that peer. ReadIndex on the leader remains the fresh-read contract.") + p(
+        "Commit notification lag is an explicit trade-off", "With modern wire2/3 and CoalesceCommitNotifications=true, an idle caught-up follower may learn the new commit index on the next data packet or scheduled heartbeat. Follower application can lag by that logical heartbeat plus I/O/network/owner delay. Leader quorum persistence and leader application still precede client success. Setting false restores an immediate send attempt; an existing flight can still delay that peer. ReadIndex on the leader remains the fresh-read contract.") + p(
         "A client deadline is independent of RpcTimeout and election timers. Choose it for admission + durable replication + leader application, not just one network trip. Do not treat a timeout as proof of rejection. The sample's 15-second console deadline is an exercise setting, not a library constant."))
 
     add("performance", "Use bounded concurrency and measure real work", excerpt("IntegrationRecipes.cs", "load") + p(
@@ -236,8 +229,8 @@ def chapters():
         "Separate command payload, application-batch, durable-group and replication limits; increasing one does not increase them all.",
         "Measure with the intended voter count, payload size, durable application work, disk and network. Record p50/p99 and allocation as well as commands per second.") + p(
         "The runtime has a dedicated storage thread per adapter and an application thread per started node, alongside async network/timer work and DBreeze activity. Hosting many groups in one process therefore has a thread/resource cost. The pure consensus reducer itself performs no I/O; that does not make synchronous storage flushes free.") + p(
-        "The saved local comparison report is useful evidence for its measured environment, not a capacity promise for your host. Its current version wins the measured median-throughput configurations, while allocations remain higher and some p99 comparisons lose. Do not turn a disk/TCP loopback result into a cross-machine SLA.") + p(
-        source_link("benchmarks/results/winner-r18-2026-11-13.html", "Open the full measured comparison") + " · " + source_link("benchmarks/README.md", "Benchmark methods and commands")))
+        "The hot-membership report compares wire3/v4 with the immediately preceding HEAD, including full Add under load. Check throughput, p99 and allocations separately; a local disk/TCP result is not a cross-machine capacity promise. The earlier R18 competitor report describes the pre-membership version and is retained as historical evidence.") + p(
+        source_link("benchmarks/results/hot-membership-2026-11-14.html", "Hot membership: HEAD comparison") + " · " + source_link("benchmarks/results/winner-r18-2026-11-13.html", "Historical R18 comparison") + " · " + source_link("benchmarks/README.md", "Benchmark methods and commands")))
 
     add("security", "Secure the peer network and your client API", p(
         "Plain TcpRaftTransport is appropriate only on a trusted lab/network. Group and peer IDs in an RPC are routing identifiers; they are not cryptographic authentication. A production host should restrict the network and use mutual TLS with a certificate-to-Raft-ID policy.") + excerpt("IntegrationRecipes.cs", "tls") + p(
@@ -280,10 +273,10 @@ def chapters():
     add("upgrades", "Keep disk layout, wire and app format separate", table(
         ["Version axis", "Current recommendation", "Upgrade rule"], [
             ["Runtime/API", "net8.0 project in RaftNet8/", "Historical Framework/Standard projects are not modern database inputs."],
-            ["Disk layout", "Explicit UnifiedTableV3 for new data; v2 still supported.", "Stopped offline copy migration, fresh target, verified source retained."],
-            ["Wire", "Version 2", "Mixed wire1/wire2 rejected; v1→v2 is whole-group offline."],
+            ["Disk layout", "Explicit UnifiedTableV4 + wire3 for fresh clusters; v2/v3 remain compatibility modes.", "No v2/v3→v4 converter. Historical v2→v3 copy is described below."],
+            ["Wire", "Version 3 for new v4 clusters", "Mixed wire1/2/3 rejected; v4 uses wire3 only."],
             ["Wire2 limits", "Compatible MaxReplicationBytes/MaxCommandBytes/frame limits.", "Older wire2 receivers may reject the new larger defaults."],
-            ["Application/image format", "Your stable versioned command handler and ApplicationId.", "An explicit application migration; the Raft tool cannot infer it."]]) + code(
+            ["Application/image format", "Your stable versioned command handler and ApplicationId.", "An explicit application migration; the Raft tool cannot infer it."]]) + callout("Fresh v4 is a separate mode", "The copy command below is only for legacy v2→v3; it does not produce v4. Retain old data and use fresh directories for a new wire3 group.") + code(
         "dotnet run --project tools/Raft.Migrate -c Release -- --v2-to-v3 <source-db> <new-db> <group> <node> <initial-voter-list>", "shell", "From RaftNet8/ with the entire group and all engines stopped") + p(
         "The API is <code>RaftStorageMigration.CopyV2ToV3(source, destination, options)</code>. Use a non-existent destination outside the source. The tool verifies/copies/converts the database folder and seals the result; an incomplete target must not start. It copies application tables inside that DB folder unchanged, but not sibling application or snapshot roots. Copy those separately while stopped. Reparse/outside-table layouts are rejected by this copy method.") + p(
         "Keep the original node/group and recovered membership. Verify the migration manifest/frontiers, start a quorum, exercise reads/writes/catch-up/snapshots and another restart, then reopen clients. Once the new cluster accepts writes, the old folders are stale and are not a safe rollback.") + callout(
@@ -347,6 +340,6 @@ def chapters():
         '<a href="../../../../_docs/llm/skill/DBreeze_skill.md">Preserved DBreeze transaction reference</a>',
         '<a href="https://raft.github.io/raft.pdf">Ongaro and Ousterhout: Raft extended paper</a> — conceptual background; this implementation\'s public contracts are in its source and runbooks.',
         '<a href="https://github.com/hhblaze/DBreeze">DBreeze upstream</a> — embedded database project.') + p(
-        "This edition describes the checked-in .NET 8 API and defaults as of 13 November 2026. Sample-specific timing, paths and command syntax are identified separately. Recheck source/upgrade notes before combining it with another binary version."))
+        "This edition describes the checked-in .NET 8 API and defaults as of 14 November 2026. Sample-specific timing, paths and command syntax are identified separately. Recheck source/upgrade notes before combining it with another binary version."))
 
     return book

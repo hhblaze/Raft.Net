@@ -4,7 +4,9 @@ Use distinct absolute log/application/snapshot directories per stable node ID. N
 
 ## Transport identities and TLS
 
-`KnownPeers` authorizes IDs to contact this group; it never changes votes. Before adding a member, provision its ID and route on every existing node. `TcpRaftTransport.UpdatePeerAsync(id, endpoint)` can change routing for an already provisioned ID without changing membership. Adding an entirely new unprovisioned ID requires updating provisioning/restarting existing processes; keep a quorum available while doing so.
+For fresh groups, [wire3 / raft8-v4 hot membership](HOT-MEMBERSHIP.md) replicates PeerDescriptor(ID,host,port), updates existing routes without restart and repairs stale routes through bounded trusted directory exchange. KnownPeers/InitialPeers are bootstrap inputs; inspect node.PeerDirectory for the current immutable view. Directory hints never change voters. Roots, private keys and certificate authorization remain host-owned.
+
+In legacy wire1/2 modes, `KnownPeers` authorizes provisioned IDs, never votes. Provision future IDs/routes on every existing host; `UpdatePeerAsync` changes only an already provisioned route. The old restart requirement for a new ID belongs to that compatibility mode.
 
 Plain TCP belongs on a trusted network. For mTLS, supply a caller-owned certificate with private key and an authorization function:
 
@@ -17,7 +19,17 @@ var tcp = new TcpRaftTransport(options, endpoints, security);
 
 This example assumes a protected, operator-provisioned certificate map and platform-trusted chains. Default outbound name validation uses the **Raft peer ID** as TargetHost; provision matching SANs. A private-PKI validation callback must implement the intended chain/name/revocation policy; accepting every certificate defeats authentication. Certificate-to-ID binding remains mandatory. Stop connections/rotate trust and certificates coherently; the library does not distribute trust configuration. Windows SChannel needs a usable private-key provider; the test fixture reimports temporary PFX keys rather than relying on unsupported ephemeral key handles.
 
-## Add, promote, remove
+## Hot Add/Remove on wire3
+
+Use explicit UnifiedTableV4, WireVersion3 and a canonical initial descriptor list. Start a new process with the same original voters/directory/group and self as a local learner. On the leader call `AddNodeAsync(peer, operationId, token)`; this owns registration, learner, catch-up and promotion. No existing process restarts. `RemoveNodeAsync(id, operationId, token)` transfers first if removing the leader; its successor resumes the persisted operation after current-term readiness.
+
+Persist a non-empty operation Guid and exact request at the caller. Same ID/content joins the old operation; different content conflicts. A different ID while busy gets MembershipChangeInProgressException with the active ID. Only one logical operation owns the lane across elections and restarts. Inspect terminal Stage/Error. Wait cancellation/timeout does not cancel an accepted operation. Resolve NotLeader and retry the same ID/content, or GetMembershipOperationAsync on its successor. This is an indexed fresh quorum lookup.
+
+Use CancelMembershipOperationAsync for an explicit Add cancellation. Before final voter-configuration append it commits cancellation, removes the created learner, retires registration and records Cancelled before freeing the lane. Afterwards it throws MembershipCancellationTooLateException; query the result. Unavailable learners otherwise wait indefinitely. A confirmed transfer failure produces Failed without forced leader removal. Legacy membership/standalone transfer APIs cannot bypass the lane in wire3.
+
+There is no v2/v3→v4 converter; use fresh directories for a new group and preserve old data. Do not start mixed wire versions. The1024 historical-ID limit includes removed/cancelled tombstones, which are never reused. Results are indexed on disk without TTL, and included in streamed v4 snapshots at the application fence. See [the full contract and bounds](HOT-MEMBERSHIP.md) and the [RU/English books](human/tutorial/index.html).
+
+## Legacy wire2 add, promote, remove
 
 1. Provision a new unique ID and authenticated route everywhere. Start its empty data directories using the current voters plus itself in bootstrap `Learners`; use compatible snapshot application/format ID. It cannot elect itself or count toward quorum.
 2. On the current leader, establish readiness with `await leader.ReadIndexAsync(token)`, then `await leader.AddLearnerAsync(newId, token)`. A leadership transition/current-term gate can require retrying the control request.

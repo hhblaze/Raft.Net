@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using System.Text.Json;
 using Raft.Storage;
 using Raft.Transport;
 
@@ -16,8 +17,10 @@ internal static class DemoConsole
 internal sealed class DemoCluster : IAsyncDisposable
 {
     internal sealed record Member(TcpRaftTransport Tcp, RaftNode Node, SnapshotKeyValueMachine Machine);
-    private sealed class PartitionTransport(string from, DemoCluster cluster, TcpRaftTransport tcp) : IRaftTransport
+    private sealed class PartitionTransport(string from, DemoCluster cluster, TcpRaftTransport tcp) : IRaftTransport, IPeerDirectoryTransport
     {
+        public IReadOnlyList<PeerDescriptor> BootstrapPeers => tcp.BootstrapPeers;
+        public ValueTask UpdateDirectoryAsync(MembershipState state, CancellationToken token) => tcp.UpdateDirectoryAsync(state, token);
         public async ValueTask<RaftRpc> SendAsync(string peerId, RaftRpc request, CancellationToken cancellationToken)
         {
             if (!cluster.Connected(from, peerId)) throw new IOException("Demo network partition.");
@@ -30,7 +33,7 @@ internal sealed class DemoCluster : IAsyncDisposable
     }
 
     private static readonly string[] Ids = { "n1", "n2", "n3" };
-    private static readonly string[] KnownIds = { "n1", "n2", "n3", "n4" };
+    private static readonly string[] KnownIds = { "n1", "n2", "n3", "n4", "n5", "n6" };
     private readonly string _data;
     private readonly DBreezeLogLayout _layout;
     private readonly Dictionary<string, IPEndPoint> _endpoints = new();
@@ -51,17 +54,29 @@ internal sealed class DemoCluster : IAsyncDisposable
         {
             if (Directory.EnumerateFileSystemEntries(_data).Any())
                 throw new InvalidDataException("Use an empty directory for a new demo; migrate old data offline before opening it.");
-            File.WriteAllText(marker, "raft-demo-v3");
+            File.WriteAllText(marker, "raft-demo-v4");
         }
         _layout = File.ReadAllText(marker) switch
         {
             "raft-demo-v2" => DBreezeLogLayout.SeparateTablesV2,
             "raft-demo-v3" => DBreezeLogLayout.UnifiedTableV3,
+            "raft-demo-v4" => DBreezeLogLayout.UnifiedTableV4,
             _ => throw new InvalidDataException("Unknown demo data version.")
         };
+        var routesFile = Path.Combine(_data, "demo-endpoints.json");
+        if (_layout == DBreezeLogLayout.UnifiedTableV4 && File.Exists(routesFile))
+        {
+            var saved = JsonSerializer.Deserialize<PeerDescriptor[]>(File.ReadAllText(routesFile))
+                ?? throw new InvalidDataException("Missing saved demo endpoints.");
+            foreach (var peer in saved) _endpoints.Add(peer.NodeId, IPEndPoint.Parse($"{peer.Host}:{peer.Port}"));
+            if (KnownIds.Any(id => !_endpoints.ContainsKey(id)) ||
+                (basePort != 0 && KnownIds.Where((id, index) => _endpoints[id].Port != basePort + index).Any()))
+                throw new InvalidDataException("Keep the saved demo ports, or use a new empty --data directory.");
+            return;
+        }
         if (basePort != 0)
         {
-            if (basePort is < 1024 or > 65532) throw new ArgumentOutOfRangeException(nameof(basePort));
+            if (basePort is < 1024 or > 65530) throw new ArgumentOutOfRangeException(nameof(basePort));
             for (var i = 0; i < KnownIds.Length; i++) _endpoints.Add(KnownIds[i], new(IPAddress.Loopback, basePort + i));
         }
         else
@@ -77,24 +92,34 @@ internal sealed class DemoCluster : IAsyncDisposable
             }
             finally { foreach (var reservation in reservations) reservation.Stop(); }
         }
+        if (_layout == DBreezeLogLayout.UnifiedTableV4)
+            File.WriteAllText(routesFile, JsonSerializer.Serialize(KnownIds.Select(Descriptor)));
     }
+
+    private PeerDescriptor Descriptor(string id) => new(id, _endpoints[id].Address.ToString(), _endpoints[id].Port);
 
     public async Task StartAsync()
     {
         foreach (var id in Ids) await StartMemberAsync(id);
-        if (Directory.Exists(Path.Combine(_data, "n4"))) await StartMemberAsync("n4");
+        foreach (var id in KnownIds.Except(Ids))
+            if (Directory.Exists(Path.Combine(_data, id))) await StartMemberAsync(id);
         _watch = WatchAsync();
     }
 
     public async Task StartMemberAsync(string id)
     {
-        if (!KnownIds.Contains(id)) throw new ArgumentException("Choose n1, n2, n3, or n4.");
+        if (!KnownIds.Contains(id)) throw new ArgumentException("Choose n1..n6.");
         if (_members.ContainsKey(id)) throw new InvalidOperationException($"{id} is already running.");
         var root = Path.Combine(_data, id);
         var options = new RaftOptions { NodeId = id, GroupId = "human_test", Members = Ids,
-            Learners = id == "n4" ? [id] : [], KnownPeers = KnownIds,
+            WireVersion = _layout == DBreezeLogLayout.UnifiedTableV4 ? 3 : 2,
+            JoiningNode = _layout == DBreezeLogLayout.UnifiedTableV4 && !Ids.Contains(id),
+            Learners = _layout == DBreezeLogLayout.UnifiedTableV4 || Ids.Contains(id) ? [] : [id],
+            KnownPeers = _layout == DBreezeLogLayout.UnifiedTableV4 ? [] : KnownIds,
+            InitialPeers = _layout == DBreezeLogLayout.UnifiedTableV4 ? Ids.Select(Descriptor).ToArray() : [],
             SnapshotDirectory = Path.Combine(root, "snapshots"), SnapshotRetainEntries = 8 };
-        var tcp = new TcpRaftTransport(options, _endpoints);
+        var tcp = _layout == DBreezeLogLayout.UnifiedTableV4
+            ? new TcpRaftTransport(options, Descriptor(id)) : new TcpRaftTransport(options, _endpoints);
         RaftNode? node = null;
         SnapshotKeyValueMachine? machine = null;
         RaftStorageAdapter? log = null;
@@ -137,7 +162,7 @@ internal sealed class DemoCluster : IAsyncDisposable
     private bool Connected(string from, string to) => !_isolated.ContainsKey(from) && !_isolated.ContainsKey(to);
     public void Isolate(string id)
     {
-        if (!KnownIds.Contains(id)) throw new ArgumentException("Choose n1, n2, n3, or n4.");
+        if (!KnownIds.Contains(id)) throw new ArgumentException("Choose n1..n6.");
         _isolated[id] = 0;
         DemoConsole.Write($"ISOLATE {id}: traffic in both directions is dropped.");
     }
@@ -203,6 +228,8 @@ internal sealed class DemoCluster : IAsyncDisposable
             if (status.Role == RaftRole.Leader)
             {
                 rows.Add($"     voters={string.Join(',', status.Configuration!.Voters)} learners={string.Join(',', status.Configuration.Learners)}");
+                if (status.Membership?.ActiveOperation is { } active)
+                    rows.Add($"     operation={active.OperationId} target={active.NodeId} stage={active.Stage}");
                 foreach (var peer in status.Peers)
                     rows.Add($"     {peer.NodeId}: match={peer.MatchIndex} next={peer.NextIndex} mode={peer.Mode} inflight={peer.InFlightMessages}/{peer.InFlightBytes}B");
             }
@@ -236,6 +263,12 @@ internal sealed class DemoCluster : IAsyncDisposable
     public async Task AddAsync(string target, CancellationToken token)
     {
         if (!_members.ContainsKey(target)) await StartMemberAsync(target);
+        if (_layout == DBreezeLogLayout.UnifiedTableV4)
+        {
+            var operation = Guid.NewGuid();
+            await RunMembershipAsync(node => node.AddNodeAsync(Descriptor(target), operation, token), token);
+            return;
+        }
         var leader = await LeaderAsync(token);
         await leader.Node.ReadIndexAsync(token);
         await leader.Node.AddLearnerAsync(target, token);
@@ -244,15 +277,42 @@ internal sealed class DemoCluster : IAsyncDisposable
     {
         var leader = await LeaderAsync(token);
         await leader.Node.ReadIndexAsync(token);
+        if (_layout == DBreezeLogLayout.UnifiedTableV4 && leader.Node.Status.Configuration!.IsVoter(target)) return;
         while (!leader.Node.Status.Peers.Any(p => p.NodeId == target && p.MatchIndex >= leader.Node.Status.LastLogIndex))
             await Task.Delay(25, token);
         await leader.Node.PromoteToVoterAsync(target, token);
     }
     public async Task RemoveAsync(string target, CancellationToken token)
     {
+        if (_layout == DBreezeLogLayout.UnifiedTableV4)
+        {
+            var operation = Guid.NewGuid();
+            await RunMembershipAsync(node => node.RemoveNodeAsync(target, operation, token), token);
+            return;
+        }
         var leader = await LeaderAsync(token);
         await leader.Node.ReadIndexAsync(token);
         await leader.Node.RemoveNodeAsync(target, token);
+    }
+    private async Task RunMembershipAsync(Func<RaftNode, Task<MembershipOperationStatus>> action, CancellationToken token)
+    {
+        while (true)
+        {
+            var leader = await LeaderAsync(token);
+            try
+            {
+                var result = await action(leader.Node);
+                DemoConsole.Write($"MEMBERSHIP {result.OperationId}: {result.Kind} {result.NodeId} -> {result.Stage} {result.Error}");
+                return;
+            }
+            catch (NotLeaderException) { await Task.Delay(25, token); }
+        }
+    }
+    public async Task OperationAsync(Guid id, bool cancel, CancellationToken token)
+    {
+        var node = (await LeaderAsync(token)).Node;
+        var result = cancel ? await node.CancelMembershipOperationAsync(id, token) : await node.GetMembershipOperationAsync(id, token);
+        DemoConsole.Write(result is null ? "Unknown operation." : JsonSerializer.Serialize(result));
     }
     public async Task SnapshotAsync(CancellationToken token)
     {

@@ -11,12 +11,15 @@ public enum PersistenceBoundary { BeforeTransaction, AfterLogMutation, BeforeCom
 /// Checked DBreeze store with explicit v2 separate tables or v3 prefixed single-table layout.
 /// The durable frontier is committed atomically with log/config changes. Layout changes require offline copy migration.
 /// </summary>
-public sealed class DBreezeLogStorage : IExtendedRaftStorage, IRaftStorageIdentity
+public sealed partial class DBreezeLogStorage : IExtendedRaftStorage, IRaftStorageIdentity
 {
     public const string MetaTable = "raft8/v2/meta";
     public const string LogTable = "raft8/v2/log";
     public const string ConfigurationTable = "raft8/v2/config";
     public const string UnifiedTable = "raft8/v3";
+    public const string UnifiedTableV4 = "raft8/v4";
+    internal const string MembershipIndexTable = "raft8/v4/management";
+    internal const string MembershipHistoryTable = "raft8/v4/results";
     public DBreezeLogLayout Layout { get; }
     private readonly object _gate = new();
     // Lock order is storage gate -> cache gate. Cache-only reads never take the
@@ -65,9 +68,11 @@ public sealed class DBreezeLogStorage : IExtendedRaftStorage, IRaftStorageIdenti
         Layout = layout;
         try
         {
-            if (layout is not DBreezeLogLayout.SeparateTablesV2 and not DBreezeLogLayout.UnifiedTableV3)
+            if (layout is not DBreezeLogLayout.SeparateTablesV2 and not DBreezeLogLayout.UnifiedTableV3 and not DBreezeLogLayout.UnifiedTableV4)
                 throw new ArgumentOutOfRangeException(nameof(layout));
             _options = options.Freeze();
+            if ((layout == DBreezeLogLayout.UnifiedTableV4) != (_options.WireVersion == 3))
+                throw new ArgumentException("Wire3 requires explicit raft8-v4 storage, and raft8-v4 requires wire3.");
             CheckLayout();
             Initialize();
         }
@@ -96,6 +101,21 @@ public sealed class DBreezeLogStorage : IExtendedRaftStorage, IRaftStorageIdenti
     private void CheckLayout()
     {
         using var tx = _engine.GetTransaction();
+        var hasV4 = _engine.Scheme.IfUserTableExists(UnifiedTableV4) && tx.SelectForward<byte[], byte[]>(UnifiedTableV4).Any();
+        if (Layout == DBreezeLogLayout.UnifiedTableV4)
+        {
+            if (hasV4)
+            {
+                if (!tx.Select<byte[], byte[]>(UnifiedTableV4, DBreezeLogTransaction.Key(1, "identity")).Exists)
+                    throw new InvalidDataException("V4 data has no identity.");
+                return;
+            }
+            if (new[] { UnifiedTable, MetaTable, LogTable, ConfigurationTable, "raft8/meta", "raft8/log" }
+                .Any(table => _engine.Scheme.IfUserTableExists(table) && tx.SelectForward<byte[], byte[]>(table).Any()))
+                throw new InvalidDataException("Use a fresh database for raft8-v4; older data is not converted implicitly.");
+            return;
+        }
+        if (hasV4) throw new InvalidDataException("This is a raft8-v4 database; select its explicit layout.");
         var hasUnified = _engine.Scheme.IfUserTableExists(UnifiedTable) && tx.SelectForward<byte[], byte[]>(UnifiedTable).Any();
         if (Layout == DBreezeLogLayout.SeparateTablesV2)
         {
@@ -141,6 +161,7 @@ public sealed class DBreezeLogStorage : IExtendedRaftStorage, IRaftStorageIdenti
             _configuration = _identity.Bootstrap.Validate();
             _knownMembers = _configuration.AllMembers.ToImmutableArray();
             tx.Insert<string, byte[]>(MetaTable, "identity", StorageCodecV2.Identity(_identity));
+            InitializeMembership(tx, fresh: true);
             WriteState(tx, _state, _frontier);
             if (_migration)
                 tx.Insert<string, byte[]>(MetaTable, "migration", StorageCodecV2.Wrap("incomplete"u8));
@@ -155,11 +176,11 @@ public sealed class DBreezeLogStorage : IExtendedRaftStorage, IRaftStorageIdenti
             _identity.Bootstrap.AllMembers.ToImmutableArray();
         if (_identity.GroupId != _options.GroupId || _identity.NodeId != _options.NodeId)
             throw new InvalidDataException("The persisted group/node identity differs.");
-        if (Layout == DBreezeLogLayout.UnifiedTableV3)
+        if (Layout is DBreezeLogLayout.UnifiedTableV3 or DBreezeLogLayout.UnifiedTableV4)
         {
             var manifest = tx.Select<string, byte[]>(MetaTable, "manifest");
             if (!manifest.Exists) throw new InvalidDataException("Missing packed v3 durable manifest; incompatible prototype format.");
-            (_state, _frontier) = StorageCodecV2.Manifest(manifest.Value);
+            (_state, _frontier) = StorageCodecV2.ReadManifest(manifest.Value, Layout == DBreezeLogLayout.UnifiedTableV4);
         }
         else
         {
@@ -196,7 +217,7 @@ public sealed class DBreezeLogStorage : IExtendedRaftStorage, IRaftStorageIdenti
                 continue;
             }
             if (row.Key != expected) throw new InvalidDataException($"Durable log gap at {expected}.");
-            var entry = StorageCodecV2.Entry(row.Key, row.Value, _options.MaxCommandBytes);
+            var entry = StorageCodecV2.Entry(row.Key, row.Value, _options.MaxCommandBytes, Layout == DBreezeLogLayout.UnifiedTableV4);
             if (entry.Term < previousTerm || entry.Term > _state.Term)
                 throw new InvalidDataException("Log terms disagree with durable state.");
             expected++;
@@ -211,6 +232,12 @@ public sealed class DBreezeLogStorage : IExtendedRaftStorage, IRaftStorageIdenti
                 if (!indexed.Exists || !StorageCodecV2.Open(indexed.Value).SequenceEqual(ConfigValue(entry)))
                     throw new InvalidDataException("Missing or inconsistent configuration index.");
             }
+            if (Layout == DBreezeLogLayout.UnifiedTableV4 && entry.Kind == LogEntryKind.Membership)
+            {
+                var control = tx.Select<long, byte[]>(MembershipIndexTable, entry.Index);
+                if (!control.Exists || !control.Value.AsSpan().SequenceEqual(row.Value))
+                    throw new InvalidDataException("Missing or inconsistent membership index.");
+            }
             Cache(entry);
         }
         if (expected != _frontier.LastIndex + 1 ||
@@ -219,6 +246,7 @@ public sealed class DBreezeLogStorage : IExtendedRaftStorage, IRaftStorageIdenti
             total != _frontier.TotalBytes || committed != _frontier.CommittedBytes)
             throw new InvalidDataException("Durable log/frontier length or byte totals disagree.");
         VerifyConfigurationIndex(tx);
+        InitializeMembership(tx, fresh: false);
         cleanup |= tx.SelectForwardStartFrom<long, byte[]>(ConfigurationTable, _frontier.LastIndex + 1, true).Any();
         if (cleanup)
         {
@@ -233,8 +261,8 @@ public sealed class DBreezeLogStorage : IExtendedRaftStorage, IRaftStorageIdenti
 
     private void WriteState(DBreezeLogTransaction tx, HardState state, StorageCodecV2.Frontier frontier)
     {
-        if (Layout == DBreezeLogLayout.UnifiedTableV3)
-            tx.Insert<string, byte[]>(MetaTable, "manifest", StorageCodecV2.Manifest(state, frontier));
+        if (Layout is DBreezeLogLayout.UnifiedTableV3 or DBreezeLogLayout.UnifiedTableV4)
+            tx.Insert<string, byte[]>(MetaTable, "manifest", StorageCodecV2.Manifest(state, frontier, Layout == DBreezeLogLayout.UnifiedTableV4));
         else
         {
             tx.Insert<string, byte[]>(MetaTable, "state", StorageCodecV2.Hard(state));
@@ -249,7 +277,7 @@ public sealed class DBreezeLogStorage : IExtendedRaftStorage, IRaftStorageIdenti
             if (row.Key > _frontier.LastIndex) continue; // cleaned as an unpromised tail
             var log = tx.Select<long, byte[]>(LogTable, row.Key);
             if (!log.Exists) throw new InvalidDataException("Configuration index has no corresponding log entry.");
-            var entry = StorageCodecV2.Entry(row.Key, log.Value, _options.MaxCommandBytes);
+            var entry = StorageCodecV2.Entry(row.Key, log.Value, _options.MaxCommandBytes, Layout == DBreezeLogLayout.UnifiedTableV4);
             if (entry.Kind != LogEntryKind.Configuration ||
                 !StorageCodecV2.Open(row.Value).SequenceEqual(ConfigValue(entry)))
                 throw new InvalidDataException("Configuration index differs from the log.");
@@ -265,7 +293,8 @@ public sealed class DBreezeLogStorage : IExtendedRaftStorage, IRaftStorageIdenti
             {
                 FirstIndex = _frontier.FirstIndex, Identity = _identity, Configuration = _configuration,
                 UncommittedBytes = _frontier.TotalBytes - _frontier.CommittedBytes, SupportsConfiguration = true,
-                KnownMembers = _knownMembers, PendingSnapshotInstall = _installIntent
+                KnownMembers = _knownMembers, PendingSnapshotInstall = _installIntent,
+                Membership = _membership is null ? null : new(_membership, _nextMembershipIndex, _pendingMembershipOperation)
             };
         }
     }
@@ -292,6 +321,10 @@ public sealed class DBreezeLogStorage : IExtendedRaftStorage, IRaftStorageIdenti
             var installIntent = _installIntent;
             var configuration = _configuration;
             var knownMembers = _knownMembers;
+            var membership = _membership;
+            var nextMembershipIndex = _nextMembershipIndex;
+            var pendingMembershipOperation = _pendingMembershipOperation;
+            var historyGeneration = _historyGeneration;
             var inserted = new List<LogEntry>();
             long? replacedFrom = null;
             var modified = false;
@@ -333,6 +366,9 @@ public sealed class DBreezeLogStorage : IExtendedRaftStorage, IRaftStorageIdenti
                             var active = Configuration(tx, meta.LastIncludedIndex, snapshot);
                             if (!SameMembers(active, new(meta.Voters, meta.Learners)))
                                 throw new InvalidOperationException("Snapshot configuration differs from its boundary.");
+                            if (Layout == DBreezeLogLayout.UnifiedTableV4 &&
+                                (meta.Membership is null || !MembershipBytes(meta.Membership).AsSpan().SequenceEqual(MembershipBytes(MembershipAt(tx, meta.LastIncludedIndex)))))
+                                throw new InvalidOperationException("Snapshot membership differs from its boundary.");
                             var first = Math.Max(tail.FirstIndex, meta.LastIncludedIndex - publish.RetainEntries + 1);
                             var removed = Bytes(tx, tail.FirstIndex, first - 1);
                             foreach (var row in tx.SelectForwardStartFrom<long, byte[]>(LogTable, tail.FirstIndex, true, AsReadVisibilityScope: true))
@@ -340,6 +376,7 @@ public sealed class DBreezeLogStorage : IExtendedRaftStorage, IRaftStorageIdenti
                                 if (row.Key >= first) break;
                                 tx.RemoveKey<long>(LogTable, row.Key);
                                 tx.RemoveKey<long>(ConfigurationTable, row.Key);
+                                if (Layout == DBreezeLogLayout.UnifiedTableV4) tx.RemoveKey<long>(MembershipIndexTable, row.Key);
                             }
                             tail = tail with { FirstIndex = first, TotalBytes = tail.TotalBytes - removed, CommittedBytes = tail.CommittedBytes - removed };
                             snapshot = meta;
@@ -370,6 +407,7 @@ public sealed class DBreezeLogStorage : IExtendedRaftStorage, IRaftStorageIdenti
                                     if (row.Key > included.LastIncludedIndex) break;
                                     tx.RemoveKey<long>(LogTable, row.Key);
                                     tx.RemoveKey<long>(ConfigurationTable, row.Key);
+                                    if (Layout == DBreezeLogLayout.UnifiedTableV4) tx.RemoveKey<long>(MembershipIndexTable, row.Key);
                                 }
                                 tail = tail with { FirstIndex = included.LastIncludedIndex + 1, TotalBytes = remainingBytes, CommittedBytes = 0 };
                             }
@@ -377,6 +415,7 @@ public sealed class DBreezeLogStorage : IExtendedRaftStorage, IRaftStorageIdenti
                             {
                                 tx.RemoveAllKeys(LogTable, withFileRecreation: false);
                                 tx.RemoveAllKeys(ConfigurationTable, withFileRecreation: false);
+                                if (Layout == DBreezeLogLayout.UnifiedTableV4) tx.RemoveAllKeys(MembershipIndexTable, withFileRecreation: false);
                                 tail = new(included.LastIncludedIndex + 1, included.LastIncludedIndex, included.LastIncludedTerm, 0, 0);
                                 replacedFrom = 1;
                             }
@@ -389,9 +428,22 @@ public sealed class DBreezeLogStorage : IExtendedRaftStorage, IRaftStorageIdenti
                             installIntent = null;
                             modified = true;
                             break;
+                        case LogWrite.StageMembershipHistory stage:
+                            if (Layout != DBreezeLogLayout.UnifiedTableV4) throw new NotSupportedException("History staging requires v4.");
+                            StageHistory(tx, stage);
+                            modified = true;
+                            break;
+                        case LogWrite.PruneMembershipHistory prune:
+                            if (Layout != DBreezeLogLayout.UnifiedTableV4) throw new NotSupportedException("History collection requires v4.");
+                            var pruned = PruneHistory(tx, prune.ProtectedGenerations, historyGeneration);
+                            if (!pruned && commands.Length == 1) return; // idle maintenance must not create an unchanged durable write
+                            modified |= pruned;
+                            break;
                         default: throw new ArgumentException("Unknown v2 mutation.");
                     }
                 }
+                UpdateMembership(tx, state, tail, snapshot, commands, inserted, replacedFrom,
+                    ref membership, ref nextMembershipIndex, ref pendingMembershipOperation, ref historyGeneration);
                 _observe?.Invoke(PersistenceBoundary.AfterLogMutation);
                 WriteState(tx, state, tail);
                 if (knownMembers != _knownMembers)
@@ -410,6 +462,10 @@ public sealed class DBreezeLogStorage : IExtendedRaftStorage, IRaftStorageIdenti
                     _installIntent = installIntent;
                     _configuration = configuration;
                     _knownMembers = knownMembers;
+                    _membership = membership;
+                    _nextMembershipIndex = nextMembershipIndex;
+                    _pendingMembershipOperation = pendingMembershipOperation;
+                    _historyGeneration = historyGeneration;
                     // Ordinary appends/commit-only writes cannot invalidate existing immutable cache entries.
                     // Avoid walking the entire bounded LRU for every durable mutation.
                     var cursor = invalidateCache ? _lru.First : null;
@@ -441,6 +497,11 @@ public sealed class DBreezeLogStorage : IExtendedRaftStorage, IRaftStorageIdenti
                             knownMembers = knownMembers.Union(parsed.AllMembers, StringComparer.Ordinal).ToImmutableArray();
                             if (knownMembers.Length > 1024) throw new InvalidOperationException("Too many historical member IDs.");
                         }
+                        if (entry.Kind == LogEntryKind.Membership)
+                        {
+                            if (Layout != DBreezeLogLayout.UnifiedTableV4) throw new InvalidDataException("Membership entries require v4.");
+                            _ = MembershipCodec.Decode(entry.Command.Span);
+                        }
                         previous = entry.Term;
                     }
                     if (!replace && from != tail.LastIndex + 1) throw new InvalidOperationException("Append must extend the tail.");
@@ -451,6 +512,7 @@ public sealed class DBreezeLogStorage : IExtendedRaftStorage, IRaftStorageIdenti
                         {
                             tx.RemoveKey<long>(LogTable, row.Key);
                             tx.RemoveKey<long>(ConfigurationTable, row.Key);
+                            if (Layout == DBreezeLogLayout.UnifiedTableV4) tx.RemoveKey<long>(MembershipIndexTable, row.Key);
                         }
                         tail = tail with { LastIndex = from - 1, LastTerm = Term(tx, from - 1, tail, snapshot), TotalBytes = tail.TotalBytes - removed };
                         replacedFrom = from;
@@ -461,6 +523,8 @@ public sealed class DBreezeLogStorage : IExtendedRaftStorage, IRaftStorageIdenti
                         tx.Insert<long, byte[]>(LogTable, entry.Index, StorageCodecV2.Entry(entry));
                         if (entry.Kind == LogEntryKind.Configuration)
                             tx.Insert<long, byte[]>(ConfigurationTable, entry.Index, StorageCodecV2.Wrap(ConfigValue(entry)));
+                        if (entry.Kind == LogEntryKind.Membership)
+                            tx.Insert<long, byte[]>(MembershipIndexTable, entry.Index, StorageCodecV2.Entry(entry));
                         inserted.Add(entry);
                         tail = tail with { LastIndex = entry.Index, LastTerm = entry.Term, TotalBytes = tail.TotalBytes + Size(entry) };
                         modified = true;
@@ -560,7 +624,7 @@ public sealed class DBreezeLogStorage : IExtendedRaftStorage, IRaftStorageIdenti
             {
                 if (row.Key > _frontier.LastIndex) break;
                 if (row.Key != index) throw new InvalidDataException($"Log gap at {index}.");
-                var entry = StorageCodecV2.Entry(row.Key, row.Value, _options.MaxCommandBytes);
+                var entry = StorageCodecV2.Entry(row.Key, row.Value, _options.MaxCommandBytes, Layout == DBreezeLogLayout.UnifiedTableV4);
                 Cache(entry);
                 if (!Add(entry)) return result;
                 index++;
@@ -625,6 +689,8 @@ public sealed class DBreezeLogStorage : IExtendedRaftStorage, IRaftStorageIdenti
             Check();
             switch (query)
             {
+                case LogQuery.Membership or LogQuery.MembershipAt or LogQuery.MembershipOperation or LogQuery.MembershipHistory:
+                    return QueryMembership(query);
                 case LogQuery.Snapshot: return new(Snapshot: _snapshot);
                 case LogQuery.ConfigurationAt at:
                     using (var tx = OpenTransaction()) { _reads++; return new() { Configuration = Configuration(tx, at.Index, _snapshot) }; }
@@ -672,6 +738,9 @@ public sealed class DBreezeLogStorage : IExtendedRaftStorage, IRaftStorageIdenti
             Check();
             switch (query)
             {
+                case LogQuery.Membership when _membership is not null:
+                    result = new() { Membership = new(_membership, _nextMembershipIndex, _pendingMembershipOperation) };
+                    return true;
                 case LogQuery.Snapshot:
                     result = new(Snapshot: _snapshot);
                     return true;

@@ -17,6 +17,8 @@ internal abstract record ControlResult
     public sealed record Transfer(long ClientId, CoreFailure? Error = null) : ControlResult;
     public sealed record Configuration(long ClientId, long Index, long Term, CoreFailure? Error = null) : ControlResult;
     public sealed record Snapshot(long ClientId, SnapshotMetadata Metadata, CoreFailure? Error = null) : ControlResult;
+    public sealed record Membership(long ClientId, MembershipOperationStatus? Status = null, CoreFailure? Error = null,
+        Guid? ActiveOperationId = null) : ControlResult;
 }
 
 internal sealed record PeerProgress(string Id, long NextIndex = 1, long MatchIndex = 0,
@@ -32,12 +34,30 @@ internal sealed record PeerProgress(string Id, long NextIndex = 1, long MatchInd
     public int SnapshotHeartbeatElapsed { get; init; }
 }
 
+/// <summary>Rarely changed owned cluster data, shared by ordinary hot-state copies.</summary>
+internal sealed record CoreTopology(RaftOptions Options)
+{
+    public ClusterConfiguration Configuration { get; init; } = null!;
+    public MembershipView? Membership { get; init; }
+    public CoreFailure? MembershipTransferFailure { get; init; }
+}
+
 /// <summary>Immutable state. No live store, clock, random provider, task, or executable continuation.</summary>
 internal sealed record RaftState(RaftOptions Options, HardState HardState, long LastIndex, long LastTerm,
     ImmutableArray<PeerProgress> Peers, int ElectionDeadline)
 {
+    private readonly CoreTopology _topology = new(Options);
+    public RaftOptions Options
+    {
+        get => _topology.Options;
+        init => _topology = _topology with { Options = value };
+    }
     public RaftRole Role { get; init; }
-    public ClusterConfiguration Configuration { get; init; } = null!;
+    public ClusterConfiguration Configuration
+    {
+        get => _topology.Configuration;
+        init => _topology = _topology with { Configuration = value };
+    }
     public bool SupportsConfiguration { get; init; }
     public long FirstIndex { get; init; } = 1;
     public long UncommittedBytes { get; init; }
@@ -62,6 +82,16 @@ internal sealed record RaftState(RaftOptions Options, HardState HardState, long 
     public PendingEffect? Pending { get; init; }
     public CoreFailure? Fault { get; init; }
     public bool IsIdle => Pending is null && Agenda.IsEmpty;
+    public MembershipView? Membership
+    {
+        get => _topology.Membership;
+        init => _topology = _topology with { Membership = value };
+    }
+    public CoreFailure? MembershipTransferFailure
+    {
+        get => _topology.MembershipTransferFailure;
+        init => _topology = _topology with { MembershipTransferFailure = value };
+    }
 }
 
 internal abstract record CoreEvent
@@ -86,6 +116,8 @@ internal abstract record CoreEvent
     public sealed record ConfigChange(ImmutableArray<string> Voters, ImmutableArray<string> Learners) : CoreEvent
     { public long ClientId { get; init; } }
     public sealed record TransferLeadership(string Target) : CoreEvent { public long ClientId { get; init; } }
+    public sealed record MembershipRequest(long ClientId, MembershipOperationStatus Operation) : CoreEvent;
+    public sealed record CancelMembership(long ClientId, Guid OperationId) : CoreEvent;
 }
 
 internal abstract record CoreEffect
@@ -120,10 +152,18 @@ internal abstract record CoreAction
     public sealed record BeginTransfer(long ClientId, string Target) : CoreAction;
     public sealed record CheckTransfer : CoreAction;
     public sealed record TimeoutReply(long RequestId) : CoreAction;
-    public sealed record ChangeConfiguration(long ClientId, ImmutableArray<string> Voters, ImmutableArray<string> Learners) : CoreAction;
+    public sealed record ChangeConfiguration(long ClientId, ImmutableArray<string> Voters, ImmutableArray<string> Learners) : CoreAction
+    { public Guid? MembershipOperationId { get; init; } }
     public sealed record ConfigurationAccepted(long ClientId, long Index) : CoreAction;
     public sealed record RefreshConfiguration : CoreAction;
     public sealed record FinishConfiguration : CoreAction;
+    public sealed record CheckMembership : CoreAction;
+    public sealed record RefreshMembership : CoreAction;
+    public sealed record StartMembership(long ClientId, MembershipOperationStatus Request) : CoreAction;
+    public sealed record MembershipLookup(long ClientId, MembershipOperationStatus Request) : CoreAction;
+    public sealed record CancelMembership(long ClientId, Guid OperationId) : CoreAction;
+    public sealed record CancelMembershipLookup(long ClientId, Guid OperationId) : CoreAction;
+    public sealed record MembershipAccepted(long ClientId, MembershipOperationStatus Status) : CoreAction;
     public sealed record SnapshotRequest(string From, SnapshotChunkRequest Request) : CoreAction;
     public sealed record PermitSnapshotChunk(string From, SnapshotChunkRequest Request) : CoreAction;
     public sealed record BeginSnapshot(string From, long Term, SnapshotMetadata Metadata) : CoreAction;

@@ -14,6 +14,66 @@ public sealed class ProcessClusterCollection;
 public sealed class ProcessClusterTests
 {
     [Theory]
+    [InlineData(1)]
+    [InlineData(3)]
+    [InlineData(5)]
+    public async Task Hot_membership_uses_new_IDs_preserves_existing_PIDs_and_resumes_after_a_killed_leader(int voters)
+    {
+        using var directory = new TestDirectory();
+        await using var cluster = new ProcessCluster(directory.Path, voters, DBreezeLogLayout.UnifiedTableV4);
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+        var token = deadline.Token;
+        await cluster.StartAsync();
+        var originalPids = await cluster.ProcessIdsAsync(token);
+        var first = "n" + (voters + 1);
+        var second = "n" + (voters + 2);
+        var leader = await cluster.LeaderAsync(token);
+        Assert.DoesNotContain(first, (await leader.SuccessAsync("status", token: token)).Status!.Membership!.Peers.Select(peer => peer.NodeId));
+        await cluster.StartAsync(first);
+        var add = Guid.NewGuid();
+        var added = await cluster.MembershipAsync("add-node", first, add, token);
+        Assert.Equal(MembershipOperationStage.Completed, added.Operation!.Stage);
+        var pids = await cluster.ProcessIdsAsync(token);
+        foreach (var (id, pid) in originalPids) Assert.Equal(pid, pids[id]);
+        leader = await cluster.LeaderAsync(token);
+        await leader.SuccessAsync("set", "counter", "hot-added", token: token);
+        var same = await cluster.MembershipAsync("add-node", first, add, token);
+        Assert.Equal(added.Operation, same.Operation);
+
+        // Keep the next learner unavailable: the caller stops waiting, while the durable operation remains.
+        var pendingId = Guid.NewGuid();
+        var waiting = await leader.MembershipAsync("add-node", second, pendingId, cluster.Descriptor(second), 1000, token);
+        Assert.False(waiting.Success);
+        Assert.Contains("CanceledException", waiting.Error);
+        var saved = (await leader.SuccessAsync("status", token: token)).Status!;
+        Assert.Equal(pendingId, saved.Membership!.ActiveOperation!.OperationId);
+        Assert.Equal(MembershipOperationStage.CatchingUp, saved.Membership.ActiveOperation.Stage);
+        if (voters > 1)
+        {
+            var killed = leader.Id;
+            await cluster.StopAsync(killed, kill: true);
+            leader = await cluster.LeaderAsync(token);
+            Assert.Equal(pendingId, (await leader.SuccessAsync("status", token: token)).Status!.Membership!.ActiveOperation!.OperationId);
+            await cluster.StartAsync(second);
+            Assert.Equal(MembershipOperationStage.Completed, (await cluster.MembershipAsync("add-node", second, pendingId, token)).Operation!.Stage);
+            await cluster.StartAsync(killed);
+        }
+        else
+        {
+            await cluster.StartAsync(second);
+            Assert.Equal(MembershipOperationStage.Completed, (await cluster.MembershipAsync("add-node", second, pendingId, token)).Operation!.Stage);
+            Assert.Equal(new[] { "n1", "n2", "n3" }, (await (await cluster.LeaderAsync(token)).SuccessAsync("status", token: token)).Status!.Voters.Order().ToArray());
+        }
+        leader = await cluster.LeaderAsync(token);
+        var removingLeader = leader.Id;
+        var removeId = Guid.NewGuid();
+        Assert.Equal(MembershipOperationStage.Completed, (await cluster.MembershipAsync("remove-node", removingLeader, removeId, token)).Operation!.Stage);
+        await cluster.WaitAsync(status => status.Role == RaftRole.Removed, [removingLeader], token);
+        Assert.NotEqual(removingLeader, (await cluster.LeaderAsync(token)).Id);
+        await cluster.AssertValueAsync("hot-added", cluster.ActiveIds.Where(id => id != removingLeader), token);
+    }
+
+    [Theory]
     [InlineData(3, DBreezeLogLayout.SeparateTablesV2)]
     [InlineData(5, DBreezeLogLayout.SeparateTablesV2)]
     [InlineData(3, DBreezeLogLayout.UnifiedTableV3)]
@@ -96,13 +156,39 @@ public sealed class ProcessClusterTests
             _root = root;
             _layout = layout;
             Voters = Enumerable.Range(1, voters).Select(i => "n" + i).ToArray();
-            var listeners = Enumerable.Range(0, voters + 1).Select(_ => new TcpListener(IPAddress.Loopback, 0)).ToArray();
+            var listeners = Enumerable.Range(0, voters + 3).Select(_ => new TcpListener(IPAddress.Loopback, 0)).ToArray();
             try
             {
                 foreach (var listener in listeners) listener.Start();
                 _endpoints = string.Join(',', listeners.Select((listener, i) => $"n{i + 1}={listener.LocalEndpoint}"));
             }
             finally { foreach (var listener in listeners) listener.Stop(); }
+        }
+        public IEnumerable<string> ActiveIds => _workers.Keys;
+        public PeerDescriptor Descriptor(string id)
+        {
+            var text = _endpoints.Split(',').Single(item => item.StartsWith(id + "=", StringComparison.Ordinal));
+            var endpoint = IPEndPoint.Parse(text[(text.IndexOf('=') + 1)..]);
+            return new(id, endpoint.Address.ToString(), endpoint.Port);
+        }
+        public async Task<Dictionary<string, int>> ProcessIdsAsync(CancellationToken token)
+        {
+            var result = new Dictionary<string, int>();
+            foreach (var (id, worker) in _workers)
+                result[id] = (await worker.SuccessAsync("status", token: token)).Status!.ProcessId;
+            return result;
+        }
+        public async Task<WorkerResponse> MembershipAsync(string action, string target, Guid operationId, CancellationToken token)
+        {
+            while (true)
+            {
+                var leader = await LeaderAsync(token);
+                var response = await leader.MembershipAsync(action, target, operationId,
+                    action == "add-node" ? Descriptor(target) : null, 15000, token);
+                if (response.Success) return response;
+                if (response.Error!.StartsWith(nameof(NotLeaderException), StringComparison.Ordinal)) continue;
+                Assert.Fail(response.Error);
+            }
         }
 
         public async Task StartAsync()
@@ -193,7 +279,8 @@ public sealed class ProcessClusterTests
                 RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true };
             ChildProcessSettings.IsolateFaultHarness(start);
             foreach (var argument in new[] { assembly, "--worker", "--id", id, "--data", data,
-                "--members", members, "--endpoints", endpoints, "--log-layout", layout == DBreezeLogLayout.UnifiedTableV3 ? "v3" : "v2" }) start.ArgumentList.Add(argument);
+                "--members", members, "--endpoints", endpoints, "--log-layout", layout switch {
+                    DBreezeLogLayout.UnifiedTableV4 => "v4", DBreezeLogLayout.UnifiedTableV3 => "v3", _ => "v2" } }) start.ArgumentList.Add(argument);
             _process = Process.Start(start) ?? throw new InvalidOperationException("Cannot launch Raft worker.");
             _stderr = _process.StandardError.ReadToEndAsync();
         }
@@ -212,6 +299,17 @@ public sealed class ProcessClusterTests
         {
             var response = await SendAsync(action, key, value, target, token);
             Assert.True(response.Success, $"{Id}/{action}: {response.Error}");
+            return response;
+        }
+        public async Task<WorkerResponse> MembershipAsync(string action, string target, Guid operationId,
+            PeerDescriptor? peer, int wait, CancellationToken token)
+        {
+            var command = new WorkerCommand(++_request, action, Target: target)
+                { OperationId = operationId, Peer = peer, WaitMilliseconds = wait };
+            await _process.StandardInput.WriteLineAsync(JsonSerializer.Serialize(command, WorkerHost.Json).AsMemory(), token);
+            await _process.StandardInput.FlushAsync(token);
+            var response = await ReadAsync(token);
+            Assert.Equal(command.Id, response.Id);
             return response;
         }
         public async Task<WorkerResponse> ReadAsync(CancellationToken token)

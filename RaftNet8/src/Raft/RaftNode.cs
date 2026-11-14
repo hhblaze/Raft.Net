@@ -105,6 +105,12 @@ public sealed partial class RaftNode : IAsyncDisposable
         ArgumentNullException.ThrowIfNull(transport);
         ArgumentNullException.ThrowIfNull(stateMachine);
         var recovered = await logStore.RecoverAsync(cancellationToken).ConfigureAwait(false);
+        if (frozen.WireVersion == 3)
+        {
+            if (recovered.Membership is null || transport is not IPeerDirectoryTransport directory)
+                throw new ArgumentException("Wire3 requires raft8-v4 and an IPeerDirectoryTransport.");
+            await directory.UpdateDirectoryAsync(recovered.Membership.Committed, cancellationToken).ConfigureAwait(false);
+        }
         recovered = await RecoverSnapshotAsync(frozen, logStore, stateMachine, recovered, cancellationToken).ConfigureAwait(false);
         if (stateMachine is ICheckpointStateMachine checkpointed && checkpointed.Checkpoint.Index > 0)
         {
@@ -130,6 +136,12 @@ public sealed partial class RaftNode : IAsyncDisposable
             throw new InvalidOperationException("Use CreateAsync with a snapshot-capable state machine to recover snapshot data.");
         RaftDriver.ValidateRecovered(_options, durable);
         _options = RaftDriver.RecoveredOptions(_options, durable);
+        if (_options.WireVersion == 3)
+        {
+            if (durable.Membership is null || transport is not IPeerDirectoryTransport)
+                throw new ArgumentException("Wire3 requires raft8-v4 and a dynamic directory transport.");
+            _membershipRequestAdmission = new(_options.MaxPendingReads, _options.MaxPendingReads);
+        }
         _logger = RaftInstrumentation.Logger(loggerFactory);
         _metricTags = [new("raft.group", _options.GroupId), new("raft.node", _options.NodeId)];
         _lastApplied = stateMachine.LastApplied;
@@ -154,7 +166,7 @@ public sealed partial class RaftNode : IAsyncDisposable
             _snapshots is { } snapshots ? snapshots.ReadChunkAsync : null,
             _snapshots is not null ? StartSnapshotInstallation : null);
         _status = new(_options.NodeId, _core.Role, _core.Term, null, _core.CommitIndex, _core.LastIndex, _lastApplied)
-            { Configuration = _core.State.Configuration, Snapshot = _core.State.Snapshot };
+            { Configuration = _core.State.Configuration, Snapshot = _core.State.Snapshot, Membership = _core.State.Membership?.Committed };
         _admission = new SemaphoreSlim(_options.MaxPendingProposals, _options.MaxPendingProposals);
         _readAdmission = new SemaphoreSlim(_options.MaxPendingReads, _options.MaxPendingReads);
         _work = Channel.CreateBounded<Work>(new BoundedChannelOptions(checked(_options.MaxPendingProposals + _options.Members.Count * 4 + 16))
@@ -203,7 +215,7 @@ public sealed partial class RaftNode : IAsyncDisposable
     public async Task<ReadIndexResult> ReadIndexAsync(CancellationToken cancellationToken = default)
     {
         EnsureRunning();
-        if (_options.WireVersion != 2) throw new NotSupportedException("ReadIndex requires wire v2; use ReadBarrierAsync in v1 mode.");
+        if (_options.WireVersion < 2) throw new NotSupportedException("ReadIndex requires wire v2; use ReadBarrierAsync in v1 mode.");
         using var enqueueToken = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _lifetime.Token);
         await _readAdmission.WaitAsync(enqueueToken.Token).ConfigureAwait(false);
         var id = Interlocked.Increment(ref _controlId);
@@ -218,7 +230,7 @@ public sealed partial class RaftNode : IAsyncDisposable
     public async Task TransferLeadershipAsync(string nodeId, CancellationToken cancellationToken = default)
     {
         EnsureRunning();
-        if (_options.WireVersion != 2) throw new NotSupportedException("Leadership transfer requires wire v2.");
+        if (_options.WireVersion < 2) throw new NotSupportedException("Leadership transfer requires wire v2.");
         RaftOptions.ValidateId(nodeId, nameof(nodeId));
         using var enqueueToken = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _lifetime.Token);
         await _transferAdmission.WaitAsync(enqueueToken.Token).ConfigureAwait(false);
@@ -231,11 +243,14 @@ public sealed partial class RaftNode : IAsyncDisposable
     }
 
     public Task<ProposalResult> AddLearnerAsync(string nodeId, CancellationToken cancellationToken = default) =>
-        ChangeMembershipAsync(nodeId, MembershipOperation.AddLearner, cancellationToken);
+        _options.WireVersion == 3 ? LegacyMembershipAsync(nodeId, MembershipOperationKind.AddLearner, cancellationToken) :
+            ChangeMembershipAsync(nodeId, MembershipOperation.AddLearner, cancellationToken);
     public Task<ProposalResult> PromoteToVoterAsync(string nodeId, CancellationToken cancellationToken = default) =>
-        ChangeMembershipAsync(nodeId, MembershipOperation.Promote, cancellationToken);
+        _options.WireVersion == 3 ? LegacyMembershipAsync(nodeId, MembershipOperationKind.Promote, cancellationToken) :
+            ChangeMembershipAsync(nodeId, MembershipOperation.Promote, cancellationToken);
     public Task<ProposalResult> RemoveNodeAsync(string nodeId, CancellationToken cancellationToken = default) =>
-        ChangeMembershipAsync(nodeId, MembershipOperation.Remove, cancellationToken);
+        _options.WireVersion == 3 ? LegacyMembershipAsync(nodeId, MembershipOperationKind.RemoveNode, cancellationToken) :
+            ChangeMembershipAsync(nodeId, MembershipOperation.Remove, cancellationToken);
 
     private async Task<ProposalResult> ChangeMembershipAsync(string nodeId, MembershipOperation operation, CancellationToken token)
     {
@@ -321,6 +336,7 @@ public sealed partial class RaftNode : IAsyncDisposable
         foreach (var id in _reads.Keys) FinishRead(id, failure);
         foreach (var id in _transfers.Keys) FinishTransfer(id, failure);
         foreach (var id in _configurations.Keys) FinishConfiguration(id, failure);
+        foreach (var id in _membershipRequests.Keys) FailMembershipRequest(id, failure);
         if (_fault is not null) _completion.TrySetException(_fault);
         else _completion.TrySetResult();
     }
@@ -369,6 +385,12 @@ public sealed partial class RaftNode : IAsyncDisposable
                         case ConfigurationWork config:
                             await ProcessConfigurationAsync(config).ConfigureAwait(false);
                             break;
+                        case MembershipWork membership:
+                            await _core.StartMembershipAsync(membership.Id, membership.Request, _lifetime.Token).ConfigureAwait(false);
+                            break;
+                        case CancelMembershipWork cancel:
+                            await _core.CancelMembershipAsync(cancel.Id, cancel.OperationId, _lifetime.Token).ConfigureAwait(false);
+                            break;
                         case SnapshotCreatedWork snapshot:
                             await _core.SnapshotCreatedAsync(snapshot.ClientId, snapshot.Metadata, _lifetime.Token).ConfigureAwait(false);
                             break;
@@ -382,6 +404,8 @@ public sealed partial class RaftNode : IAsyncDisposable
                     }
                     active = null;
                     Publish();
+                    if (_core.State.Membership?.Committed is { } directory && directory.Revision != _publishedDirectoryRevision)
+                        await PublishDirectoryAsync(directory).ConfigureAwait(false);
                     DrainControls();
                     while (_core.TryDequeue(out var rpc)) Dispatch(rpc);
                 }
@@ -520,7 +544,7 @@ public sealed partial class RaftNode : IAsyncDisposable
             throw;
         }
 
-        bool CanGroup(RequestWork item) => _options.WireVersion == 2 && _core.State.SupportsConfiguration &&
+        bool CanGroup(RequestWork item) => _options.WireVersion >= 2 && _core.State.SupportsConfiguration &&
             (_core.Role is RaftRole.Follower or RaftRole.Learner) && _core.State.ReadRound is null &&
             _core.State.InstallingSnapshot is null && Volatile.Read(ref _snapshotActivationPending) == 0 &&
             _core.State.Configuration.Index <= _core.CommitIndex && _core.State.Configuration.IsVoter(item.From) &&
@@ -537,7 +561,7 @@ public sealed partial class RaftNode : IAsyncDisposable
     private static bool Plain(AppendRequest request)
     {
         if (request.ReadContext != 0 || request.Entries.Count == 0) return false;
-        foreach (var entry in request.Entries) if (entry.Kind == LogEntryKind.Configuration) return false;
+        foreach (var entry in request.Entries) if (entry.Kind is LogEntryKind.Configuration or LogEntryKind.Membership) return false;
         return true;
     }
 
@@ -652,7 +676,7 @@ public sealed partial class RaftNode : IAsyncDisposable
                     InFlightMessages = peer.Flights.Length + (peer.SnapshotInFlight is null ? 0 : 1),
                     InFlightBytes = peer.InFlightBytes + (peer.SnapshotInFlight?.Data.Length ?? 0), SnapshotOffset = peer.SnapshotOffset }).ToImmutableArray(),
             Snapshot = _core.State.Snapshot, InstallingSnapshotIndex = _core.State.InstallingSnapshot?.Intent.Metadata.LastIncludedIndex,
-            UncommittedBytes = _core.State.UncommittedBytes
+            UncommittedBytes = _core.State.UncommittedBytes, Membership = _core.State.Membership?.Committed
         });
         if (_core.Role != RaftRole.Leader)
         {
@@ -842,6 +866,8 @@ public sealed partial class RaftNode : IAsyncDisposable
         else if (work is ReadWork read) FinishRead(read.Id, error);
         else if (work is TransferWork transfer) FinishTransfer(transfer.Id, error);
         else if (work is ConfigurationWork config) FinishConfiguration(config.Id, error);
+        else if (work is MembershipWork membership) FailMembershipRequest(membership.Id, error);
+        else if (work is CancelMembershipWork cancel) FailMembershipRequest(cancel.Id, error);
     }
 
     private async ValueTask ProcessConfigurationAsync(ConfigurationWork work)
@@ -890,6 +916,9 @@ public sealed partial class RaftNode : IAsyncDisposable
                         TryFinishRead(read.ClientId, pending);
                     }
                     break;
+                case ControlResult.Membership membership:
+                    CompleteMembership(membership);
+                    break;
                 case ControlResult.Transfer transfer:
                     FinishTransfer(transfer.ClientId, transfer.Error is null ? null : ControlError(transfer.Error));
                     break;
@@ -915,6 +944,7 @@ public sealed partial class RaftNode : IAsyncDisposable
         "NotLeader" => new NotLeaderException(_core.LeaderId),
         "Timeout" => new TimeoutException(error.Message),
         "Argument" => new ArgumentException(error.Message),
+        "Busy" when _options.WireVersion == 3 => new MembershipControlBusyException(error.Message),
         _ => new InvalidOperationException(error.Message)
     };
     private void CompleteReadyReads()

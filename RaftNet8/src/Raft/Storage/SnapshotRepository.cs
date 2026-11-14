@@ -65,7 +65,8 @@ public sealed class SnapshotRepository : IAsyncDisposable
             var length = new FileInfo(path).Length;
             if (length is < 1 || length > _options.MaxSnapshotBytes) throw new InvalidDataException("Created snapshot exceeds its byte limit.");
             var digest = await DigestAsync(path, token).ConfigureAwait(false);
-            var metadata = SnapshotFiles.Metadata(context.Checkpoint, context.Configuration, id, digest);
+            var metadata = SnapshotFiles.Metadata(context.Checkpoint, context.Configuration, id, digest)
+                with { Membership = context.Membership };
             return Publish(metadata, path, length);
         }
         finally { if (File.Exists(path)) File.Delete(path); }
@@ -194,6 +195,8 @@ public sealed class SnapshotRepository : IAsyncDisposable
     private void Validate(SnapshotMetadata metadata, long length)
     {
         _ = StorageCodecV2.Snapshot(StorageCodecV2.Snapshot(metadata));
+        if ((_options.WireVersion == 3) != (metadata.Membership is not null))
+            throw new InvalidDataException("Snapshot service format is incompatible with this wire/storage mode.");
         if (length is < 1 || length > _options.MaxSnapshotBytes) throw new InvalidDataException("Snapshot byte limit exceeded.");
     }
     private static bool Same(SnapshotMetadata left, SnapshotMetadata right) =>

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Raft;
 
-/// <summary>One active configuration; learners replicate but never vote or count toward a quorum.</summary>
+/// <summary>One active configuration; learners never campaign or count toward its quorum.</summary>
 public sealed record ClusterConfiguration(ImmutableArray<string> Voters, ImmutableArray<string> Learners,
     long Index = 0, long Term = 0)
 {

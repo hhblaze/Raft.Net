@@ -20,7 +20,7 @@ try
     if (args.Contains("--worker")) return await WorkerHost.RunAsync(args, stop.Token);
     var path = Option("--data") ?? (scenario
         ? Path.Combine(".data", "scenarios", DateTime.UtcNow.ToString("yyyyMMdd-HHmmss") + "-" + Guid.NewGuid().ToString("N")[..8])
-        : Path.Combine(".data", "human-test-v3"));
+        : Path.Combine(".data", "human-test-v4"));
     var basePort = int.Parse(Option("--base-port") ?? "0", System.Globalization.CultureInfo.InvariantCulture);
     DemoConsole.Write($"Raft .NET 8 human test\nData: {Path.GetFullPath(path)}\nThree real TCP endpoints; each node has its own DBreeze engine and durable application checkpoint.");
     await using var cluster = new DemoCluster(path, basePort);
@@ -32,7 +32,7 @@ try
         await cluster.RunScenarioAsync(deadline.Token);
         return 0;
     }
-    const string help = "Commands: status | set <key> <value> | get <key> | stop <node> | start <node> | isolate <node> | heal | load <count> | snapshot | add n4 | promote <node> | transfer <node> | remove <node> | help | exit";
+    const string help = "Commands: status | set <key> <value> | get <key> | stop <node> | start <node> | isolate <node> | heal | load <count> | snapshot | add n4..n6 (full hot Add) | promote <node> | transfer <node> | remove <node> | operation <guid> | cancel <guid> | help | exit";
     DemoConsole.Write(help);
     await cluster.LeaderAsync(stop.Token);
     cluster.ShowStatus();
@@ -66,6 +66,8 @@ try
                 case "promote" when command.Length == 2: await cluster.PromoteAsync(command[1], deadline.Token); break;
                 case "transfer" when command.Length == 2: await cluster.TransferAsync(command[1], deadline.Token); break;
                 case "remove" when command.Length == 2: await cluster.RemoveAsync(command[1], deadline.Token); break;
+                case "operation" when command.Length == 2: await cluster.OperationAsync(Guid.Parse(command[1]), false, deadline.Token); break;
+                case "cancel" when command.Length == 2: await cluster.OperationAsync(Guid.Parse(command[1]), true, deadline.Token); break;
                 case "load" when command.Length == 2:
                     await cluster.LoadAsync(int.Parse(command[1], System.Globalization.CultureInfo.InvariantCulture), deadline.Token);
                     break;

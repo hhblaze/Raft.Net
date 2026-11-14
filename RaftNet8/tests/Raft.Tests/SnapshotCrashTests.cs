@@ -4,10 +4,13 @@ using Raft.Storage;
 
 namespace Raft.Tests;
 
+[Collection("OS process clusters")]
 public sealed class SnapshotCrashTests
 {
-    private sealed class OfflineTransport : ITransport
+    private sealed class OfflineTransport : IPeerDirectoryTransport
     {
+        public IReadOnlyList<PeerDescriptor> BootstrapPeers => [];
+        public ValueTask UpdateDirectoryAsync(MembershipState state, CancellationToken token) => ValueTask.CompletedTask;
         public ValueTask<RaftRpc> SendAsync(string peerId, RaftRpc request, CancellationToken cancellationToken) =>
             ValueTask.FromException<RaftRpc>(new IOException("Offline fixture."));
     }
@@ -38,8 +41,10 @@ public sealed class SnapshotCrashTests
     {
         using var directory = new TestDirectory();
         var options = new RaftOptions { NodeId = "n1", Members = ["n1", "n2", "n3"], SnapshotDirectory = Path.Combine(directory.Path, "snapshots") };
+        if (layout == DBreezeLogLayout.UnifiedTableV4) options = options with { WireVersion = 3,
+            InitialPeers = options.Members.Select((id, index) => new PeerDescriptor(id, "127.0.0.1", 7301 + index)).ToArray() };
         await CreateFixtureAsync(directory.Path, options, layout);
-        using var child = Start(directory.Path, layout == DBreezeLogLayout.UnifiedTableV3 ? "v3-" + mode : mode);
+        using var child = Start(directory.Path, layout == DBreezeLogLayout.SeparateTablesV2 ? mode : $"v{(int)layout}-" + mode);
         try
         {
             var ready = await child.StandardOutput.ReadLineAsync().WaitAsync(TimeSpan.FromSeconds(20));
@@ -79,8 +84,12 @@ public sealed class SnapshotCrashTests
         await source.ApplyBatchAsync(entries, default);
         await using var repository = new SnapshotRepository(options);
         var context = new SnapshotBuildContext(new(10, 2), sourceLog.Recover().Configuration!, null, options,
-            (from, count, bytes, _) => ValueTask.FromResult(sourceLog.Query(new LogQuery.Entries(from, count, bytes))));
-        var image = await repository.CreateAsync(source, context, default);
+            (from, count, bytes, _) => ValueTask.FromResult(sourceLog.Query(new LogQuery.Entries(from, count, bytes))))
+            { Membership = sourceLog.Recover().Membership?.Committed };
+        await using var adapter = new RaftStorageAdapter(sourceLog);
+        ISnapshotStateMachine snapshotSource = layout == DBreezeLogLayout.UnifiedTableV4
+            ? new MembershipSnapshotMachine(source, adapter, options) : source;
+        var image = await repository.CreateAsync(snapshotSource, context, default);
         await File.WriteAllBytesAsync(Path.Combine(root, "intent.json"), JsonSerializer.SerializeToUtf8Bytes(new SnapshotInstallIntent(image.Metadata, false)));
         using var targetLog = new DBreezeLogStorage(Path.Combine(root, "log"), options, layout);
         targetLog.SaveHardState(new(2));

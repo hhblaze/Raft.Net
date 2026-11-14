@@ -25,22 +25,24 @@ public static class IntegrationRecipes
     // book:end load
 
     // book:start membership
-    public static async Task AddAndPromoteAsync(RaftNode leader, string learnerId,
-        CancellationToken token)
+    public static Task<MembershipOperationStatus> AddAndPromoteAsync(RaftNode leader, PeerDescriptor newPeer,
+        Guid operationId, CancellationToken token) =>
+        // Start it with the SAME original configuration/directory and JoiningNode=true; the log assigns its role.
+        // Keep operationId and descriptor for retry on a new leader. Writes may continue during catch-up.
+        leader.AddNodeAsync(newPeer, operationId, token);
+
+    public static Task<MembershipOperationStatus> RemoveAsync(RaftNode leader, string nodeId,
+        Guid operationId, CancellationToken token) =>
+        // Removing this leader persists intent, transfers, and continues on its successor.
+        // A NotLeaderException means resolve the new leader and retry the SAME ID/content.
+        leader.RemoveNodeAsync(nodeId, operationId, token);
+
+    public static async Task<MembershipOperationStatus?> InspectOrCancelAsync(RaftNode leader,
+        Guid operationId, bool explicitlyCancel, CancellationToken token)
     {
-        // First provision KnownPeers, routes, certificates and the new process.
-        // Pause writes for this example so the catch-up target stops moving.
-        await leader.ReadIndexAsync(token);
-        await leader.AddLearnerAsync(learnerId, token);
-        while (true)
-        {
-            var status = leader.Status;
-            if (status.Role != RaftRole.Leader) throw new NotLeaderException(status.LeaderId);
-            if (status.Peers.Any(peer => peer.NodeId == learnerId && peer.MatchIndex >= status.LastLogIndex))
-                break;
-            await Task.Delay(50, token);
-        }
-        await leader.PromoteToVoterAsync(learnerId, token);
+        if (explicitlyCancel)
+            return await leader.CancelMembershipOperationAsync(operationId, token);
+        return await leader.GetMembershipOperationAsync(operationId, token);
     }
     // book:end membership
 

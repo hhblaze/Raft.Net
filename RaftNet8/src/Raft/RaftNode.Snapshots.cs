@@ -62,15 +62,19 @@ public sealed partial class RaftNode
     {
         try
         {
-            var machine = (ISnapshotStateMachine)_stateMachine;
+            var machine = SnapshotMachine(_stateMachine, _logStore, _options);
             var checkpoint = machine.Checkpoint;
             var previousMetadata = Volatile.Read(ref _status).Snapshot;
             if (previousMetadata is not null && checkpoint.Index <= previousMetadata.LastIncludedIndex) return previousMetadata;
             SnapshotImage? previous = null;
             if (previousMetadata is not null) previous = await _snapshots!.OpenAsync(previousMetadata, token).ConfigureAwait(false);
             var configuration = await _logStore.ReadAsync(new LogQuery.ConfigurationAt(checkpoint.Index), token).ConfigureAwait(false);
+            var membership = _options.WireVersion == 3
+                ? (await _logStore.ReadAsync(new LogQuery.MembershipAt(checkpoint.Index), token).ConfigureAwait(false)).Membership?.Committed
+                : null;
             var context = new SnapshotBuildContext(checkpoint, configuration.Configuration ?? throw new InvalidDataException("Missing snapshot configuration."),
-                previous, _options, (from, count, bytes, ct) => _logStore.ReadAsync(new LogQuery.Entries(from, count, bytes), ct));
+                previous, _options, (from, count, bytes, ct) => _logStore.ReadAsync(new LogQuery.Entries(from, count, bytes), ct))
+                { Membership = membership };
             var image = await _snapshots!.CreateAsync(machine, context, token).ConfigureAwait(false);
             token.ThrowIfCancellationRequested();
             var id = Interlocked.Increment(ref _controlId);
@@ -154,9 +158,16 @@ public sealed partial class RaftNode
             var ids = _core.State.Peers.Select(peer => peer.SendingSnapshot?.StorageId)
                 .Append(_core.State.Snapshot?.StorageId).Append(_preparingSnapshotId).OfType<string>().ToArray();
             _snapshotMaintenanceBusy = true;
-            _snapshotMaintenance = Task.Run(() =>
+            _snapshotMaintenance = Task.Run(async () =>
             {
-                try { _snapshots.Collect(ids); }
+                try
+                {
+                    _snapshots.Collect(ids);
+                    if (_options.WireVersion == 3)
+                        await _logStore.WriteAsync(new LogWrite.PruneMembershipHistory(
+                            System.Collections.Immutable.ImmutableArray.CreateRange(ids)), _lifetime.Token).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { }
                 catch (Exception error) { Fail(error); }
                 finally { lock (_snapshotGate) _snapshotMaintenanceBusy = false; }
             });
@@ -177,7 +188,7 @@ public sealed partial class RaftNode
                 catch (OperationCanceledException) { }
                 catch (SnapshotSupersededException) { }
             }
-            await ((ISnapshotStateMachine)_stateMachine).PrepareSnapshotAsync(image, _options.MaxSnapshotUnpackedBytes, _lifetime.Token).ConfigureAwait(false);
+            await SnapshotMachine(_stateMachine, _logStore, _options).PrepareSnapshotAsync(image, _options.MaxSnapshotUnpackedBytes, _lifetime.Token).ConfigureAwait(false);
             await _work.Writer.WriteAsync(new SnapshotReadyWork(from, term, image.Metadata), _lifetime.Token).ConfigureAwait(false);
             return image;
         }
@@ -208,7 +219,7 @@ public sealed partial class RaftNode
                     await _applyGate.WaitAsync(_lifetime.Token).ConfigureAwait(false);
                     try
                     {
-                        await ((ISnapshotStateMachine)_stateMachine).InstallSnapshotAsync(image, _lifetime.Token).ConfigureAwait(false);
+                        await SnapshotMachine(_stateMachine, _logStore, _options).InstallSnapshotAsync(image, _lifetime.Token).ConfigureAwait(false);
                         if (((ISnapshotStateMachine)_stateMachine).Checkpoint != new AppliedCheckpoint(metadata.LastIncludedIndex, metadata.LastIncludedTerm))
                             throw new InvalidDataException("Activated application checkpoint differs from its durable install intent.");
                         Interlocked.Exchange(ref _lastApplied, metadata.LastIncludedIndex);
@@ -277,6 +288,7 @@ public sealed partial class RaftNode
         if (recovered.PendingSnapshotInstall is null && recovered.Snapshot is null) return recovered;
         if (options.SnapshotDirectory is null || machine is not ISnapshotStateMachine snapshots)
             throw new InvalidOperationException("Compacted/installing data requires SnapshotDirectory and a snapshot-capable application.");
+        snapshots = SnapshotMachine(machine, log, options);
         await using var repository = new SnapshotRepository(options);
         if (recovered.PendingSnapshotInstall is { } intent)
         {
@@ -299,4 +311,9 @@ public sealed partial class RaftNode
         }
         return recovered;
     }
+
+    private static ISnapshotStateMachine SnapshotMachine(IStateMachine machine, ILogStore log, RaftOptions options) =>
+        options.WireVersion == 3
+            ? new MembershipSnapshotMachine((ISnapshotStateMachine)machine, log, options)
+            : (ISnapshotStateMachine)machine;
 }

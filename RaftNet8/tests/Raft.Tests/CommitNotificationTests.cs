@@ -47,13 +47,26 @@ public sealed class CommitNotificationTests
                 Nodes[id] = await RaftNode.CreateAsync(options, new RaftStorageAdapter(store), new Transport(id, this), machine, clock);
             }
             foreach (var node in Nodes.Values) await node.StartAsync();
-            for (var attempt = 0; attempt < 1000 && Leader.Status.Role != RaftRole.Leader; attempt++)
-            { Clocks["n1"].Pulse(); await Task.Delay(1); }
-            await RuntimeCluster.EventuallyAsync(() => Leader.Status.Role == RaftRole.Leader && Leader.Status.CommitIndex >= 1 && Leader.Status.LastApplied >= 1);
-            await Leader.ReadIndexAsync().WaitAsync(TimeSpan.FromSeconds(5));
-            await RuntimeCluster.EventuallyAsync(() => Nodes.Values.All(n => n.Status.LastApplied >= 1) &&
+            await DriveStartupAsync(() => Leader.Status.Role == RaftRole.Leader && Leader.Status.CommitIndex >= 1 && Leader.Status.LastApplied >= 1);
+            var fence = Leader.ReadIndexAsync();
+            await DriveStartupAsync(() => fence.IsCompleted);
+            await fence;
+            await DriveStartupAsync(() => Nodes.Values.All(n => n.Status.LastApplied >= 1) &&
                 Leader.Status.Peers.All(p => p.InFlightMessages == 0));
             Frames.Clear();
+        }
+        private async Task DriveStartupAsync(Func<bool> ready)
+        {
+            var started = System.Diagnostics.Stopwatch.StartNew();
+            while (!ready())
+            {
+                foreach (var node in Nodes.Values) Assert.Null(node.Status.Fault);
+                if (started.Elapsed > TimeSpan.FromSeconds(10)) throw new TimeoutException("Manual-clock startup did not reach its fence.");
+                Clocks["n1"].Pulse();
+                // Keep startup retry/heartbeat delivery alive after the role changes. A single
+                // delayed RPC can time out under the full suite; stopped logical time cannot retry it.
+                await Task.Delay(Leader.Status.Role == RaftRole.Leader ? 100 : 1);
+            }
         }
         internal async Task<ProposalResult> ProposeAsync(bool allCopies = true)
         {

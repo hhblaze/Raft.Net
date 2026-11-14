@@ -2,7 +2,7 @@
 
 Embedded crash-tolerant consensus for logical commands applied to DBreeze. All supported projects target **net8.0**. DBreeze is pinned to **1.142.2026.1016-beta**, using its .NET 8 asset; the beta suffix is upstream's version name. Dependencies are centrally managed and locked. The assembly/package is `Raft.Net8`, namespace `Raft`.
 
-Implemented: pre-vote, check-quorum, ReadIndex, leadership transfer, learners, corrected single-server membership changes, batched durable writes, bounded replication pipelines, CRC-checked recovery, and chunked resumable snapshots. See the [interactive solution](HumanTest/Raft.HumanTest.sln), [operational runbook](docs/OPERATIONS.md), [configuration reference](docs/CONFIGURATION.md), [architecture/storage notes](docs/ARCHITECTURE.md), and [LLM usage skill](../_docs/raft_skill.md).
+Implemented: pre-vote, check-quorum, ReadIndex, leadership transfer, learners, journaled hot Add/Remove with replicated routes and durable operation IDs, corrected single-server membership changes, batched durable writes, bounded replication pipelines, CRC-checked recovery, and chunked resumable snapshots. See the [interactive solution](HumanTest/Raft.HumanTest.sln), [operational runbook](docs/OPERATIONS.md), [configuration reference](docs/CONFIGURATION.md), [architecture/storage notes](docs/ARCHITECTURE.md), and [LLM usage skill](../_docs/raft_skill.md).
 
 Human tutorials: [English HTML book](docs/human/tutorial/book-en.html) · [Русская HTML-книга](docs/human/tutorial/book-ru.html) · [language index](docs/human/tutorial/index.html). Both editions include the runnable C# companion, three-process startup, configuration, disk/RAM storage, snapshots, recovery and detailed limits.
 
@@ -64,6 +64,8 @@ var root = Path.GetFullPath("data/n1");
 var options = new RaftOptions
 {
     NodeId = "n1", GroupId = "counter", Members = ["n1"],
+    WireVersion = 3,
+    InitialPeers = [new("n1", "127.0.0.1", 5001)],
     SnapshotDirectory = Path.Combine(root, "snapshots"),
     SnapshotIntervalEntries = 10_000
 };
@@ -78,9 +80,8 @@ using var app = new DBreezeGenerationStateMachine(
         tx.Insert<string, long>("app/values", "counter", (old.Exists ? old.Value : 0) + 1);
     });
 await using var log = new RaftStorageAdapter(new DBreezeLogStorage(
-    Path.Combine(root, "log"), options, DBreezeLogLayout.UnifiedTableV3));
-await using var tcp = new TcpRaftTransport(options,
-    new Dictionary<string, IPEndPoint> { ["n1"] = new(IPAddress.Loopback, 5001) });
+    Path.Combine(root, "log"), options, DBreezeLogLayout.UnifiedTableV4));
+await using var tcp = new TcpRaftTransport(options, new PeerDescriptor("n1", "127.0.0.1", 5001));
 await using var node = await RaftNode.CreateAsync(options, log, tcp, app);
 await node.StartAsync();
 tcp.Start(node.HandleAsync);
@@ -95,7 +96,9 @@ await tcp.DisposeAsync(); // stop inbound calls before automatic node/applicatio
 
 For three/five nodes, use distinct directories/IDs/endpoints and the same initial voters/group and compatible limits. Send proposals/reads/configuration changes to the leader; `NotLeaderException.LeaderId` supplies a hint, possibly null. There is no automatic client service/routing. Success means quorum durability **and leader application**; followers may lag.
 
-New databases should select `DBreezeLogLayout.UnifiedTableV3` explicitly. It stores metadata/log/configuration under ordered `ToIndex` prefixes in one physical DBreeze table, preserving CRC and atomic durable frontier. Existing constructors retain v2 for compatibility; they do not convert existing data. See [v2 → v3 offline copy migration](docs/OPERATIONS.md#upgrade-raft8-v2-to-v3). Wire 2 is unchanged.
+New clusters should select **wire3 / `DBreezeLogLayout.UnifiedTableV4`** explicitly. [Hot Add/Remove](docs/HOT-MEMBERSHIP.md) accepts new IDs/routes without restarting existing nodes, journals the complete operation, survives leadership changes and exposes results by caller Guid. `AddNodeAsync(peer, operationId, token)` includes learner/catch-up/promotion; `RemoveNodeAsync(id, operationId, token)` transfers first for leader removal. Caller wait cancellation does not cancel an accepted operation; use `CancelMembershipOperationAsync` explicitly and `GetMembershipOperationAsync` for a fresh leader/quorum lookup.
+
+V4 keeps metadata/log/configuration/management/results under ordered numeric ToIndex prefixes in one primary DBreeze table. Existing constructors/default options retain v2/wire2 for compatibility. There is no v2/v3→v4 converter; old directories and mixed wire versions are rejected. The [v2 → v3 offline copy migration](docs/OPERATIONS.md#upgrade-raft8-v2-to-v3) is a separate legacy path. See the hot-membership guide for historical-ID/service/frame bounds, snapshots and TLS trust requirements.
 
 ## Application and lifecycle contract
 
@@ -129,7 +132,7 @@ Automatic GitHub Actions validation is disabled: the active workflow was removed
 
 ## Compatibility and boundaries
 
-Recommended for new data: explicit **raft8-v3**, wire **2**. Existing constructors retain v2; select its layout when continuing those databases, or use the stopped copy migration to v3. V1 golden bytes/readers remain for existing .NET 8 integrations; v1 lacks CRC-frontier/configuration/snapshot support. Mixed wire versions are rejected. Upgrade v1 by **offline copy migration**, then restart the whole group on wire2; physical v2/v3 layouts use that same wire. See [upgrade/restore procedures](docs/OPERATIONS.md). Historical pre-.NET-8 data/packages need application-specific migration; the tool cannot infer their committed history.
+Recommended for new data: explicit **raft8-v4**, wire **3**. No v2/v3-to-v4 converter is provided; use fresh directories for a new group. Existing constructors retain v2; select its layout when continuing those databases, or use the stopped copy migration to v3. V1 golden bytes/readers remain for existing .NET 8 integrations; v1 lacks CRC-frontier/configuration/snapshot support. Mixed wire versions are rejected. Upgrade v1 by **offline copy migration**, then restart the whole group on wire2; physical v2/v3 layouts use that same wire. See [upgrade/restore procedures](docs/OPERATIONS.md). Historical pre-.NET-8 data/packages need application-specific migration; the tool cannot infer their committed history.
 
 The model is non-Byzantine crash/recovery within one region. Joint consensus, lease reads, follower read forwarding, automatic client retries, external side-effect exactly-once delivery, a public client protocol and cross-region capacity guarantees are outside scope. Leases are absent/off. Snapshot replay uses extra disk/CPU for consistency without assuming MVCC. Durability relies on the OS/device honoring flushes; software tests cannot prove hardware power-loss behavior. Retain backups and measure network/storage tails before tuning deadlines.
 

@@ -10,6 +10,7 @@ internal static class StorageCodecV2
     internal const uint EntryMagic = 0x4C325246; // RF2L
     internal const uint MetaMagic = 0x4D325246;  // RF2M
     internal const uint ManifestMagic = 0x4D335246; // RF3M
+    internal const uint ManifestV4Magic = 0x4D345246; // RF4M
     internal const int EnvelopeBytes = 12;
     internal const int EntryHeaderBytes = EnvelopeBytes + 25;
 
@@ -51,7 +52,7 @@ internal static class StorageCodecV2
         return record;
     }
 
-    public static LogEntry Entry(long key, byte[] record, int maxCommandBytes)
+    public static LogEntry Entry(long key, byte[] record, int maxCommandBytes, bool allowMembership = false)
     {
         var body = Open(record, EntryMagic);
         if (body.Length < 25 || BinaryPrimitives.ReadUInt32LittleEndian(body[21..]) != Crc32C.Compute(body[..21]))
@@ -60,13 +61,14 @@ internal static class StorageCodecV2
         var term = BinaryPrimitives.ReadInt64LittleEndian(body[8..]);
         var kind = (LogEntryKind)body[16];
         var length = BinaryPrimitives.ReadInt32LittleEndian(body[17..]);
-        if (index != key || index < 1 || term < 1 || kind > LogEntryKind.Configuration ||
+        if (index != key || index < 1 || term < 1 || kind > (allowMembership ? LogEntryKind.Membership : LogEntryKind.Configuration) ||
             length < 0 || length != body.Length - 25 ||
             (kind == LogEntryKind.Command && length > maxCommandBytes) ||
             (kind == LogEntryKind.Configuration && length > 270_000) ||
             (kind == LogEntryKind.NoOp && length != 0))
             throw new InvalidDataException("Invalid v2 entry key, term, kind, or payload length.");
         if (kind == LogEntryKind.Configuration) _ = ClusterConfiguration.Decode(body[25..], index, term);
+        if (kind == LogEntryKind.Membership) _ = MembershipCodec.Decode(body[25..]);
         return new(index, term, body[25..], kind);
     }
 
@@ -165,7 +167,7 @@ internal static class StorageCodecV2
 
     // One checked row publishes the complete durable state and frontier together.
     // V2 keeps its original two independently checked rows and exact bytes.
-    public static byte[] Manifest(HardState state, Frontier frontier)
+    public static byte[] Manifest(HardState state, Frontier frontier, bool v4 = false)
     {
         var voteLength = state.VotedFor?.Length ?? 0;
         Span<byte> body = stackalloc byte[checked(60 + voteLength)];
@@ -179,12 +181,14 @@ internal static class StorageCodecV2
         BinaryPrimitives.WriteInt64LittleEndian(tail[16..], frontier.LastTerm);
         BinaryPrimitives.WriteInt64LittleEndian(tail[24..], frontier.TotalBytes);
         BinaryPrimitives.WriteInt64LittleEndian(tail[32..], frontier.CommittedBytes);
-        return Wrap(body, ManifestMagic);
+        return Wrap(body, v4 ? ManifestV4Magic : ManifestMagic);
     }
 
-    public static (HardState State, Frontier Tail) Manifest(byte[] record)
+    public static (HardState State, Frontier Tail) Manifest(byte[] record) => ReadManifest(record, false);
+
+    internal static (HardState State, Frontier Tail) ReadManifest(byte[] record, bool v4)
     {
-        var body = Open(record, ManifestMagic);
+        var body = Open(record, v4 ? ManifestV4Magic : ManifestMagic);
         if (body.Length is < 60 or > 188) throw new InvalidDataException("Invalid v3 manifest length.");
         var hardLength = body.Length - 40;
         return (ReadHard(body[..hardLength]), ReadTail(body[hardLength..]));
@@ -206,6 +210,13 @@ internal static class StorageCodecV2
             throw new InvalidDataException("Invalid snapshot boundary/digest.");
         _ = new ClusterConfiguration(snapshot.Voters, snapshot.Learners, snapshot.LastIncludedIndex, snapshot.LastIncludedTerm).Validate();
         RaftOptions.ValidateId(snapshot.StorageId, nameof(snapshot.StorageId));
+        if (snapshot.Membership is { } membership)
+        {
+            membership.Validate();
+            if (membership.Index > snapshot.LastIncludedIndex || membership.ActiveOperation?.Term > snapshot.LastIncludedTerm ||
+                snapshot.Voters.Concat(snapshot.Learners).Any(id => !membership.Peers.Any(peer => peer.NodeId == id && !peer.IsRetired)))
+                throw new InvalidDataException("Snapshot membership directory differs from its configuration.");
+        }
         return snapshot;
     }
 }

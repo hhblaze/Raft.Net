@@ -73,7 +73,13 @@ internal sealed class RaftDriver
         _ = await ExecuteAsync(new CoreEvent.SnapshotCompleted(id, metadata), token).ConfigureAwait(false);
     public async ValueTask SnapshotCreatedAsync(long clientId, SnapshotMetadata metadata, CancellationToken token) =>
         _ = await ExecuteAsync(new CoreEvent.SnapshotCreated(clientId, metadata), token).ConfigureAwait(false);
-    internal bool Admits(string from, RaftRpc request) => State.Options.KnownPeers.Contains(from, StringComparer.Ordinal);
+    internal bool Admits(string from, RaftRpc request) => from != State.Options.NodeId && (State.Options.WireVersion == 3 || State.Options.KnownPeers.Contains(from, StringComparer.Ordinal));
+    internal ValueTask StartMembershipAsync(long client, MembershipOperationStatus request, CancellationToken token) =>
+        ExecuteMembershipAsync(new CoreEvent.MembershipRequest(client, request), token);
+    internal ValueTask CancelMembershipAsync(long client, Guid operationId, CancellationToken token) =>
+        ExecuteMembershipAsync(new CoreEvent.CancelMembership(client, operationId), token);
+    private async ValueTask ExecuteMembershipAsync(CoreEvent input, CancellationToken token) =>
+        _ = await ExecuteAsync(input, token).ConfigureAwait(false);
     public void Tick() => TickAsync().GetAwaiter().GetResult();
     public void Campaign() => CampaignAsync().GetAwaiter().GetResult();
     public long Propose(IReadOnlyList<ProposedCommand> commands) => ProposeAsync(commands).GetAwaiter().GetResult();

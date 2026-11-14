@@ -1,0 +1,1358 @@
+{
+  "manifest": {
+    "complete": true,
+    "baseline_commit": "e06c4f9",
+    "rounds": 5,
+    "add_rounds": 3,
+    "operations": 8192,
+    "warmup": 2048,
+    "concurrency": 64,
+    "business_source_sha256": "ee235c18adec90101beb30dd4188fdba22de970c9c58749bb270daaa06ddea7f",
+    "runs": [
+      {
+        "variant": "head",
+        "case": "Current-3n-64B-Pipeline",
+        "round": 1,
+        "file": "head-r1-Current-3n-64B-Pipeline.json"
+      },
+      {
+        "variant": "wire3",
+        "case": "Current-3n-64B-Pipeline",
+        "round": 1,
+        "file": "wire3-r1-Current-3n-64B-Pipeline.json"
+      },
+      {
+        "variant": "wire3",
+        "case": "Current-3n-16384B-Pipeline",
+        "round": 1,
+        "file": "wire3-r1-Current-3n-16384B-Pipeline.json"
+      },
+      {
+        "variant": "head",
+        "case": "Current-3n-16384B-Pipeline",
+        "round": 1,
+        "file": "head-r1-Current-3n-16384B-Pipeline.json"
+      },
+      {
+        "variant": "head",
+        "case": "Current-5n-64B-Pipeline",
+        "round": 1,
+        "file": "head-r1-Current-5n-64B-Pipeline.json"
+      },
+      {
+        "variant": "wire3",
+        "case": "Current-5n-64B-Pipeline",
+        "round": 1,
+        "file": "wire3-r1-Current-5n-64B-Pipeline.json"
+      },
+      {
+        "variant": "wire3",
+        "case": "Current-5n-16384B-Pipeline",
+        "round": 1,
+        "file": "wire3-r1-Current-5n-16384B-Pipeline.json"
+      },
+      {
+        "variant": "head",
+        "case": "Current-5n-16384B-Pipeline",
+        "round": 1,
+        "file": "head-r1-Current-5n-16384B-Pipeline.json"
+      },
+      {
+        "variant": "wire3",
+        "case": "Current-3n-64B-Pipeline",
+        "round": 2,
+        "file": "wire3-r2-Current-3n-64B-Pipeline.json"
+      },
+      {
+        "variant": "head",
+        "case": "Current-3n-64B-Pipeline",
+        "round": 2,
+        "file": "head-r2-Current-3n-64B-Pipeline.json"
+      },
+      {
+        "variant": "head",
+        "case": "Current-3n-16384B-Pipeline",
+        "round": 2,
+        "file": "head-r2-Current-3n-16384B-Pipeline.json"
+      },
+      {
+        "variant": "wire3",
+        "case": "Current-3n-16384B-Pipeline",
+        "round": 2,
+        "file": "wire3-r2-Current-3n-16384B-Pipeline.json"
+      },
+      {
+        "variant": "wire3",
+        "case": "Current-5n-64B-Pipeline",
+        "round": 2,
+        "file": "wire3-r2-Current-5n-64B-Pipeline.json"
+      },
+      {
+        "variant": "head",
+        "case": "Current-5n-64B-Pipeline",
+        "round": 2,
+        "file": "head-r2-Current-5n-64B-Pipeline.json"
+      },
+      {
+        "variant": "head",
+        "case": "Current-5n-16384B-Pipeline",
+        "round": 2,
+        "file": "head-r2-Current-5n-16384B-Pipeline.json"
+      },
+      {
+        "variant": "wire3",
+        "case": "Current-5n-16384B-Pipeline",
+        "round": 2,
+        "file": "wire3-r2-Current-5n-16384B-Pipeline.json"
+      },
+      {
+        "variant": "head",
+        "case": "Current-3n-64B-Pipeline",
+        "round": 3,
+        "file": "head-r3-Current-3n-64B-Pipeline.json"
+      },
+      {
+        "variant": "wire3",
+        "case": "Current-3n-64B-Pipeline",
+        "round": 3,
+        "file": "wire3-r3-Current-3n-64B-Pipeline.json"
+      },
+      {
+        "variant": "wire3",
+        "case": "Current-3n-16384B-Pipeline",
+        "round": 3,
+        "file": "wire3-r3-Current-3n-16384B-Pipeline.json"
+      },
+      {
+        "variant": "head",
+        "case": "Current-3n-16384B-Pipeline",
+        "round": 3,
+        "file": "head-r3-Current-3n-16384B-Pipeline.json"
+      },
+      {
+        "variant": "head",
+        "case": "Current-5n-64B-Pipeline",
+        "round": 3,
+        "file": "head-r3-Current-5n-64B-Pipeline.json"
+      },
+      {
+        "variant": "wire3",
+        "case": "Current-5n-64B-Pipeline",
+        "round": 3,
+        "file": "wire3-r3-Current-5n-64B-Pipeline.json"
+      },
+      {
+        "variant": "wire3",
+        "case": "Current-5n-16384B-Pipeline",
+        "round": 3,
+        "file": "wire3-r3-Current-5n-16384B-Pipeline.json"
+      },
+      {
+        "variant": "head",
+        "case": "Current-5n-16384B-Pipeline",
+        "round": 3,
+        "file": "head-r3-Current-5n-16384B-Pipeline.json"
+      },
+      {
+        "variant": "wire3",
+        "case": "Current-3n-64B-Pipeline",
+        "round": 4,
+        "file": "wire3-r4-Current-3n-64B-Pipeline.json"
+      },
+      {
+        "variant": "head",
+        "case": "Current-3n-64B-Pipeline",
+        "round": 4,
+        "file": "head-r4-Current-3n-64B-Pipeline.json"
+      },
+      {
+        "variant": "head",
+        "case": "Current-3n-16384B-Pipeline",
+        "round": 4,
+        "file": "head-r4-Current-3n-16384B-Pipeline.json"
+      },
+      {
+        "variant": "wire3",
+        "case": "Current-3n-16384B-Pipeline",
+        "round": 4,
+        "file": "wire3-r4-Current-3n-16384B-Pipeline.json"
+      },
+      {
+        "variant": "wire3",
+        "case": "Current-5n-64B-Pipeline",
+        "round": 4,
+        "file": "wire3-r4-Current-5n-64B-Pipeline.json"
+      },
+      {
+        "variant": "head",
+        "case": "Current-5n-64B-Pipeline",
+        "round": 4,
+        "file": "head-r4-Current-5n-64B-Pipeline.json"
+      },
+      {
+        "variant": "head",
+        "case": "Current-5n-16384B-Pipeline",
+        "round": 4,
+        "file": "head-r4-Current-5n-16384B-Pipeline.json"
+      },
+      {
+        "variant": "wire3",
+        "case": "Current-5n-16384B-Pipeline",
+        "round": 4,
+        "file": "wire3-r4-Current-5n-16384B-Pipeline.json"
+      },
+      {
+        "variant": "head",
+        "case": "Current-3n-64B-Pipeline",
+        "round": 5,
+        "file": "head-r5-Current-3n-64B-Pipeline.json"
+      },
+      {
+        "variant": "wire3",
+        "case": "Current-3n-64B-Pipeline",
+        "round": 5,
+        "file": "wire3-r5-Current-3n-64B-Pipeline.json"
+      },
+      {
+        "variant": "wire3",
+        "case": "Current-3n-16384B-Pipeline",
+        "round": 5,
+        "file": "wire3-r5-Current-3n-16384B-Pipeline.json"
+      },
+      {
+        "variant": "head",
+        "case": "Current-3n-16384B-Pipeline",
+        "round": 5,
+        "file": "head-r5-Current-3n-16384B-Pipeline.json"
+      },
+      {
+        "variant": "head",
+        "case": "Current-5n-64B-Pipeline",
+        "round": 5,
+        "file": "head-r5-Current-5n-64B-Pipeline.json"
+      },
+      {
+        "variant": "wire3",
+        "case": "Current-5n-64B-Pipeline",
+        "round": 5,
+        "file": "wire3-r5-Current-5n-64B-Pipeline.json"
+      },
+      {
+        "variant": "wire3",
+        "case": "Current-5n-16384B-Pipeline",
+        "round": 5,
+        "file": "wire3-r5-Current-5n-16384B-Pipeline.json"
+      },
+      {
+        "variant": "head",
+        "case": "Current-5n-16384B-Pipeline",
+        "round": 5,
+        "file": "head-r5-Current-5n-16384B-Pipeline.json"
+      },
+      {
+        "variant": "add",
+        "case": "Current-3n-64B-Pipeline",
+        "round": 1,
+        "file": "add-r1-Current-3n-64B-Pipeline.json"
+      },
+      {
+        "variant": "add",
+        "case": "Current-3n-16384B-Pipeline",
+        "round": 1,
+        "file": "add-r1-Current-3n-16384B-Pipeline.json"
+      },
+      {
+        "variant": "add",
+        "case": "Current-5n-64B-Pipeline",
+        "round": 1,
+        "file": "add-r1-Current-5n-64B-Pipeline.json"
+      },
+      {
+        "variant": "add",
+        "case": "Current-5n-16384B-Pipeline",
+        "round": 1,
+        "file": "add-r1-Current-5n-16384B-Pipeline.json"
+      },
+      {
+        "variant": "add",
+        "case": "Current-3n-64B-Pipeline",
+        "round": 2,
+        "file": "add-r2-Current-3n-64B-Pipeline.json"
+      },
+      {
+        "variant": "add",
+        "case": "Current-3n-16384B-Pipeline",
+        "round": 2,
+        "file": "add-r2-Current-3n-16384B-Pipeline.json"
+      },
+      {
+        "variant": "add",
+        "case": "Current-5n-64B-Pipeline",
+        "round": 2,
+        "file": "add-r2-Current-5n-64B-Pipeline.json"
+      },
+      {
+        "variant": "add",
+        "case": "Current-5n-16384B-Pipeline",
+        "round": 2,
+        "file": "add-r2-Current-5n-16384B-Pipeline.json"
+      },
+      {
+        "variant": "add",
+        "case": "Current-3n-64B-Pipeline",
+        "round": 3,
+        "file": "add-r3-Current-3n-64B-Pipeline.json"
+      },
+      {
+        "variant": "add",
+        "case": "Current-3n-16384B-Pipeline",
+        "round": 3,
+        "file": "add-r3-Current-3n-16384B-Pipeline.json"
+      },
+      {
+        "variant": "add",
+        "case": "Current-5n-64B-Pipeline",
+        "round": 3,
+        "file": "add-r3-Current-5n-64B-Pipeline.json"
+      },
+      {
+        "variant": "add",
+        "case": "Current-5n-16384B-Pipeline",
+        "round": 3,
+        "file": "add-r3-Current-5n-16384B-Pipeline.json"
+      }
+    ]
+  },
+  "metadata": {
+    "head": {
+      "Runtime": ".NET 8.0.34",
+      "OS": "Microsoft Windows 10.0.26200",
+      "Architecture": "X64",
+      "ProcessorCount": 12,
+      "ServerGC": false,
+      "BinarySha256": {
+        "Raft.Net8.dll": "268C8F2A5DD121D2F65C44A60507413A974A57B22C7D5FD4BA0AE11C7AB856C9",
+        "Raft.Baseline.Net8.dll": "F8629FDE220CCD953E09AEB69B6EC96324BB9B8977FECD51B8C4485458106D0F",
+        "DotNext.Net.Cluster.dll": "9CDE6B4E5736B3622AA1913140E00773C61904B115FAC926F221040B0B2A3A3F",
+        "Raft.Comparison.dll": "D9FFAA7E1F9C45AA307F1FB46C865F007E64933D4A5BEFB5F5FE142154321B3F"
+      },
+      "CurrentSourceSha256": "DB7D70388DE61FDDA8F57156EA953C442FB634DFB04477DA10D5345B82D4801A",
+      "HarnessSourceSha256": "E5E8A7F152D80C6606F29C55DBB612B1B0CFF3EAF5E98B7722A335782F3FD4C8",
+      "CurrentLayout": "UnifiedTableV3 (explicit)",
+      "DataRoot": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\hot-membership\\performance-delivery\\data"
+    },
+    "wire3": {
+      "Runtime": ".NET 8.0.34",
+      "OS": "Microsoft Windows 10.0.26200",
+      "Architecture": "X64",
+      "ProcessorCount": 12,
+      "ServerGC": false,
+      "BinarySha256": {
+        "Raft.Net8.dll": "B5F54762CF8BBF5C95E1B4488EF6B4A3DD199D247B4CE8590116F5E9C9635A38",
+        "Raft.Baseline.Net8.dll": "4D4450BD8B8D2C2195D146F2C52083D3B0FB1C69DAC874C85D3D9146EA1BDD5D",
+        "DotNext.Net.Cluster.dll": "9CDE6B4E5736B3622AA1913140E00773C61904B115FAC926F221040B0B2A3A3F",
+        "Raft.Comparison.dll": "9D86B25E89AA631A7DACDD8AEBC793D31FF90ECDEF4B166CA0511B9CE8F46F90"
+      },
+      "CurrentSourceSha256": "240F206D3DA19530052964B6A0B82DB60ADB49554219696AE2EF7A50CC1A33AB",
+      "HarnessSourceSha256": "DE18D7BD7442251D569A1FBBECEA394152AFED34DB3E8C39064F749D9A3D0360",
+      "CurrentLayout": "UnifiedTableV4 (wire3)",
+      "DataRoot": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\hot-membership\\performance-delivery\\data"
+    },
+    "add": {
+      "Runtime": ".NET 8.0.34",
+      "OS": "Microsoft Windows 10.0.26200",
+      "Architecture": "X64",
+      "ProcessorCount": 12,
+      "ServerGC": false,
+      "BinarySha256": {
+        "Raft.Net8.dll": "B5F54762CF8BBF5C95E1B4488EF6B4A3DD199D247B4CE8590116F5E9C9635A38",
+        "Raft.Baseline.Net8.dll": "4D4450BD8B8D2C2195D146F2C52083D3B0FB1C69DAC874C85D3D9146EA1BDD5D",
+        "DotNext.Net.Cluster.dll": "9CDE6B4E5736B3622AA1913140E00773C61904B115FAC926F221040B0B2A3A3F",
+        "Raft.Comparison.dll": "9D86B25E89AA631A7DACDD8AEBC793D31FF90ECDEF4B166CA0511B9CE8F46F90"
+      },
+      "CurrentSourceSha256": "240F206D3DA19530052964B6A0B82DB60ADB49554219696AE2EF7A50CC1A33AB",
+      "HarnessSourceSha256": "DE18D7BD7442251D569A1FBBECEA394152AFED34DB3E8C39064F749D9A3D0360",
+      "CurrentLayout": "UnifiedTableV4 (wire3)",
+      "DataRoot": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\hot-membership\\performance-delivery\\data"
+    }
+  },
+  "summary": [
+    {
+      "nodes": 3,
+      "payload": 64,
+      "head": {
+        "throughput": 3106.2258328558532,
+        "minimum": 2938.30934873765,
+        "maximum": 3255.2576165657006,
+        "p50": 20.597,
+        "p99": 27.5382,
+        "kib": 25.3037109375,
+        "samples": 40960
+      },
+      "wire3": {
+        "throughput": 3087.7728454576854,
+        "minimum": 2930.919179474292,
+        "maximum": 3413.0757883228057,
+        "p50": 20.2813,
+        "p99": 31.5939,
+        "kib": 25.4541015625,
+        "samples": 40960
+      },
+      "add": {
+        "throughput": 2747.450291004354,
+        "minimum": 2583.9474598190964,
+        "maximum": 3297.886687479746,
+        "p50": 22.0203,
+        "p99": 37.9797,
+        "kib": 34.1259765625,
+        "samples": 24576,
+        "add_ms": 189.9036,
+        "completed_during_commands": 3,
+        "command_ms": 2981.4155
+      },
+      "throughput_change": -0.5940645784019538,
+      "p99_change": 14.727542105148483,
+      "allocation_change": 0.5943421712786057,
+      "paired_throughput_changes": [
+        9.536098349082156,
+        -3.477660706006136,
+        -6.923315112347295,
+        9.992083514031492,
+        -0.2515109332015375
+      ],
+      "paired_wins": 2
+    },
+    {
+      "nodes": 3,
+      "payload": 16384,
+      "head": {
+        "throughput": 1163.591687665742,
+        "minimum": 1137.582097857195,
+        "maximum": 1177.7491950597503,
+        "p50": 52.6072,
+        "p99": 73.6877,
+        "kib": 381.046875,
+        "samples": 40960
+      },
+      "wire3": {
+        "throughput": 1167.1015112326183,
+        "minimum": 1111.2921814368435,
+        "maximum": 1181.013432932133,
+        "p50": 52.4899,
+        "p99": 77.4686,
+        "kib": 376.58984375,
+        "samples": 40960
+      },
+      "add": {
+        "throughput": 927.8559913134919,
+        "minimum": 915.9777275632447,
+        "maximum": 930.6762103391857,
+        "p50": 65.2866,
+        "p99": 98.9926,
+        "kib": 553.234375,
+        "samples": 24576,
+        "add_ms": 628.3937,
+        "completed_during_commands": 3,
+        "command_ms": 8828.5725
+      },
+      "throughput_change": 0.30163704365380184,
+      "p99_change": 5.130978440092426,
+      "allocation_change": -1.1696805675154742,
+      "paired_throughput_changes": [
+        -5.2555885875882,
+        3.8178637969731755,
+        2.1830236741565923,
+        -2.410307968354819,
+        0.30163704365380184
+      ],
+      "paired_wins": 3
+    },
+    {
+      "nodes": 5,
+      "payload": 64,
+      "head": {
+        "throughput": 2249.3935465305535,
+        "minimum": 2189.4425890842817,
+        "maximum": 2467.5931105234113,
+        "p50": 28.2471,
+        "p99": 37.7303,
+        "kib": 43.033203125,
+        "samples": 40960
+      },
+      "wire3": {
+        "throughput": 2269.115804901246,
+        "minimum": 1910.752198204714,
+        "maximum": 2418.066451252524,
+        "p50": 28.7163,
+        "p99": 49.2412,
+        "kib": 42.8916015625,
+        "samples": 40960
+      },
+      "add": {
+        "throughput": 1939.1835857199392,
+        "minimum": 1926.2537332335155,
+        "maximum": 1993.3445360010019,
+        "p50": 32.8829,
+        "p99": 58.2489,
+        "kib": 52.6298828125,
+        "samples": 24576,
+        "add_ms": 256.4351,
+        "completed_during_commands": 3,
+        "command_ms": 4224.1908
+      },
+      "throughput_change": 0.8767811395703484,
+      "p99_change": 30.508371255993193,
+      "allocation_change": -0.3290518767303574,
+      "paired_throughput_changes": [
+        -8.043356288187454,
+        2.69846860479086,
+        8.15934786353556,
+        -2.780084197507582,
+        -12.72882843647104
+      ],
+      "paired_wins": 2
+    },
+    {
+      "nodes": 5,
+      "payload": 16384,
+      "head": {
+        "throughput": 793.3047480867648,
+        "minimum": 753.2865458894173,
+        "maximum": 823.8200570235934,
+        "p50": 77.5614,
+        "p99": 112.8253,
+        "kib": 634.9228515625,
+        "samples": 40960
+      },
+      "wire3": {
+        "throughput": 816.2344976349177,
+        "minimum": 801.5009906295905,
+        "maximum": 826.1351568007957,
+        "p50": 74.8872,
+        "p99": 103.1648,
+        "kib": 635.732421875,
+        "samples": 40960
+      },
+      "add": {
+        "throughput": 647.1584266501104,
+        "minimum": 645.496640915695,
+        "maximum": 654.6139548048995,
+        "p50": 94.6065,
+        "p99": 141.1108,
+        "kib": 802.8603515625,
+        "samples": 24576,
+        "add_ms": 748.0046,
+        "completed_during_commands": 3,
+        "command_ms": 12657.4874
+      },
+      "throughput_change": 2.8904087115894983,
+      "p99_change": -8.562352592902478,
+      "allocation_change": 0.1275068790653311,
+      "paired_throughput_changes": [
+        4.138435928085515,
+        1.9615115343689205,
+        7.814028169262088,
+        -2.7092161939635484,
+        3.6030879643748515
+      ],
+      "paired_wins": 4
+    }
+  ],
+  "rounds": [
+    {
+      "variant": "head",
+      "round": 1,
+      "nodes": 3,
+      "payload": 64,
+      "throughput": 3106.2258328558532,
+      "p99": 27.7194,
+      "kib": 25.3037109375,
+      "diagnostics": null
+    },
+    {
+      "variant": "wire3",
+      "round": 1,
+      "nodes": 3,
+      "payload": 64,
+      "throughput": 3402.4385832215835,
+      "p99": 23.8215,
+      "kib": 22.7333984375,
+      "diagnostics": null
+    },
+    {
+      "variant": "wire3",
+      "round": 1,
+      "nodes": 3,
+      "payload": 16384,
+      "throughput": 1111.2921814368435,
+      "p99": 84.9006,
+      "kib": 385.43359375,
+      "diagnostics": null
+    },
+    {
+      "variant": "head",
+      "round": 1,
+      "nodes": 3,
+      "payload": 16384,
+      "throughput": 1172.9369203630526,
+      "p99": 73.3078,
+      "kib": 383.73046875,
+      "diagnostics": null
+    },
+    {
+      "variant": "head",
+      "round": 1,
+      "nodes": 5,
+      "payload": 64,
+      "throughput": 2467.5931105234113,
+      "p99": 33.9099,
+      "kib": 39.4248046875,
+      "diagnostics": null
+    },
+    {
+      "variant": "wire3",
+      "round": 1,
+      "nodes": 5,
+      "payload": 64,
+      "throughput": 2269.115804901246,
+      "p99": 37.6485,
+      "kib": 40.705078125,
+      "diagnostics": null
+    },
+    {
+      "variant": "wire3",
+      "round": 1,
+      "nodes": 5,
+      "payload": 16384,
+      "throughput": 826.1351568007957,
+      "p99": 97.7244,
+      "kib": 641.462890625,
+      "diagnostics": null
+    },
+    {
+      "variant": "head",
+      "round": 1,
+      "nodes": 5,
+      "payload": 16384,
+      "throughput": 793.3047480867648,
+      "p99": 113.1563,
+      "kib": 634.9228515625,
+      "diagnostics": null
+    },
+    {
+      "variant": "wire3",
+      "round": 2,
+      "nodes": 3,
+      "payload": 64,
+      "throughput": 3087.7728454576854,
+      "p99": 27.4026,
+      "kib": 25.4541015625,
+      "diagnostics": null
+    },
+    {
+      "variant": "head",
+      "round": 2,
+      "nodes": 3,
+      "payload": 64,
+      "throughput": 3199.024047741685,
+      "p99": 25.8213,
+      "kib": 24.0830078125,
+      "diagnostics": null
+    },
+    {
+      "variant": "head",
+      "round": 2,
+      "nodes": 3,
+      "payload": 16384,
+      "throughput": 1137.582097857195,
+      "p99": 82.2936,
+      "kib": 374.951171875,
+      "diagnostics": null
+    },
+    {
+      "variant": "wire3",
+      "round": 2,
+      "nodes": 3,
+      "payload": 16384,
+      "throughput": 1181.013432932133,
+      "p99": 69.396,
+      "kib": 376.2158203125,
+      "diagnostics": null
+    },
+    {
+      "variant": "wire3",
+      "round": 2,
+      "nodes": 5,
+      "payload": 64,
+      "throughput": 2310.092725181872,
+      "p99": 32.6813,
+      "kib": 42.8916015625,
+      "diagnostics": null
+    },
+    {
+      "variant": "head",
+      "round": 2,
+      "nodes": 5,
+      "payload": 64,
+      "throughput": 2249.3935465305535,
+      "p99": 37.0637,
+      "kib": 43.033203125,
+      "diagnostics": null
+    },
+    {
+      "variant": "head",
+      "round": 2,
+      "nodes": 5,
+      "payload": 16384,
+      "throughput": 800.5319706934548,
+      "p99": 119.2422,
+      "kib": 625.2822265625,
+      "diagnostics": null
+    },
+    {
+      "variant": "wire3",
+      "round": 2,
+      "nodes": 5,
+      "payload": 16384,
+      "throughput": 816.2344976349177,
+      "p99": 101.8895,
+      "kib": 623.041015625,
+      "diagnostics": null
+    },
+    {
+      "variant": "head",
+      "round": 3,
+      "nodes": 3,
+      "payload": 64,
+      "throughput": 3255.2576165657006,
+      "p99": 26.7487,
+      "kib": 24.015625,
+      "diagnostics": null
+    },
+    {
+      "variant": "wire3",
+      "round": 3,
+      "nodes": 3,
+      "payload": 64,
+      "throughput": 3029.885874052171,
+      "p99": 31.616,
+      "kib": 25.6494140625,
+      "diagnostics": null
+    },
+    {
+      "variant": "wire3",
+      "round": 3,
+      "nodes": 3,
+      "payload": 16384,
+      "throughput": 1176.3498988442477,
+      "p99": 68.2434,
+      "kib": 374.5380859375,
+      "diagnostics": null
+    },
+    {
+      "variant": "head",
+      "round": 3,
+      "nodes": 3,
+      "payload": 16384,
+      "throughput": 1151.2185258829466,
+      "p99": 73.118,
+      "kib": 381.046875,
+      "diagnostics": null
+    },
+    {
+      "variant": "head",
+      "round": 3,
+      "nodes": 5,
+      "payload": 64,
+      "throughput": 2235.6518405634192,
+      "p99": 40.5877,
+      "kib": 43.0546875,
+      "diagnostics": null
+    },
+    {
+      "variant": "wire3",
+      "round": 3,
+      "nodes": 5,
+      "payload": 64,
+      "throughput": 2418.066451252524,
+      "p99": 38.973,
+      "kib": 39.93359375,
+      "diagnostics": null
+    },
+    {
+      "variant": "wire3",
+      "round": 3,
+      "nodes": 5,
+      "payload": 16384,
+      "throughput": 812.1485687804777,
+      "p99": 103.7549,
+      "kib": 635.732421875,
+      "diagnostics": null
+    },
+    {
+      "variant": "head",
+      "round": 3,
+      "nodes": 5,
+      "payload": 16384,
+      "throughput": 753.2865458894173,
+      "p99": 112.8663,
+      "kib": 636.9482421875,
+      "diagnostics": null
+    },
+    {
+      "variant": "wire3",
+      "round": 4,
+      "nodes": 3,
+      "payload": 64,
+      "throughput": 3413.0757883228057,
+      "p99": 26.1154,
+      "kib": 22.892578125,
+      "diagnostics": null
+    },
+    {
+      "variant": "head",
+      "round": 4,
+      "nodes": 3,
+      "payload": 64,
+      "throughput": 3103.0194894775364,
+      "p99": 26.0979,
+      "kib": 25.3046875,
+      "diagnostics": null
+    },
+    {
+      "variant": "head",
+      "round": 4,
+      "nodes": 3,
+      "payload": 16384,
+      "throughput": 1177.7491950597503,
+      "p99": 70.0915,
+      "kib": 385.3818359375,
+      "diagnostics": null
+    },
+    {
+      "variant": "wire3",
+      "round": 4,
+      "nodes": 3,
+      "payload": 16384,
+      "throughput": 1149.3618123639903,
+      "p99": 78.0591,
+      "kib": 386.2705078125,
+      "diagnostics": null
+    },
+    {
+      "variant": "wire3",
+      "round": 4,
+      "nodes": 5,
+      "payload": 64,
+      "throughput": 2266.3962926714394,
+      "p99": 45.4704,
+      "kib": 43.205078125,
+      "diagnostics": null
+    },
+    {
+      "variant": "head",
+      "round": 4,
+      "nodes": 5,
+      "payload": 64,
+      "throughput": 2331.205776063155,
+      "p99": 34.5056,
+      "kib": 40.2216796875,
+      "diagnostics": null
+    },
+    {
+      "variant": "head",
+      "round": 4,
+      "nodes": 5,
+      "payload": 16384,
+      "throughput": 823.8200570235934,
+      "p99": 112.6556,
+      "kib": 635.75,
+      "diagnostics": null
+    },
+    {
+      "variant": "wire3",
+      "round": 4,
+      "nodes": 5,
+      "payload": 16384,
+      "throughput": 801.5009906295905,
+      "p99": 105.4951,
+      "kib": 638.8056640625,
+      "diagnostics": null
+    },
+    {
+      "variant": "head",
+      "round": 5,
+      "nodes": 3,
+      "payload": 64,
+      "throughput": 2938.30934873765,
+      "p99": 32.5718,
+      "kib": 26.177734375,
+      "diagnostics": null
+    },
+    {
+      "variant": "wire3",
+      "round": 5,
+      "nodes": 3,
+      "payload": 64,
+      "throughput": 2930.919179474292,
+      "p99": 36.0227,
+      "kib": 26.138671875,
+      "diagnostics": null
+    },
+    {
+      "variant": "wire3",
+      "round": 5,
+      "nodes": 3,
+      "payload": 16384,
+      "throughput": 1167.1015112326183,
+      "p99": 74.8102,
+      "kib": 376.58984375,
+      "diagnostics": null
+    },
+    {
+      "variant": "head",
+      "round": 5,
+      "nodes": 3,
+      "payload": 16384,
+      "throughput": 1163.591687665742,
+      "p99": 71.5651,
+      "kib": 375.2109375,
+      "diagnostics": null
+    },
+    {
+      "variant": "head",
+      "round": 5,
+      "nodes": 5,
+      "payload": 64,
+      "throughput": 2189.4425890842817,
+      "p99": 40.5891,
+      "kib": 43.6328125,
+      "diagnostics": null
+    },
+    {
+      "variant": "wire3",
+      "round": 5,
+      "nodes": 5,
+      "payload": 64,
+      "throughput": 1910.752198204714,
+      "p99": 73.1777,
+      "kib": 44.22265625,
+      "diagnostics": null
+    },
+    {
+      "variant": "wire3",
+      "round": 5,
+      "nodes": 5,
+      "payload": 16384,
+      "throughput": 819.5429951343236,
+      "p99": 102.5524,
+      "kib": 623.341796875,
+      "diagnostics": null
+    },
+    {
+      "variant": "head",
+      "round": 5,
+      "nodes": 5,
+      "payload": 16384,
+      "throughput": 791.0410888680589,
+      "p99": 108.7346,
+      "kib": 625.37109375,
+      "diagnostics": null
+    },
+    {
+      "variant": "add",
+      "round": 1,
+      "nodes": 3,
+      "payload": 64,
+      "throughput": 3297.886687479746,
+      "p99": 27.5977,
+      "kib": 29.3466796875,
+      "diagnostics": {
+        "Membership": {
+          "OperationId": "0a30ac2a-df42-4db7-b77b-8e9b87205bca",
+          "Kind": "AddNode",
+          "NodeId": "n4",
+          "Peer": {
+            "NodeId": "n4",
+            "Host": "127.0.0.1",
+            "Port": 51643,
+            "IsRetired": false
+          },
+          "Stage": "Completed",
+          "Index": 2440,
+          "Term": 1,
+          "SuccessorId": null,
+          "Error": null,
+          "IsTerminal": true
+        },
+        "AddMilliseconds": 189.9036,
+        "CommandMilliseconds": 2483.7211,
+        "AddFinishedDuringCommands": true,
+        "IncludesWaitingForFullAdd": true
+      }
+    },
+    {
+      "variant": "add",
+      "round": 1,
+      "nodes": 3,
+      "payload": 16384,
+      "throughput": 927.8559913134919,
+      "p99": 99.5006,
+      "kib": 553.4306640625,
+      "diagnostics": {
+        "Membership": {
+          "OperationId": "04ade25f-934a-494b-84bf-a57f2cb0c88e",
+          "Kind": "AddNode",
+          "NodeId": "n4",
+          "Peer": {
+            "NodeId": "n4",
+            "Host": "127.0.0.1",
+            "Port": 53861,
+            "IsRetired": false
+          },
+          "Stage": "Completed",
+          "Index": 2454,
+          "Term": 1,
+          "SuccessorId": null,
+          "Error": null,
+          "IsTerminal": true
+        },
+        "AddMilliseconds": 578.9833,
+        "CommandMilliseconds": 8828.5725,
+        "AddFinishedDuringCommands": true,
+        "IncludesWaitingForFullAdd": true
+      }
+    },
+    {
+      "variant": "add",
+      "round": 1,
+      "nodes": 5,
+      "payload": 64,
+      "throughput": 1926.2537332335155,
+      "p99": 59.1109,
+      "kib": 52.615234375,
+      "diagnostics": {
+        "Membership": {
+          "OperationId": "0e9af55d-8e11-48c8-905d-f76856b2ab18",
+          "Kind": "AddNode",
+          "NodeId": "n6",
+          "Peer": {
+            "NodeId": "n6",
+            "Host": "127.0.0.1",
+            "Port": 62126,
+            "IsRetired": false
+          },
+          "Stage": "Completed",
+          "Index": 2440,
+          "Term": 1,
+          "SuccessorId": null,
+          "Error": null,
+          "IsTerminal": true
+        },
+        "AddMilliseconds": 256.4351,
+        "CommandMilliseconds": 4252.4493,
+        "AddFinishedDuringCommands": true,
+        "IncludesWaitingForFullAdd": true
+      }
+    },
+    {
+      "variant": "add",
+      "round": 1,
+      "nodes": 5,
+      "payload": 16384,
+      "throughput": 645.496640915695,
+      "p99": 138.279,
+      "kib": 802.3740234375,
+      "diagnostics": {
+        "Membership": {
+          "OperationId": "7ecad5ef-21b0-441a-97ac-c7d354fc9a02",
+          "Kind": "AddNode",
+          "NodeId": "n6",
+          "Peer": {
+            "NodeId": "n6",
+            "Host": "127.0.0.1",
+            "Port": 62150,
+            "IsRetired": false
+          },
+          "Stage": "Completed",
+          "Index": 2390,
+          "Term": 1,
+          "SuccessorId": null,
+          "Error": null,
+          "IsTerminal": true
+        },
+        "AddMilliseconds": 748.0046,
+        "CommandMilliseconds": 12690.613,
+        "AddFinishedDuringCommands": true,
+        "IncludesWaitingForFullAdd": true
+      }
+    },
+    {
+      "variant": "add",
+      "round": 2,
+      "nodes": 3,
+      "payload": 64,
+      "throughput": 2747.450291004354,
+      "p99": 31.9527,
+      "kib": 34.1259765625,
+      "diagnostics": {
+        "Membership": {
+          "OperationId": "e29431b4-f261-4ff3-b235-dc1832a4cda1",
+          "Kind": "AddNode",
+          "NodeId": "n4",
+          "Peer": {
+            "NodeId": "n4",
+            "Host": "127.0.0.1",
+            "Port": 61435,
+            "IsRetired": false
+          },
+          "Stage": "Completed",
+          "Index": 2376,
+          "Term": 1,
+          "SuccessorId": null,
+          "Error": null,
+          "IsTerminal": true
+        },
+        "AddMilliseconds": 185.4929,
+        "CommandMilliseconds": 2981.4155,
+        "AddFinishedDuringCommands": true,
+        "IncludesWaitingForFullAdd": true
+      }
+    },
+    {
+      "variant": "add",
+      "round": 2,
+      "nodes": 3,
+      "payload": 16384,
+      "throughput": 930.6762103391857,
+      "p99": 97.842,
+      "kib": 552.443359375,
+      "diagnostics": {
+        "Membership": {
+          "OperationId": "59e001b5-7420-4385-8d2d-f1debe5bbd1d",
+          "Kind": "AddNode",
+          "NodeId": "n4",
+          "Peer": {
+            "NodeId": "n4",
+            "Host": "127.0.0.1",
+            "Port": 61456,
+            "IsRetired": false
+          },
+          "Stage": "Completed",
+          "Index": 2469,
+          "Term": 1,
+          "SuccessorId": null,
+          "Error": null,
+          "IsTerminal": true
+        },
+        "AddMilliseconds": 669.2246,
+        "CommandMilliseconds": 8801.8718,
+        "AddFinishedDuringCommands": true,
+        "IncludesWaitingForFullAdd": true
+      }
+    },
+    {
+      "variant": "add",
+      "round": 2,
+      "nodes": 5,
+      "payload": 64,
+      "throughput": 1993.3445360010019,
+      "p99": 50.6219,
+      "kib": 52.6298828125,
+      "diagnostics": {
+        "Membership": {
+          "OperationId": "30ecea77-43ce-47f0-8384-06e7a011a312",
+          "Kind": "AddNode",
+          "NodeId": "n6",
+          "Peer": {
+            "NodeId": "n6",
+            "Host": "127.0.0.1",
+            "Port": 52862,
+            "IsRetired": false
+          },
+          "Stage": "Completed",
+          "Index": 2440,
+          "Term": 1,
+          "SuccessorId": null,
+          "Error": null,
+          "IsTerminal": true
+        },
+        "AddMilliseconds": 276.1525,
+        "CommandMilliseconds": 4109.2843,
+        "AddFinishedDuringCommands": true,
+        "IncludesWaitingForFullAdd": true
+      }
+    },
+    {
+      "variant": "add",
+      "round": 2,
+      "nodes": 5,
+      "payload": 16384,
+      "throughput": 654.6139548048995,
+      "p99": 136.2227,
+      "kib": 802.8603515625,
+      "diagnostics": {
+        "Membership": {
+          "OperationId": "d2011379-d96c-4809-8965-224b3209f96b",
+          "Kind": "AddNode",
+          "NodeId": "n6",
+          "Peer": {
+            "NodeId": "n6",
+            "Host": "127.0.0.1",
+            "Port": 52883,
+            "IsRetired": false
+          },
+          "Stage": "Completed",
+          "Index": 2435,
+          "Term": 1,
+          "SuccessorId": null,
+          "Error": null,
+          "IsTerminal": true
+        },
+        "AddMilliseconds": 840.4483,
+        "CommandMilliseconds": 12513.7982,
+        "AddFinishedDuringCommands": true,
+        "IncludesWaitingForFullAdd": true
+      }
+    },
+    {
+      "variant": "add",
+      "round": 3,
+      "nodes": 3,
+      "payload": 64,
+      "throughput": 2583.9474598190964,
+      "p99": 38.7329,
+      "kib": 35.646484375,
+      "diagnostics": {
+        "Membership": {
+          "OperationId": "c0a8ebcd-abb1-42f4-99d0-d6ffa065f8c0",
+          "Kind": "AddNode",
+          "NodeId": "n4",
+          "Peer": {
+            "NodeId": "n4",
+            "Host": "127.0.0.1",
+            "Port": 64842,
+            "IsRetired": false
+          },
+          "Stage": "Completed",
+          "Index": 2376,
+          "Term": 1,
+          "SuccessorId": null,
+          "Error": null,
+          "IsTerminal": true
+        },
+        "AddMilliseconds": 216.5837,
+        "CommandMilliseconds": 3170.0498,
+        "AddFinishedDuringCommands": true,
+        "IncludesWaitingForFullAdd": true
+      }
+    },
+    {
+      "variant": "add",
+      "round": 3,
+      "nodes": 3,
+      "payload": 16384,
+      "throughput": 915.9777275632447,
+      "p99": 100.2243,
+      "kib": 553.234375,
+      "diagnostics": {
+        "Membership": {
+          "OperationId": "df37b73d-8c79-456b-b965-9779d95147df",
+          "Kind": "AddNode",
+          "NodeId": "n4",
+          "Peer": {
+            "NodeId": "n4",
+            "Host": "127.0.0.1",
+            "Port": 63001,
+            "IsRetired": false
+          },
+          "Stage": "Completed",
+          "Index": 2458,
+          "Term": 1,
+          "SuccessorId": null,
+          "Error": null,
+          "IsTerminal": true
+        },
+        "AddMilliseconds": 628.3937,
+        "CommandMilliseconds": 8943.1076,
+        "AddFinishedDuringCommands": true,
+        "IncludesWaitingForFullAdd": true
+      }
+    },
+    {
+      "variant": "add",
+      "round": 3,
+      "nodes": 5,
+      "payload": 64,
+      "throughput": 1939.1835857199392,
+      "p99": 52.0074,
+      "kib": 53.2587890625,
+      "diagnostics": {
+        "Membership": {
+          "OperationId": "a35ffa93-d05a-44e9-9dae-681a0fbea18f",
+          "Kind": "AddNode",
+          "NodeId": "n6",
+          "Peer": {
+            "NodeId": "n6",
+            "Host": "127.0.0.1",
+            "Port": 52816,
+            "IsRetired": false
+          },
+          "Stage": "Completed",
+          "Index": 2376,
+          "Term": 1,
+          "SuccessorId": null,
+          "Error": null,
+          "IsTerminal": true
+        },
+        "AddMilliseconds": 238.0097,
+        "CommandMilliseconds": 4224.1908,
+        "AddFinishedDuringCommands": true,
+        "IncludesWaitingForFullAdd": true
+      }
+    },
+    {
+      "variant": "add",
+      "round": 3,
+      "nodes": 5,
+      "payload": 16384,
+      "throughput": 647.1584266501104,
+      "p99": 145.4323,
+      "kib": 802.875,
+      "diagnostics": {
+        "Membership": {
+          "OperationId": "4765b092-b35e-4ed4-ae3b-c9140e9b3f0f",
+          "Kind": "AddNode",
+          "NodeId": "n6",
+          "Peer": {
+            "NodeId": "n6",
+            "Host": "127.0.0.1",
+            "Port": 52838,
+            "IsRetired": false
+          },
+          "Stage": "Completed",
+          "Index": 2375,
+          "Term": 1,
+          "SuccessorId": null,
+          "Error": null,
+          "IsTerminal": true
+        },
+        "AddMilliseconds": 734.0094,
+        "CommandMilliseconds": 12657.4874,
+        "AddFinishedDuringCommands": true,
+        "IncludesWaitingForFullAdd": true
+      }
+    }
+  ],
+  "aggregation": "Throughput/allocations: round medians; p50/p99: pooled nearest rank; min/max: round throughput.",
+  "validation_followup": {
+    "explanation": "После замеров добавлена только проверка исходных адресов voter/learner при создании новой базы (InitializeMembership, ветка fresh). Проверка не выполняется в измеряемом рабочем пути. Код записи, репликации, применения, транспорта и бизнес-обработчика после замеров не менялся. Измеренные DLL и точные исходники сохранены отдельно; числа относятся к ним. Тесты также уточняют выбор снимка при возможной смене лидера.",
+    "measured_raft_sha256": "B5F54762CF8BBF5C95E1B4488EF6B4A3DD199D247B4CE8590116F5E9C9635A38",
+    "validated_raft_sha256": "279C99D61542BFC42110D508DFB94BEE6A826965E22BEFB38C9D5823B3E4E572",
+    "measured_source_archive": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\.artifacts\\hot-membership\\measured-source-delivery.zip",
+    "measured_source_archive_sha256": "D936778D534845BA903DAF01CE53184184B157DD3E99191610D79622BC333A4E",
+    "production_source_changes": [
+      "src/Raft/Storage/DBreezeLogStorage.Membership.cs"
+    ]
+  }
+}

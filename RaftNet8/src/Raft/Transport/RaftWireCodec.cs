@@ -29,16 +29,24 @@ internal static class RaftWireCodec
     {
         RaftOptions.ValidateId(groupId, nameof(groupId));
         RaftOptions.ValidateId(from, nameof(from));
-        if (version is not 1 and not 2 || (version == 2 && exchangeId < 1)) throw new InvalidDataException("Invalid wire version/exchange ID.");
+        if (version is not 1 and not 2 and not 3 || (version >= 2 && exchangeId < 1)) throw new InvalidDataException("Invalid wire version/exchange ID.");
         var metadata = rpc is SnapshotChunkRequest { Metadata: { } snapshot } ? StorageCodecV2.Snapshot(snapshot) : Array.Empty<byte>();
+        var directory = rpc switch
+        {
+            PeerDirectoryRequest request => MembershipCodec.EncodeDirectory(request.Directory),
+            PeerDirectoryResponse response => MembershipCodec.EncodeDirectory(response.Directory),
+            _ => Array.Empty<byte>()
+        };
         var kind = Kind(rpc);
         if (version == 1 && kind > 4) throw new InvalidDataException("This message requires wire v2.");
-        var length = checked(18 + groupId.Length + from.Length + (version == 2 ? 8 : 0) + (rpc switch
+        if (version < 3 && kind > 10) throw new InvalidDataException("Directory exchange requires wire3.");
+        var length = checked(18 + groupId.Length + from.Length + (version >= 2 ? 8 : 0) + (rpc switch
         {
-            VoteRequest => 16, VoteResponse => 1, AppendRequest => 36 + (version == 2 ? 8 : 0), AppendResponse => 33 + (version == 2 ? 8 : 0),
+            VoteRequest => 16, VoteResponse => 1, AppendRequest => 36 + (version >= 2 ? 8 : 0), AppendResponse => 33 + (version >= 2 ? 8 : 0),
             PreVoteRequest => 24, PreVoteResponse => 17, TimeoutNowRequest => 8, TimeoutNowResponse => 9,
             SnapshotChunkRequest chunk => 41 + chunk.StorageId.Length + metadata.Length + chunk.Data.Length,
             SnapshotChunkResponse chunk => 22 + chunk.StorageId.Length,
+            PeerDirectoryRequest or PeerDirectoryResponse => 4 + directory.Length,
             _ => throw new InvalidDataException("Unknown RPC.")
         }));
         if (rpc is AppendRequest batch)
@@ -56,7 +64,7 @@ internal static class RaftWireCodec
         frame.WriteString(groupId);
         frame.WriteString(from);
         frame.WriteInt64(rpc.Term);
-        if (version == 2) frame.WriteInt64(exchangeId);
+        if (version >= 2) frame.WriteInt64(exchangeId);
             switch (rpc)
             {
                 case VoteRequest vote:
@@ -71,14 +79,14 @@ internal static class RaftWireCodec
                     frame.WriteInt64(append.PreviousIndex);
                     frame.WriteInt64(append.PreviousTerm);
                     frame.WriteInt64(append.LeaderCommit);
-                    if (version == 2) frame.WriteInt64(append.ReadContext);
+                    if (version >= 2) frame.WriteInt64(append.ReadContext);
                     frame.WriteInt32(append.Entries.Count);
                     for (var i = 0; i < append.Entries.Count; i++)
                     {
                         var entry = append.Entries[i];
                         frame.WriteInt64(entry.Index);
                         frame.WriteInt64(entry.Term);
-                        if (version == 1 && entry.Kind == LogEntryKind.Configuration) throw new InvalidDataException("Configuration entries require v2.");
+                        if ((version == 1 && entry.Kind == LogEntryKind.Configuration) || (version < 3 && entry.Kind == LogEntryKind.Membership)) throw new InvalidDataException("Configuration entries require v2.");
                         frame.WriteByte((byte)entry.Kind);
                         frame.WriteInt32(entry.Command.Length);
                         frame.Write(entry.Command.Span);
@@ -90,7 +98,7 @@ internal static class RaftWireCodec
                     frame.WriteInt64(append.MatchIndex);
                     frame.WriteInt64(append.ConflictIndex);
                     frame.WriteInt64(append.ConflictTerm);
-                    if (version == 2) frame.WriteInt64(append.ReadContext);
+                    if (version >= 2) frame.WriteInt64(append.ReadContext);
                     break;
                 case PreVoteRequest preVote:
                     frame.WriteInt64(preVote.Round); frame.WriteInt64(preVote.LastLogIndex); frame.WriteInt64(preVote.LastLogTerm);
@@ -112,6 +120,9 @@ internal static class RaftWireCodec
                     frame.WriteInt64(chunk.RequestId); frame.WriteString(chunk.StorageId); frame.WriteInt64(chunk.NextOffset);
                     frame.WriteByte(chunk.Success ? (byte)1 : (byte)0); frame.WriteByte(chunk.Complete ? (byte)1 : (byte)0);
                     break;
+                case PeerDirectoryRequest or PeerDirectoryResponse:
+                    frame.WriteInt32(directory.Length); frame.Write(directory);
+                    break;
             }
     }
 
@@ -119,7 +130,8 @@ internal static class RaftWireCodec
     {
         VoteRequest => 1, VoteResponse => 2, AppendRequest => 3, AppendResponse => 4,
         PreVoteRequest => 5, PreVoteResponse => 6, TimeoutNowRequest => 7, TimeoutNowResponse => 8,
-        SnapshotChunkRequest => 9, SnapshotChunkResponse => 10, _ => throw new InvalidDataException("Unknown RPC.")
+        SnapshotChunkRequest => 9, SnapshotChunkResponse => 10, PeerDirectoryRequest => 11, PeerDirectoryResponse => 12,
+        _ => throw new InvalidDataException("Unknown RPC.")
     };
 
     private readonly ref struct WireWriter(IBufferWriter<byte> destination)
@@ -145,15 +157,16 @@ internal static class RaftWireCodec
     {
         var reader = new SpanReader(bytes);
         var version = reader.Byte();
-        if (version is not 1 and not 2) throw new InvalidDataException("Unsupported Raft wire version.");
+        if (version is not 1 and not 2 and not 3) throw new InvalidDataException("Unsupported Raft wire version.");
         var kind = reader.Byte();
         if (version == 1 && kind > 4) throw new InvalidDataException("Message requires v2.");
+        if (version < 3 && kind > 10) throw new InvalidDataException("Directory exchange requires wire3.");
         var group = reader.String();
         var from = reader.String();
         var term = reader.Int64();
         if (term < 0) throw new InvalidDataException("Negative RPC term.");
-        var exchangeId = version == 2 ? reader.Int64() : 0;
-        if (version == 2 && exchangeId < 1) throw new InvalidDataException("Invalid exchange ID.");
+        var exchangeId = version >= 2 ? reader.Int64() : 0;
+        if (version >= 2 && exchangeId < 1) throw new InvalidDataException("Invalid exchange ID.");
         RaftRpc message;
         switch (kind)
         {
@@ -164,7 +177,7 @@ internal static class RaftWireCodec
                 var previous = reader.Int64();
                 var previousTerm = reader.Int64();
                 var commit = reader.Int64();
-                var readContext = version == 2 ? reader.Int64() : 0;
+                var readContext = version >= 2 ? reader.Int64() : 0;
                 var count = reader.Int32();
                 if (count < 0 || count > options.MaxAppendEntries) throw new InvalidDataException("Invalid batch count.");
                 var entries = new LogEntry[count];
@@ -174,10 +187,10 @@ internal static class RaftWireCodec
                     var index = reader.Int64();
                     var entryTerm = reader.Int64();
                     var entryKind = (LogEntryKind)reader.Byte();
-                    if (entryKind > (version == 1 ? LogEntryKind.NoOp : LogEntryKind.Configuration))
+                    if (entryKind > (version == 1 ? LogEntryKind.NoOp : version == 2 ? LogEntryKind.Configuration : LogEntryKind.Membership))
                         throw new InvalidDataException("Invalid log entry kind.");
                     var length = reader.Int32();
-                    if (length < 0 || length > (entryKind == LogEntryKind.Configuration ? options.MaxAppendBytes : options.MaxCommandBytes))
+                    if (length < 0 || length > (entryKind == LogEntryKind.Configuration ? options.MaxAppendBytes : entryKind == LogEntryKind.Membership ? MembershipCodec.MaxRecordBytes : options.MaxCommandBytes))
                         throw new InvalidDataException("Command length exceeds limit.");
                     size = checked(size + length + LogEntry.EncodedOverhead);
                     if (size > (version == 1 ? options.MaxAppendBytes : options.ReplicationByteLimit))
@@ -188,7 +201,7 @@ internal static class RaftWireCodec
                 break;
             case 4:
                 var response = new AppendResponse(term, reader.Int64(), reader.Boolean(), reader.Int64(), reader.Int64(), reader.Int64());
-                message = version == 2 ? response with { ReadContext = reader.Int64() } : response;
+                message = version >= 2 ? response with { ReadContext = reader.Int64() } : response;
                 break;
             case 5: message = new PreVoteRequest(term, reader.Int64(), reader.Int64(), reader.Int64()); break;
             case 6: message = new PreVoteResponse(term, reader.Int64(), reader.Int64(), reader.Boolean()); break;
@@ -198,7 +211,7 @@ internal static class RaftWireCodec
                 var id = reader.Int64(); var storageId = reader.String();
                 var offset = reader.Int64(); var total = reader.Int64(); var crc = unchecked((uint)reader.Int32()); var final = reader.Boolean();
                 var metadataLength = reader.Int32();
-                if (metadataLength < 0 || metadataLength > 280_000) throw new InvalidDataException("Invalid snapshot metadata length.");
+                if (metadataLength < 0 || metadataLength > (version == 3 ? MembershipCodec.MaxDirectoryBytes : 280_000)) throw new InvalidDataException("Invalid snapshot metadata length.");
                 var metadata = metadataLength == 0 ? null : StorageCodecV2.Snapshot(reader.Bytes(metadataLength).ToArray());
                 var dataLength = reader.Int32();
                 if (dataLength < 0 || dataLength > options.SnapshotChunkBytes || offset < 0 || total < 0 || offset > total - dataLength)
@@ -209,6 +222,14 @@ internal static class RaftWireCodec
                 break;
             case 10:
                 message = new SnapshotChunkResponse(term, reader.Int64(), reader.String(), reader.Int64(), reader.Boolean(), reader.Boolean());
+                break;
+            case 11:
+            case 12:
+                var directoryLength = reader.Int32();
+                if (directoryLength is < 1 or > MembershipCodec.MaxDirectoryBytes || term != 0)
+                    throw new InvalidDataException("Invalid directory exchange.");
+                var directory = MembershipCodec.DecodeDirectory(reader.Bytes(directoryLength));
+                message = kind == 11 ? new PeerDirectoryRequest(directory) : new PeerDirectoryResponse(directory);
                 break;
             default: throw new InvalidDataException("Unknown Raft message kind.");
         }

@@ -19,6 +19,8 @@ internal sealed class TcpPeerConnection
         public readonly ConcurrentDictionary<long, Pending> Pending = new();
         public readonly SemaphoreSlim WriteGate = new(1, 1);
         public Task Reader = Task.CompletedTask;
+        public long DirectoryRevision = -1;
+        public readonly SemaphoreSlim DirectoryGate = new(1, 1);
         public int Closed;
         public void Close(Exception error)
         {
@@ -31,7 +33,7 @@ internal sealed class TcpPeerConnection
         }
     }
 
-    private readonly IPEndPoint _endpoint;
+    private readonly EndPoint _endpoint;
     private readonly string _peerId;
     private readonly RaftOptions _options;
     private readonly RaftTransportSecurity? _security;
@@ -42,8 +44,16 @@ internal sealed class TcpPeerConnection
 
     public TcpPeerConnection(IPEndPoint endpoint, string peerId, RaftOptions options,
         RaftTransportSecurity? security, CancellationToken stop)
+        : this((EndPoint)new IPEndPoint(endpoint.Address, endpoint.Port), peerId, options, security, stop) { }
+
+    internal TcpPeerConnection(PeerDescriptor peer, RaftOptions options, RaftTransportSecurity? security, CancellationToken stop)
+        : this(IPAddress.TryParse(peer.Host, out var address) ? new IPEndPoint(address, peer.Port) : new DnsEndPoint(peer.Host, peer.Port),
+            peer.NodeId, options, security, stop) { }
+
+    private TcpPeerConnection(EndPoint endpoint, string peerId, RaftOptions options,
+        RaftTransportSecurity? security, CancellationToken stop)
     {
-        _endpoint = new(endpoint.Address, endpoint.Port);
+        _endpoint = endpoint;
         _peerId = peerId;
         _options = options;
         _security = security;
@@ -51,7 +61,7 @@ internal sealed class TcpPeerConnection
         _capacity = new(options.WireVersion == 1 ? 1 : options.MaxInFlightMessages + 4);
     }
 
-    public async ValueTask<RpcEnvelope> SendAsync(RaftRpc request, CancellationToken token)
+    public async ValueTask<RaftRpc> SendAsync(RaftRpc request, CancellationToken token)
     {
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(token, _stop.Token);
         await _capacity.WaitAsync(linked.Token).ConfigureAwait(false);
@@ -61,7 +71,7 @@ internal sealed class TcpPeerConnection
         try
         {
             session = await ConnectAsync(linked.Token).ConfigureAwait(false);
-            id = _options.WireVersion == 2 ? Interlocked.Increment(ref _exchangeId) : 0;
+            id = _options.WireVersion >= 2 ? Interlocked.Increment(ref _exchangeId) : 0;
             if (!session.Pending.TryAdd(id, pending)) throw new InvalidOperationException("Duplicate exchange ID.");
             if (Volatile.Read(ref session.Closed) != 0) throw new IOException("Peer session closed.");
             using var writeToken = CancellationTokenSource.CreateLinkedTokenSource(linked.Token, session.Stop.Token);
@@ -73,7 +83,7 @@ internal sealed class TcpPeerConnection
                 catch (Exception error) { Break(session, error); throw; } // partial frame is uncertain
             }
             finally { session.WriteGate.Release(); }
-            return await pending.Completion.Task.WaitAsync(linked.Token).ConfigureAwait(false);
+            return (await pending.Completion.Task.WaitAsync(linked.Token).ConfigureAwait(false)).Message;
         }
         catch (Exception error)
         {
@@ -91,6 +101,25 @@ internal sealed class TcpPeerConnection
         }
     }
 
+    internal async ValueTask<MembershipState?> ExchangeDirectoryAsync(MembershipState directory, CancellationToken token)
+    {
+        var session = await ConnectAsync(token).ConfigureAwait(false);
+        if (Volatile.Read(ref session.DirectoryRevision) >= directory.Revision) return null;
+        await session.DirectoryGate.WaitAsync(token).ConfigureAwait(false);
+        try
+        {
+            if (Volatile.Read(ref session.DirectoryRevision) >= directory.Revision) return null;
+            var reply = await SendAsync(new PeerDirectoryRequest(directory), token).ConfigureAwait(false);
+            if (ReferenceEquals(session, Volatile.Read(ref _session)))
+                Volatile.Write(ref session.DirectoryRevision, directory.Revision);
+            return ((PeerDirectoryResponse)reply).Directory;
+        }
+        finally { session.DirectoryGate.Release(); }
+    }
+
+    internal bool NeedsDirectoryExchange(long revision) =>
+        Volatile.Read(ref _session) is not { Closed: 0 } session || Volatile.Read(ref session.DirectoryRevision) < revision;
+
     private async ValueTask<Session> ConnectAsync(CancellationToken token)
     {
         if (Volatile.Read(ref _session) is { Closed: 0 } ready) return ready;
@@ -98,10 +127,15 @@ internal sealed class TcpPeerConnection
         try
         {
             if (_session is { Closed: 0 } existing) return existing;
-            var client = new TcpClient(_endpoint.AddressFamily) { NoDelay = true };
+            var client = _endpoint is IPEndPoint ipEndpoint ? new TcpClient(ipEndpoint.AddressFamily) : new TcpClient();
+            client.NoDelay = true;
             try
             {
-                await client.ConnectAsync(_endpoint.Address, _endpoint.Port, token).ConfigureAwait(false);
+                if (_endpoint is IPEndPoint ip)
+                    await client.ConnectAsync(ip.Address, ip.Port, token).ConfigureAwait(false);
+                else if (_endpoint is DnsEndPoint dns)
+                    await client.ConnectAsync(dns.Host, dns.Port, token).ConfigureAwait(false);
+                else throw new InvalidOperationException("Unknown peer endpoint kind.");
                 Stream stream = client.GetStream();
                 if (_security is not null)
                 {
@@ -127,7 +161,7 @@ internal sealed class TcpPeerConnection
             {
                 var reply = await RaftWireCodec.ReadAsync(session.Stream, header, _options, session.Stop.Token).ConfigureAwait(false);
                 if (reply.Version != _options.WireVersion || reply.GroupId != _options.GroupId || reply.From != _peerId ||
-                    (_options.WireVersion == 2 && (reply.ExchangeId < 1 || reply.ExchangeId > Interlocked.Read(ref _exchangeId))))
+                    (_options.WireVersion >= 2 && (reply.ExchangeId < 1 || reply.ExchangeId > Interlocked.Read(ref _exchangeId))))
                     throw new InvalidDataException("Response group, identity, version, or correlation is invalid.");
                 if (!session.Pending.TryRemove(reply.ExchangeId, out var pending)) continue; // canceled or duplicate response
                 if (!RaftRpcProtocol.IsExpectedResponse(pending.Request, reply.Message))

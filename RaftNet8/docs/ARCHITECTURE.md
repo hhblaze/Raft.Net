@@ -12,6 +12,8 @@ Peers move Probe → Replicate → Snapshot. Replicate tracks optimistic next in
 
 ## Checked v2/v3 storage
 
+The v2/v3 formats below remain compatibility modes. New hot-membership groups select explicit wire3/UnifiedTableV4; see [the service-state and failure contract](HOT-MEMBERSHIP.md).
+
 Private tables: `raft8/v2/meta`, `raft8/v2/log`, `raft8/v2/config`. One engine/folder represents one node/group. Cached metadata includes term/vote/commit, first/tail index/term, byte frontier, indexed configuration, known members, snapshot and install intent. Cache limits apply to both count and bytes.
 
 Existing constructors select these v2 tables. Explicit `DBreezeLogLayout.UnifiedTableV3` stores entries and other checked values in physical table `raft8/v3`: `1.ToIndex(metadataKey)`, `2.ToIndex(logIndex)`, `3.ToIndex(configurationIndex)`. Ordered prefix/range operations and deletions stay inside each logical namespace; metadata and appended entries share one physical-table commit. Hard state and frontier are packed in one RF3M manifest with exact length/version/CRC32C checks, reducing two key updates to one; the other checked record bodies are unchanged. Earlier unreleased v3 prototypes are rejected before cleanup. Initialization writes incompatible-reader guards; existing v1/v2 data requires offline copy migration. No public wire change is involved. Full snapshot-log replacement visits retained keys within the log prefix in bounded memory; its work grows with the retained log rather than resetting an independent table root.
@@ -40,6 +42,18 @@ Local proposal persistence has its own byte limit: MaxProposalBatchBytes=null de
 The ordered application loop also owns a background thread. It starts synchronous DBreeze callbacks there and waits for genuinely asynchronous callbacks without installing a synchronization context or blocking ThreadPool workers. Completed ValueTasks are consumed exactly once. Its coalesced bounded signal, snapshot/apply gate and supervised completion remain; application exceptions still fail-stop. With RaftStorageAdapter, a started node uses one log I/O thread plus one application thread.
 
 Startup streams retained records in bounded memory, checking continuity, index/term/kind/length/CRC, configuration indexes and the durable frontier. The frontier covers previously promised durable entries, potentially beyond commitIndex. Promised/interior corruption is fatal; only an unpromised incomplete tail beyond that frontier is discardable. A Commit exception may follow a flush: poison the backend and fail-stop, then recover to determine the result.
+
+## Journaled membership and owned topology
+
+CoreTopology shares rarely changed options, configuration, membership projection and transfer-failure metadata behind one immutable reference. Ordinary reducer steps copy the hot state without copying extra membership fields. A topology update creates another owned value; it never introduces live storage, DNS, sockets, locks or callbacks into Core.
+
+Wire3 uses service log entries for one durable logical operation. The coordinator starts only after intent commitment, advances learner/catch-up/promotion or transfer/removal, and retains a local reservation for the first uncommitted service record. Correlated store completions publish the committed projection and pending frontier; suffix rollback releases replaced reservations. The previous configuration/current-term gate and latest-in-log voter quorum still control all role changes. API wait cancellation affects the waiter; explicit Add cancellation is another logged transition with cleanup.
+
+Raft8-v4 uses one primary table with ToIndex prefixes1=metadata/RF4M,2=log,3=config,4=sparse service index,5=terminal results. Ordinary writes retain the small materialized directory/operation by reference and do not scan result history. Indexed point reads and128-row snapshot pages bound materialization. Old readers are fenced out by format guards.
+
+Runtime publishes committed PeerDescriptor routes without node restart. Transport exchanges bounded trusted hints at connection/revision changes; session revision caching keeps repeated discovery off ordinary sends. DNS and connection retirement run outside the consensus owner. Hints never alter voter configuration or commit. mTLS authorizes the certificate/ID before introducing unknown senders; the host owns PKI.
+
+V4 image wrapping streams terminal history alongside the application and checked directory/active state at the same applied fence. A prepared image stages history by immutable image ID. The durable install intent spans application generation activation and log publication; completing it switches the history pointer atomically with log/frontier/snapshot. Recovery repeats preparation safely. Bounded maintenance collects obsolete staging and avoids an unchanged commit when nothing is collectible.
 
 ## Atomic application
 

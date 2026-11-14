@@ -1,6 +1,6 @@
 namespace Raft;
 
-public enum LogEntryKind : byte { Command = 0, NoOp = 1, Configuration = 2 }
+public enum LogEntryKind : byte { Command = 0, NoOp = 1, Configuration = 2, Membership = 3 }
 
 /// <summary>Immutable owned log data. The constructor copies caller memory.</summary>
 public sealed class LogEntry
@@ -23,7 +23,7 @@ public sealed class LogEntry
 
     internal LogEntry(long index, long term, byte[] ownedCommand, LogEntryKind kind)
     {
-        if (index < 1 || term < 1 || kind > LogEntryKind.Configuration ||
+        if (index < 1 || term < 1 || kind > LogEntryKind.Membership ||
             (kind == LogEntryKind.NoOp && ownedCommand.Length != 0))
             throw new ArgumentException("Log entries need positive index/term and empty data for no-ops.");
         Index = index;
@@ -53,15 +53,19 @@ public sealed record TimeoutNowResponse(long Term, long RequestId, bool Accepted
 public sealed record SnapshotChunkRequest(long Term, long RequestId, string StorageId, long Offset, long TotalLength,
     uint Checksum, bool Final, Storage.SnapshotMetadata? Metadata, ReadOnlyMemory<byte> Data) : RaftRpc(Term);
 public sealed record SnapshotChunkResponse(long Term, long RequestId, string StorageId, long NextOffset, bool Success, bool Complete) : RaftRpc(Term);
+// Transport-only routing repair. These records never enter Raft.Core or alter quorum/term.
+internal sealed record PeerDirectoryRequest(MembershipState Directory) : RaftRpc(0);
+internal sealed record PeerDirectoryResponse(MembershipState Directory) : RaftRpc(0);
 
 public static class RaftRpcProtocol
 {
     public static bool IsRequest(RaftRpc message) =>
-        message is VoteRequest or AppendRequest or PreVoteRequest or TimeoutNowRequest or SnapshotChunkRequest;
+        message is VoteRequest or AppendRequest or PreVoteRequest or TimeoutNowRequest or SnapshotChunkRequest or PeerDirectoryRequest;
     public static bool IsExpectedResponse(RaftRpc request, RaftRpc response) => (request, response) switch
     {
         (VoteRequest, VoteResponse) or (AppendRequest, AppendResponse) or (PreVoteRequest, PreVoteResponse) or
-        (TimeoutNowRequest, TimeoutNowResponse) or (SnapshotChunkRequest, SnapshotChunkResponse) => true,
+        (TimeoutNowRequest, TimeoutNowResponse) or (SnapshotChunkRequest, SnapshotChunkResponse) or
+        (PeerDirectoryRequest, PeerDirectoryResponse) => true,
         _ => false
     };
 }
@@ -76,6 +80,7 @@ public sealed record RaftStatus(string NodeId, RaftRole Role, long Term, string?
     public Storage.SnapshotMetadata? Snapshot { get; init; }
     public long? InstallingSnapshotIndex { get; init; }
     public long UncommittedBytes { get; init; }
+    public MembershipState? Membership { get; init; }
 }
 public enum ReplicationMode { Probe, Replicate, Snapshot }
 public readonly record struct RaftPeerStatus(string NodeId, long MatchIndex, long NextIndex, bool IsVoter)

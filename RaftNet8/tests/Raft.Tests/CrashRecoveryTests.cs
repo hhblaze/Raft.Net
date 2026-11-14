@@ -4,6 +4,7 @@ using Raft.Storage;
 
 namespace Raft.Tests;
 
+[Collection("OS process clusters")]
 public sealed class CrashRecoveryTests
 {
     [Theory]
@@ -54,6 +55,8 @@ public sealed class CrashRecoveryTests
     {
         using var directory = new TestDirectory();
         var options = new RaftOptions { NodeId = "n1", Members = ["n1", "n2", "n3"] };
+        if (layout == DBreezeLogLayout.UnifiedTableV4) options = options with { WireVersion = 3,
+            InitialPeers = options.Members.Select((id, index) => new PeerDescriptor(id, "127.0.0.1", 7301 + index)).ToArray() };
         using (var storage = new DBreezeLogStorage(directory.Path, options, layout))
         {
             storage.Write(new LogWrite.Batch([

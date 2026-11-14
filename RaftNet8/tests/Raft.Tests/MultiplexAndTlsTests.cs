@@ -133,7 +133,7 @@ public sealed class MultiplexAndTlsTests
         await Assert.ThrowsAsync<ArgumentException>(() => peer.UpdatePeerAsync("unprovisioned", replacement.LocalEndPoint).AsTask());
     }
 
-    private static X509Certificate2 Certificate(string id)
+    internal static X509Certificate2 Certificate(string id)
     {
         using var key = RSA.Create(2048);
         var request = new CertificateRequest($"CN={id}", key, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);

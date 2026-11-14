@@ -24,7 +24,7 @@ DLL = HERE / "examples/TutorialNode/bin/Release/net8.0/Raft.TutorialNode.dll"
 
 
 class Node:
-    def __init__(self, node_id, data, port, out, *, memory=False, single=False, label=""):
+    def __init__(self, node_id, data, port, out, *, memory=False, single=False, join=False, label=""):
         self.node_id = node_id
         self.lines = queue.Queue()
         self.log = (out / f"{label}{node_id}.log").open("w", encoding="utf-8")
@@ -33,6 +33,8 @@ class Node:
             args.append("--memory")
         if single:
             args.append("--single")
+        if join:
+            args.append("--join")
         self.process = subprocess.Popen(args, cwd=ROOT, stdin=subprocess.PIPE,
                                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                         text=True, encoding="utf-8", errors="replace", bufsize=1)
@@ -158,7 +160,7 @@ def main():
 
     started = time.monotonic()
     try:
-        port = free_ports(3)
+        port = free_ports(6)
         data = out / "disk"
         for node_id in ("n1", "n2", "n3"):
             start(node_id, data, port, "disk-initial-")
@@ -210,6 +212,24 @@ def main():
         repeated = leader.ask("put req-001 greeting first", ("OK ",))
         check("deduplication survives full restart", f"originalIndex={original}" in repeated and
               leader.ask("get greeting", ("VALUE ",)).startswith('VALUE "after-crash" '))
+        original_pids = {node_id: node.process.pid for node_id, node in alive.items()}
+        for ordinal in (4, 5):
+            node_id = f"n{ordinal}"
+            start(node_id, data, port, "disk-hot-", join=True)
+            leader = find_leader(alive)
+            operation = f"{ordinal:08d}-1111-4111-8111-111111111111"
+            added = leader.ask(f"add {operation} {node_id} 127.0.0.1:{port + ordinal - 1}", ("MEMBERSHIP ",), 35)
+            result = json.loads(added[len("MEMBERSHIP "):])
+            check(f"hot Add {node_id} completes through voter promotion", result["Stage"] == 6)
+            stored = json.loads(leader.ask(f"operation {operation}", ("MEMBERSHIP ",))[len("MEMBERSHIP "):])
+            check(f"hot result {node_id} is indexed by caller ID", stored["OperationId"] == operation)
+        check("3-to-5 preserves all original process IDs", all(alive[node_id].process.pid == pid for node_id, pid in original_pids.items()))
+        pending = "99999999-1111-4111-8111-111111111111"
+        leader = find_leader(alive)
+        timed_out = leader.ask(f"add {pending} n6 127.0.0.1:{port + 5}", ("TIMEOUT ",), 25)
+        check("caller timeout leaves unavailable learner Add accepted", timed_out.startswith("TIMEOUT "))
+        cancelled = json.loads(leader.ask(f"cancel {pending}", ("MEMBERSHIP ",), 25)[len("MEMBERSHIP "):])
+        check("explicit cancellation commits learner cleanup", cancelled["Stage"] == 7)
         for node_id in list(alive):
             stop(node_id)
         memory_root = out / "memory-data-must-not-exist"

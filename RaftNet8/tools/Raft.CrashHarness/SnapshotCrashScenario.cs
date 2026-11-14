@@ -7,6 +7,8 @@ internal static class SnapshotCrashScenario
     public static async Task RunAsync(string root, string mode, DBreezeLogLayout layout)
     {
         var options = new RaftOptions { NodeId = "n1", Members = ["n1", "n2", "n3"], SnapshotDirectory = Path.Combine(root, "snapshots") };
+        if (layout == DBreezeLogLayout.UnifiedTableV4) options = options with { WireVersion = 3,
+            InitialPeers = options.Members.Select((id, index) => new PeerDescriptor(id, "127.0.0.1", 7301 + index)).ToArray() };
         var intent = JsonSerializer.Deserialize<SnapshotInstallIntent>(File.ReadAllBytes(Path.Combine(root, "intent.json")))!;
         if (mode.StartsWith("snapshot-image-", StringComparison.Ordinal))
         {
@@ -19,8 +21,12 @@ internal static class SnapshotCrashScenario
             sourceLog.SaveHardState(new(2, CommitIndex: 10));
             using var source = Machine(Path.Combine(root, "source-app"));
             var context = new SnapshotBuildContext(new(10, 2), sourceLog.Recover().Configuration!, null, options,
-                (from, count, bytes, _) => ValueTask.FromResult(sourceLog.Query(new LogQuery.Entries(from, count, bytes))));
-            await repository.CreateAsync(source, context, default);
+                (from, count, bytes, _) => ValueTask.FromResult(sourceLog.Query(new LogQuery.Entries(from, count, bytes))))
+                { Membership = sourceLog.Recover().Membership?.Committed };
+            await using var sourceAdapter = new RaftStorageAdapter(sourceLog);
+            ISnapshotStateMachine sourceMachine = layout == DBreezeLogLayout.UnifiedTableV4
+                ? new MembershipSnapshotMachine(source, sourceAdapter, options) : source;
+            await repository.CreateAsync(sourceMachine, context, default);
             return;
         }
         var generation = mode.StartsWith("snapshot-generation-", StringComparison.Ordinal);
@@ -37,8 +43,11 @@ internal static class SnapshotCrashScenario
         using var machine = Machine(Path.Combine(root, "application"), point => { if (generation && point == generationPoint) Pause(); });
         await using var images = new SnapshotRepository(options);
         var image = await images.OpenAsync(intent.Metadata);
-        await machine.PrepareSnapshotAsync(image, options.MaxSnapshotUnpackedBytes, default);
-        await machine.InstallSnapshotAsync(image, default);
+        await using var adapter = new RaftStorageAdapter(store);
+        ISnapshotStateMachine installed = layout == DBreezeLogLayout.UnifiedTableV4
+            ? new MembershipSnapshotMachine(machine, adapter, options) : machine;
+        await installed.PrepareSnapshotAsync(image, options.MaxSnapshotUnpackedBytes, default);
+        await installed.InstallSnapshotAsync(image, default);
         armed = publish;
         store.Write(new LogWrite.CompleteSnapshotInstall(intent));
     }

@@ -5,7 +5,7 @@ using DBreeze.Utils;
 namespace Raft.Storage;
 
 /// <summary>Explicit on-disk table layout; v3 packs hard state and frontier in one checked manifest.</summary>
-public enum DBreezeLogLayout { SeparateTablesV2 = 2, UnifiedTableV3 = 3 }
+public enum DBreezeLogLayout { SeparateTablesV2 = 2, UnifiedTableV3 = 3, UnifiedTableV4 = 4 }
 
 /// <summary>A transaction-scoped row view; partial header reads never materialize full payloads.</summary>
 internal readonly struct DBreezeLogRow<TKey, TValue>
@@ -32,9 +32,12 @@ internal sealed class DBreezeLogTransaction(Transaction inner, DBreezeLogLayout 
         DBreezeLogStorage.MetaTable => 1,
         DBreezeLogStorage.LogTable => 2,
         DBreezeLogStorage.ConfigurationTable => 3,
+        DBreezeLogStorage.MembershipIndexTable => 4,
+        DBreezeLogStorage.MembershipHistoryTable => 5,
         _ => throw new ArgumentException("Unknown logical Raft table.", nameof(table))
     };
-    private bool Unified => layout == DBreezeLogLayout.UnifiedTableV3;
+    private bool Unified => layout != DBreezeLogLayout.SeparateTablesV2;
+    private string Table => layout == DBreezeLogLayout.UnifiedTableV4 ? DBreezeLogStorage.UnifiedTableV4 : DBreezeLogStorage.UnifiedTable;
     internal static byte[] Key<TKey>(byte prefix, TKey key) => prefix.ToIndex(key!);
     private void RequireWritable()
     {
@@ -44,31 +47,37 @@ internal sealed class DBreezeLogTransaction(Transaction inner, DBreezeLogLayout 
     {
         RequireWritable();
         if (!Unified) inner.SynchronizeTables(tables);
-        else if (initializing) inner.SynchronizeTables(DBreezeLogStorage.UnifiedTable, DBreezeLogStorage.MetaTable, "raft8/meta");
-        else inner.SynchronizeTables(DBreezeLogStorage.UnifiedTable);
+        else if (initializing) inner.SynchronizeTables(Table, DBreezeLogStorage.UnifiedTable, DBreezeLogStorage.MetaTable, "raft8/meta");
+        else inner.SynchronizeTables(Table);
     }
     public void WriteLegacyGuards()
     {
         if (!Unified) return;
         if (!initializing) throw new InvalidOperationException("Layout guards belong to initialization.");
-        inner.Insert<string, byte[]>(DBreezeLogStorage.MetaTable, "state", StorageCodecV2.Wrap("raft8-v3"u8));
-        inner.Insert<string, byte[]>("raft8/meta", "state", "raft8-v3"u8.ToArray());
+        inner.Insert<string, byte[]>(DBreezeLogStorage.MetaTable, "state", StorageCodecV2.Wrap((layout == DBreezeLogLayout.UnifiedTableV4 ? "raft8-v4"u8 : "raft8-v3"u8)));
+        inner.Insert<string, byte[]>("raft8/meta", "state", (layout == DBreezeLogLayout.UnifiedTableV4 ? "raft8-v4"u8 : "raft8-v3"u8).ToArray());
+        WriteV4Guard();
         // Unreleased v3 prototypes expected separate state/frontier rows. Fail closed there too.
-        inner.Insert<byte[], byte[]>(DBreezeLogStorage.UnifiedTable, Key(1, "state"), StorageCodecV2.Wrap("packed-v3"u8));
+        inner.Insert<byte[], byte[]>(Table, Key(1, "state"), StorageCodecV2.Wrap((layout == DBreezeLogLayout.UnifiedTableV4 ? "packed-v4"u8 : "packed-v3"u8)));
+    }
+    public void WriteV4Guard()
+    {
+        if (layout == DBreezeLogLayout.UnifiedTableV4)
+            inner.Insert<byte[], byte[]>(DBreezeLogStorage.UnifiedTable, Key(1, "state"), StorageCodecV2.Wrap("raft8-v4"u8));
     }
     public DBreezeLogRow<TKey, TValue> Select<TKey, TValue>(string table, TKey key) => Unified && table != "raft8/meta"
-        ? new(inner.Select<byte[], TValue>(DBreezeLogStorage.UnifiedTable, Key(Prefix(table), key)), key)
+        ? new(inner.Select<byte[], TValue>(Table, Key(Prefix(table), key)), key)
         : new(inner.Select<TKey, TValue>(table, key));
     public void Insert<TKey, TValue>(string table, TKey key, TValue value)
     {
         RequireWritable();
-        if (Unified) inner.Insert<byte[], TValue>(DBreezeLogStorage.UnifiedTable, Key(Prefix(table), key), value);
+        if (Unified) inner.Insert<byte[], TValue>(Table, Key(Prefix(table), key), value);
         else inner.Insert(table, key, value);
     }
     public void RemoveKey<TKey>(string table, TKey key)
     {
         RequireWritable();
-        if (Unified) inner.RemoveKey<byte[]>(DBreezeLogStorage.UnifiedTable, Key(Prefix(table), key));
+        if (Unified) inner.RemoveKey<byte[]>(Table, Key(Prefix(table), key));
         else inner.RemoveKey(table, key);
     }
     public void RemoveAllKeys(string table, bool withFileRecreation)
@@ -77,24 +86,24 @@ internal sealed class DBreezeLogTransaction(Transaction inner, DBreezeLogLayout 
         if (!Unified) { inner.RemoveAllKeys(table, withFileRecreation); return; }
         if (withFileRecreation) throw new NotSupportedException("A logical namespace cannot recreate its shared file.");
         // Snapshot replacement clears only this ordered namespace, in bounded memory.
-        foreach (var row in inner.SelectForwardStartsWith<byte[], byte[]>(DBreezeLogStorage.UnifiedTable,
+        foreach (var row in inner.SelectForwardStartsWith<byte[], byte[]>(Table,
             [Prefix(table)], AsReadVisibilityScope: true))
-            inner.RemoveKey<byte[]>(DBreezeLogStorage.UnifiedTable, row.Key);
+            inner.RemoveKey<byte[]>(Table, row.Key);
     }
     public IEnumerable<DBreezeLogRow<TKey, TValue>> SelectForward<TKey, TValue>(string table, bool AsReadVisibilityScope = false) =>
-        Unified ? UnifiedRows<TKey, TValue>(inner.SelectForwardStartsWith<byte[], TValue>(DBreezeLogStorage.UnifiedTable,
+        Unified ? UnifiedRows<TKey, TValue>(inner.SelectForwardStartsWith<byte[], TValue>(Table,
             [Prefix(table)], AsReadVisibilityScope)) : Rows(inner.SelectForward<TKey, TValue>(table, AsReadVisibilityScope));
     public IEnumerable<DBreezeLogRow<TKey, TValue>> SelectBackward<TKey, TValue>(string table, bool AsReadVisibilityScope = false) =>
-        Unified ? UnifiedRows<TKey, TValue>(inner.SelectBackwardStartsWith<byte[], TValue>(DBreezeLogStorage.UnifiedTable,
+        Unified ? UnifiedRows<TKey, TValue>(inner.SelectBackwardStartsWith<byte[], TValue>(Table,
             [Prefix(table)], AsReadVisibilityScope)) : Rows(inner.SelectBackward<TKey, TValue>(table, AsReadVisibilityScope));
     public IEnumerable<DBreezeLogRow<TKey, TValue>> SelectForwardStartFrom<TKey, TValue>(string table, TKey from, bool include,
         bool AsReadVisibilityScope = false) => Unified
-        ? UnifiedRows<TKey, TValue>(inner.SelectForwardFromTo<byte[], TValue>(DBreezeLogStorage.UnifiedTable,
+        ? UnifiedRows<TKey, TValue>(inner.SelectForwardFromTo<byte[], TValue>(Table,
             Key(Prefix(table), from), include, [(byte)(Prefix(table) + 1)], false, AsReadVisibilityScope))
         : Rows(inner.SelectForwardStartFrom<TKey, TValue>(table, from, include, AsReadVisibilityScope));
     public IEnumerable<DBreezeLogRow<TKey, TValue>> SelectBackwardStartFrom<TKey, TValue>(string table, TKey from, bool include,
         bool AsReadVisibilityScope = false) => Unified
-        ? UnifiedRows<TKey, TValue>(inner.SelectBackwardFromTo<byte[], TValue>(DBreezeLogStorage.UnifiedTable,
+        ? UnifiedRows<TKey, TValue>(inner.SelectBackwardFromTo<byte[], TValue>(Table,
             Key(Prefix(table), from), include, [Prefix(table)], true, AsReadVisibilityScope))
         : Rows(inner.SelectBackwardStartFrom<TKey, TValue>(table, from, include, AsReadVisibilityScope));
 

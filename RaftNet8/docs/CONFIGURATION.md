@@ -1,6 +1,6 @@
 # Configuration and diagnostics
 
-`RaftOptions` is immutable. Construction freezes/copies membership lists. Recovered v2 membership is authoritative; supplied `Members` bootstrap a new store and never rewrite persisted membership. IDs use 1..128 ASCII letters/digits/`-`/`_`. Each directory is bound to node/group identity.
+`RaftOptions` is immutable. Construction freezes/copies membership lists. Recovered modern membership is authoritative; supplied `Members` bootstrap a new store and never rewrite persisted membership. IDs use 1..128 ASCII letters/digits/`-`/`_`. Each directory is bound to node/group identity.
 
 | Option | Default | Unit / contract |
 | --- | ---: | --- |
@@ -8,13 +8,15 @@
 | `Members` | required | Bootstrap voters; normally 3 or 5 |
 | `Learners` | empty | Bootstrap non-voters, disjoint from voters |
 | `KnownPeers` | union with voters/learners | Provisioned transport IDs, including future/retired peers; max 1024 total |
+| `InitialPeers` | empty | Required canonical initial PeerDescriptor list for wire3, covering every bootstrap voter/learner with a live descriptor; max1024 unique IDs; current directory comes from committed log/snapshot |
+| `JoiningNode` | false | Wire3 only: permit self outside the original Members/Learners until its logged addition. Keep all original lists identical; grants no vote/role. Can remain true after restart. |
 | `MinimumVoters` | 1 | Refuse removal below this count |
 | `MaxLearnerPromotionLag` | 0 | Maximum leader-tail minus acknowledged match, in entries |
 | `TickInterval` | 25 ms | Logical tick cadence, 1 ms..10 s |
 | `HeartbeatTicks` | 1 | Heartbeat interval in ticks |
 | `ElectionMinTicks` / `ElectionMaxTicks` | 12 / 24 | Random timeout in `[min,max)` ticks; default 300..600 ms |
 | `RpcTimeout` | 200 ms | Positive per-exchange deadline below minimum election timeout and within runtime timer range |
-| `WireVersion` | 2 | 1 or 2; v1 requires pre-vote off/no snapshot directory, and rejects ReadIndex/transfer/membership controls |
+| `WireVersion` | 2 | 1/2/3; choose3 with explicit UnifiedTableV4 for hot membership. V1 requires pre-vote off/no images and rejects modern controls. Mixed wire versions fail closed. |
 | `EnablePreVote` | true | Prospective election before term increment |
 | `MaxAppendEntries` | 128 | Entries per log/proposal/replication/application batch; 1..4096 |
 | `MaxAppendBytes` | 256 KiB | Application/query encoded-byte budget and legacy wire1 budget; max64MiB |
@@ -46,6 +48,12 @@ Minimum election ticks must be **at least 10× heartbeat ticks**. Choose deadlin
 Wire2 defaults now permit a larger packet than the application transaction. Frames and decoded-handler reservations use the replication bound; the existing peer byte window still applies. Older wire2 binaries/configurations reject larger packets. During mixed binary upgrades explicitly set MaxReplicationBytes=262144 (or the old peer MaxAppendBytes) on every new node; keep it through the rolling upgrade. Raise limits only with compatible settings everywhere, using a coordinated stop/configure/restart if send/receive limits cannot be changed separately. Wire bytes and storage records are unchanged.
 
 Custom `ILogStore` implementations should expose `ILogStoreProgress.UncommittedBytes` for precise admission. `RaftStorageAdapter` supplies it; the v1 fallback scans its uncommitted suffix. After uncertain failure dispose/recover the store instead of retrying against its failed instance.
+
+## Hot membership bounds
+
+For the new [hot membership mode](HOT-MEMBERSHIP.md), wire3/v4 must be selected together. Service records fit4096B independently of business MaxCommandBytes. Wire3 application/replication budgets must fit4096+21B; configuration payloads fit min(270000,MaxAppendBytes−21,ReplicationByteLimit−21), with oversize Add rejected before intent. At most1024 historical descriptor IDs (including retired tombstones),900000B service metadata, and128 history rows/page are supported. Terminal results have no TTL and grow on disk; runtime holds one bounded directory/active view. The frame-body budget is max(replicationBytes,SnapshotChunkBytes+900000)+1024, default1052288B. Inbound socket capacity grows to max(4,2×historical routes), at most2048. Remote DNS is asynchronous; the local listener needs literal IP.
+
+Current immutable directory and active operation are exposed as Status.Membership/PeerDirectory. GetMembershipOperationAsync is a leader/quorum read of active or indexed terminal status. Caller cancellation only stops waiting; explicit cancellation is a separate journaled API. A v4 snapshot includes directory, active operation and streamed history at the application's exact index/term fence. MEMORY mode forgets them together with votes/log. Do not reuse an empty RAM voter identity in a surviving cluster.
 
 ## Observability
 

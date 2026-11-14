@@ -27,6 +27,9 @@
 - Bound client admission, replication batches, frames, and log-cache bytes. Keep a single owner of consensus state; perform network and application I/O outside that owner.
 - Benchmark actual behavior and record runtime, storage mode, parameters, and allocation data. Do not describe unmeasured improvements as benchmark results.
 - Keep explicit v1 compatibility fixtures green. Required new wire/storage versions need migration tools, rejection of unsafe mixed deployments, and documented upgrade procedures.
+- Exception authorized by the user for spec029: fresh wire3/raft8-v4 groups need no old-data converter because no deployed clusters exist. Preserve wire1/2 and storage v1/v2/v3 fixtures/modes, explicitly reject mixed versions/old directories, and document that boundary.
+- Wire3 hot membership uses one durable logical operation, caller Guid idempotence and a replicated PeerDescriptor directory. Caller wait cancellation never cancels the operation. Explicit Add cancellation commits learner cleanup before freeing the lane; too-late errors include current Status. Persisted leader removal transfers first and never forcibly removes after confirmed transfer failure. Read the [contract](RaftNet8/docs/HOT-MEMBERSHIP.md) and [spec029](_docs/llm/sdd/029-hot-membership.md) before changing it.
+- Wire3 joining processes keep identical original Members/Learners/InitialPeers and use JoiningNode=true to start outside that configuration. Never inject self into bootstrap Learners; only a logged entry assigns its role. Historical prefix snapshots must preserve the original configuration.
 
 ## Validation and delivery
 

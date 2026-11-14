@@ -5,7 +5,7 @@ using System.Net.Sockets;
 namespace Raft.Transport;
 
 /// <summary>Bounded persistent RPC multiplexing, with optional authenticated stream security.</summary>
-public sealed class TcpRaftTransport : IRaftTransport, IAsyncDisposable
+public sealed partial class TcpRaftTransport : IRaftTransport, IPeerDirectoryTransport, IAsyncDisposable
 {
     private readonly object _lifecycle = new();
     private readonly RaftOptions _options;
@@ -38,6 +38,7 @@ public sealed class TcpRaftTransport : IRaftTransport, IAsyncDisposable
             if (id != _options.NodeId) _outbound.TryAdd(id, new(endpoints[id], id, _options, security, _stop.Token));
         }
         _slots = new SemaphoreSlim(Math.Max(4, endpoints.Count * 2));
+        InitializeDirectory(endpoints);
     }
 
     public IPEndPoint LocalEndPoint => (IPEndPoint)_listener.LocalEndpoint;
@@ -59,6 +60,7 @@ public sealed class TcpRaftTransport : IRaftTransport, IAsyncDisposable
     public async ValueTask UpdatePeerAsync(string peerId, IPEndPoint endpoint)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
+        if (_options.WireVersion == 3) throw new NotSupportedException("Wire3 routes are owned by the replicated directory.");
         if (peerId == _options.NodeId || !_options.KnownPeers.Contains(peerId, StringComparer.Ordinal))
             throw new ArgumentException("Provision the peer ID in KnownPeers before adding its route.", nameof(peerId));
         var replacement = new TcpPeerConnection(endpoint, peerId, _options, _security, _stop.Token);
@@ -74,12 +76,28 @@ public sealed class TcpRaftTransport : IRaftTransport, IAsyncDisposable
         }
     }
 
-    public async ValueTask<RaftRpc> SendAsync(string peerId, RaftRpc request, CancellationToken cancellationToken)
+    public ValueTask<RaftRpc> SendAsync(string peerId, RaftRpc request, CancellationToken cancellationToken)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         if (!_outbound.TryGetValue(peerId, out var connection)) throw new ArgumentException("Unknown peer.", nameof(peerId));
-        using var token = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _stop.Token);
-        return (await connection.SendAsync(request, token.Token).ConfigureAwait(false)).Message;
+        if (_options.WireVersion == 3)
+        {
+            var published = Volatile.Read(ref _directory);
+            if (connection.NeedsDirectoryExchange(published.Revision))
+                return SendWithDirectoryAsync(connection, peerId, request, published, cancellationToken);
+        }
+        // The connection already links caller cancellation to transport/connection shutdown.
+        // Keep its task directly: another CTS and async continuation per ordinary RPC are redundant.
+        return connection.SendAsync(request, cancellationToken);
+    }
+
+    private async ValueTask<RaftRpc> SendWithDirectoryAsync(TcpPeerConnection connection, string peerId, RaftRpc request,
+        MembershipState published, CancellationToken token)
+    {
+        using var stop = CancellationTokenSource.CreateLinkedTokenSource(token, _stop.Token);
+        var directory = await connection.ExchangeDirectoryAsync(published, stop.Token).ConfigureAwait(false);
+        if (directory is not null) ImportRoutes(directory, peerId, requireSender: false);
+        return await connection.SendAsync(request, stop.Token).ConfigureAwait(false);
     }
 
     private async Task AcceptAsync()
@@ -140,7 +158,8 @@ public sealed class TcpRaftTransport : IRaftTransport, IAsyncDisposable
                     deadline.CancelAfter(TimeSpan.FromSeconds(30));
                     envelope = await RaftWireCodec.ReadAsync(stream, header, _options, deadline.Token).ConfigureAwait(false);
                     if (envelope.GroupId != _options.GroupId || envelope.Version != _options.WireVersion ||
-                        !_outbound.ContainsKey(envelope.From) || !RaftRpcProtocol.IsRequest(envelope.Message) ||
+                        (!(_options.WireVersion == 3 && envelope.Message is PeerDirectoryRequest) && !_outbound.ContainsKey(envelope.From)) ||
+                        envelope.From == _options.NodeId || !RaftRpcProtocol.IsRequest(envelope.Message) ||
                         (identity is not null && identity != envelope.From))
                         throw new InvalidDataException("RPC group, identity, version, or direction is invalid.");
                     if (identity is null && _security is not null)
@@ -159,7 +178,13 @@ public sealed class TcpRaftTransport : IRaftTransport, IAsyncDisposable
             {
                 try
                 {
-                    var response = await _handler!(request.From, request.Message, stop.Token).ConfigureAwait(false);
+                    RaftRpc response;
+                    if (request.Message is PeerDirectoryRequest directory)
+                    {
+                        ImportRoutes(directory.Directory, request.From, requireSender: true);
+                        response = new PeerDirectoryResponse(Volatile.Read(ref _directory));
+                    }
+                    else response = await _handler!(request.From, request.Message, stop.Token).ConfigureAwait(false);
                     using var frame = RaftWireCodec.Encode(_options.GroupId, _options.NodeId, response, _options.MaxFrameBytes,
                         request.Version, request.ExchangeId);
                     await writes.WaitAsync(stop.Token).ConfigureAwait(false);
@@ -203,5 +228,6 @@ public sealed class TcpRaftTransport : IRaftTransport, IAsyncDisposable
         if (_acceptTask is not null) await _acceptTask.ConfigureAwait(false);
         await Task.WhenAll(_handlers.Values).ConfigureAwait(false);
         foreach (var connection in _outbound.Values) await connection.CloseAsync().ConfigureAwait(false);
+        await DrainRetiredConnectionsAsync().ConfigureAwait(false);
     }
 }

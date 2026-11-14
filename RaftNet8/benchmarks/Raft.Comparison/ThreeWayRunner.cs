@@ -87,8 +87,13 @@ internal static class ThreeWayRunner
             ProcessorCount = Environment.ProcessorCount, ServerGC = GCSettings.IsServerGC,
             DataRoot = parent, BinarySha256 = hashes, PackageLockSha256 = lockHash,
             CurrentSourceSha256 = currentSource, HarnessSourceSha256 = harnessSource,
-            CurrentLayout = args.Contains("--unified") ? "UnifiedTableV3 (explicit)" : "SeparateTablesV2",
-            CurrentLayoutSchema = args.Contains("--unified") ? "raft8/v3: ToIndex prefixes 1=meta,2=log,3=config; RF3M packed state/frontier; checked v2 entries" : "raft8/v2/meta,log,config",
+            CurrentLayout = args.Contains("--hot-membership") || args.Contains("--hot-add") ? "UnifiedTableV4 (wire3)" :
+                args.Contains("--unified") ? "UnifiedTableV3 (explicit)" : "SeparateTablesV2",
+            HotMembership = args.Contains("--hot-membership") || args.Contains("--hot-add"),
+            HotAddDuringWorkload = args.Contains("--hot-add"),
+            CurrentLayoutSchema = args.Contains("--hot-membership") || args.Contains("--hot-add")
+                ? "raft8/v4: ToIndex prefixes 1=meta,2=log,3=config,4=service index,5=results; RF4M manifest; checked entries"
+                : args.Contains("--unified") ? "raft8/v3: ToIndex prefixes 1=meta,2=log,3=config; RF3M packed state/frontier; checked v2 entries" : "raft8/v2/meta,log,config",
             CurrentProposalBatchBytes = args.Contains("--proposal-batch-bytes") ? Count("--proposal-batch-bytes", 262144) : (int?)null,
             CurrentDefaultBatchedGroupBytes = 1_051_264,
             CurrentReplicationBatchBytes = 1_051_264,
@@ -141,6 +146,7 @@ internal static class ThreeWayRunner
                             {
                                 RetainDataForValidation = true,
                                 UseUnifiedLogLayout = args.Contains("--unified"),
+                                UseHotMembership = args.Contains("--hot-membership") || args.Contains("--hot-add"),
                                 CurrentProposalBatchBytes = args.Contains("--proposal-batch-bytes") ? Count("--proposal-batch-bytes", 262144) : null,
                                 DecorateLogStore = profile is null ? null : profile.Wrap,
                                 AppliedBatch = profile is null ? null : profile.Applied
@@ -152,11 +158,28 @@ internal static class ThreeWayRunner
                         Task Validate() => dotnext is null ? ours!.ValidateAsync() : dotnext.ValidateAsync(deadline.Token);
                         await WorkloadAsync(Propose, warmup, concurrency, null, deadline.Token);
                         await Validate();
+                        if (args.Contains("--hot-add"))
+                        {
+                            if (ours is null || configuration.Implementation != "Current")
+                                throw new ArgumentException("--hot-add requires a Current case.");
+                            await ours.PrepareJoiningPeerAsync();
+                        }
                         profile?.Begin();
                         var latencies = new double[operations];
                         var allocated = GC.GetTotalAllocatedBytes(precise: true);
                         var timer = Stopwatch.StartNew();
+                        var membership = args.Contains("--hot-add") ? TimedAddAsync(ours!, deadline.Token) : null;
                         await WorkloadAsync(Propose, operations, concurrency, latencies, deadline.Token);
+                        var commandMilliseconds = timer.Elapsed.TotalMilliseconds;
+                        var addFinishedDuringCommands = membership?.IsCompletedSuccessfully;
+                        if (membership is not null)
+                        {
+                            var added = await membership;
+                            if (added.Status.Stage != MembershipOperationStage.Completed) throw new InvalidOperationException("Benchmark Add did not complete.");
+                            diagnostics = new { Membership = added.Status, AddMilliseconds = added.Milliseconds,
+                                CommandMilliseconds = commandMilliseconds, AddFinishedDuringCommands = addFinishedDuringCommands,
+                                IncludesWaitingForFullAdd = true };
+                        }
                         timer.Stop();
                         allocated = GC.GetTotalAllocatedBytes(precise: true) - allocated;
                         profile?.End();
@@ -171,7 +194,7 @@ internal static class ThreeWayRunner
                         // A measurement is published only after close/reopen validation succeeds below.
                         if (ours is not null) { await ours.DisposeAsync(); ours = null; }
                         if (dotnext is not null) { await dotnext.DisposeAsync(); dotnext = null; }
-                        VerifyBusinessOnDisk(root, configuration.Nodes, warmup + operations, configuration.PayloadBytes);
+                        VerifyBusinessOnDisk(root, configuration.Nodes + (args.Contains("--hot-add") ? 1 : 0), warmup + operations, configuration.PayloadBytes);
                         results.Add(result);
                         await SaveAsync();
                         Console.WriteLine($"{configuration} round={round + 1}: {result.ProposalsPerSecond:F0}/s p50={result.P50Milliseconds:F3}ms p99={result.P99Milliseconds:F3}ms alloc={result.AllocatedBytesPerProposal}B/op reopened=OK");
@@ -188,6 +211,13 @@ internal static class ThreeWayRunner
         }
         catch (Exception error) { await SaveAsync(error.ToString()); throw; }
         return 0;
+    }
+
+    private static async Task<(MembershipOperationStatus Status, double Milliseconds)> TimedAddAsync(ComparisonCluster cluster, CancellationToken token)
+    {
+        var start = Stopwatch.GetTimestamp();
+        var status = await cluster.AddJoiningPeerAsync(token);
+        return (status, Stopwatch.GetElapsedTime(start).TotalMilliseconds);
     }
 
     private static async Task WorkloadAsync(Func<CancellationToken, Task> propose, int operations, int concurrency,

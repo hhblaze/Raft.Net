@@ -9,6 +9,10 @@ public sealed record RaftOptions
     public IReadOnlyList<string> Learners { get; init; } = Array.Empty<string>();
     /// <summary>Provisioned peer IDs allowed to contact this group, including future/retired members. Never counted as voters.</summary>
     public IReadOnlyList<string> KnownPeers { get; init; } = Array.Empty<string>();
+    /// <summary>Wire3 canonical initial directory, identical on original nodes and joining nodes.</summary>
+    public IReadOnlyList<PeerDescriptor> InitialPeers { get; init; } = Array.Empty<PeerDescriptor>();
+    /// <summary>Wire3 only: allow self outside the original configuration while awaiting logged membership. Confers no membership or vote.</summary>
+    public bool JoiningNode { get; init; }
     public int MinimumVoters { get; init; } = 1;
     public int MaxLearnerPromotionLag { get; init; } = 0;
     public TimeSpan TickInterval { get; init; } = TimeSpan.FromMilliseconds(25);
@@ -57,14 +61,21 @@ public sealed record RaftOptions
         var learners = Learners.ToArray();
         ArgumentNullException.ThrowIfNull(KnownPeers);
         var known = members.Concat(learners).Concat(KnownPeers).Distinct(StringComparer.Ordinal).ToArray();
+        ArgumentNullException.ThrowIfNull(InitialPeers);
+        var initialPeers = InitialPeers.ToArray();
+        if (initialPeers.Length > 1024 || initialPeers.Select(peer => peer.NodeId).Distinct(StringComparer.Ordinal).Count() != initialPeers.Length)
+            throw new ArgumentException("Invalid initial peer directory.", nameof(InitialPeers));
+        foreach (var peer in initialPeers) peer.Validate();
+        if (WireVersion == 3 && initialPeers.Length == 0)
+            throw new ArgumentException("Wire3 requires a descriptor for every bootstrap voter.", nameof(InitialPeers));
         if (known.Length > 1024) throw new ArgumentException("At most 1024 provisioned peer IDs are supported.");
         foreach (var id in known) ValidateId(id, nameof(KnownPeers));
         if (MinimumVoters is < 1 or > 1024 || MaxLearnerPromotionLag < 0 ||
             members.Length is < 1 or > 1024 || members.Distinct(StringComparer.Ordinal).Count() != members.Length ||
-            (!allowMissingSelf && !members.Contains(NodeId, StringComparer.Ordinal) && !learners.Contains(NodeId, StringComparer.Ordinal)) ||
+            (!allowMissingSelf && !JoiningNode && !members.Contains(NodeId, StringComparer.Ordinal) && !learners.Contains(NodeId, StringComparer.Ordinal)) ||
             members.Length + learners.Length > 1024 ||
             members.Concat(learners).Distinct(StringComparer.Ordinal).Count() != members.Length + learners.Length)
-            throw new ArgumentException("Membership must contain self exactly once, with 1..1024 unique members.");
+            throw new ArgumentException("Membership requires 1..1024 unique members and must include self unless wire3 JoiningNode is enabled.");
         foreach (var member in members) ValidateId(member, nameof(Members));
         foreach (var learner in learners) ValidateId(learner, nameof(Learners));
         if (TickInterval < TimeSpan.FromMilliseconds(1) || TickInterval > TimeSpan.FromSeconds(10) ||
@@ -88,20 +99,26 @@ public sealed record RaftOptions
             (proposalBytes < MaxCommandBytes + LogEntry.EncodedOverhead || proposalBytes > 64 * 1024 * 1024 || proposalBytes > MaxUncommittedBytes))
             throw new ArgumentOutOfRangeException(nameof(MaxProposalBatchBytes), "Invalid local durable proposal group bound.");
         if (MaxReplicationBytes is { } replicationBytes &&
-            (WireVersion != 2 || replicationBytes < MaxCommandBytes + LogEntry.EncodedOverhead ||
+            (WireVersion < 2 || replicationBytes < MaxCommandBytes + LogEntry.EncodedOverhead ||
                 replicationBytes > 64 * 1024 * 1024 || replicationBytes + 64L > MaxInFlightBytes))
             throw new ArgumentOutOfRangeException(nameof(MaxReplicationBytes), "Invalid modern replication byte budget.");
-        if (WireVersion is not 1 and not 2 || (WireVersion == 1 && EnablePreVote) ||
+        if (WireVersion is not 1 and not 2 and not 3 || (WireVersion == 1 && EnablePreVote) || (JoiningNode && WireVersion != 3) ||
             SnapshotChunkBytes is < 1024 or > 4 * 1024 * 1024 || SnapshotIntervalEntries < 0 ||
             SnapshotRetainEntries is < 0 or > 1_000_000 || MaxSnapshotBytes < SnapshotChunkBytes ||
             SnapshotRetainedImages is < 2 or > 64 ||
             MaxSnapshotUnpackedBytes < MaxSnapshotBytes || SnapshotBytesPerSecond < 1024 ||
             (SnapshotDirectory is not null && !Path.IsPathFullyQualified(SnapshotDirectory)) ||
-            (SnapshotIntervalEntries > 0 && SnapshotDirectory is null) || (SnapshotDirectory is not null && WireVersion != 2))
+            (SnapshotIntervalEntries > 0 && SnapshotDirectory is null) || (SnapshotDirectory is not null && WireVersion < 2))
             throw new ArgumentException("Invalid protocol version/features or snapshot chunk bound.");
-        return this with { Members = Array.AsReadOnly(members), Learners = Array.AsReadOnly(learners), KnownPeers = Array.AsReadOnly(known) };
+        if (WireVersion == 3 && (MaxAppendBytes < MembershipCodec.MaxRecordBytes + LogEntry.EncodedOverhead ||
+            ReplicationByteLimit < MembershipCodec.MaxRecordBytes + LogEntry.EncodedOverhead))
+            throw new ArgumentException("Wire3 byte budgets must fit a bounded membership record.");
+        return this with { Members = Array.AsReadOnly(members), Learners = Array.AsReadOnly(learners), KnownPeers = Array.AsReadOnly(known),
+            InitialPeers = Array.AsReadOnly(initialPeers) };
     }
-    internal int MaxFrameBytes => checked(Math.Max(ReplicationByteLimit, SnapshotChunkBytes + 280_000) + 1024);
+    internal int MaxFrameBytes => checked(Math.Max(ReplicationByteLimit, SnapshotChunkBytes + (WireVersion == 3 ? MembershipCodec.MaxDirectoryBytes : 280_000)) + 1024);
+    internal int ConfigurationByteLimit => WireVersion == 3
+        ? Math.Min(270_000, Math.Min(MaxAppendBytes, ReplicationByteLimit) - LogEntry.EncodedOverhead) : MaxCommandBytes;
     internal int ReplicationByteLimit => WireVersion == 1 ? MaxAppendBytes : MaxReplicationBytes ??
         (int)Math.Min(Math.Min(MaxAppendBytes * 4L + MaxAppendEntries * (long)LogEntry.EncodedOverhead, MaxInFlightBytes - 64), 64 * 1024 * 1024);
     internal TimeSpan BulkProposalBatchDelayLimit => BulkProposalBatchDelay ??

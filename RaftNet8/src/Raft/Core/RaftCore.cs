@@ -7,7 +7,7 @@ namespace Raft.Core;
 /// Pure Figure 2 reducer. Identical immutable state and events produce identical state/effects.
 /// Reads, durable writes, and timeout sampling suspend on correlated completion events.
 /// </summary>
-internal static class RaftCore
+internal static partial class RaftCore
 {
     public static RaftState Create(RaftOptions options, RecoveredLogState recovered, int electionDeadline)
     {
@@ -18,14 +18,14 @@ internal static class RaftCore
         var config = (recovered.Configuration ?? new ClusterConfiguration(
             ImmutableArray.CreateRange(frozen.Members), ImmutableArray.CreateRange(frozen.Learners))).Validate();
         frozen = frozen with { Members = config.Voters, Learners = config.Learners,
-            KnownPeers = frozen.KnownPeers.Concat(recovered.KnownMembers).Distinct(StringComparer.Ordinal).ToImmutableArray() };
+            KnownPeers = frozen.KnownPeers.Concat(recovered.KnownMembers).Concat(recovered.Membership?.Committed.Peers.Select(peer => peer.NodeId) ?? []).Distinct(StringComparer.Ordinal).ToImmutableArray() };
         return new(frozen, recovered.HardState, recovered.LastIndex, recovered.LastTerm,
             config.AllMembers.Concat(recovered.KnownMembers).Distinct(StringComparer.Ordinal)
                 .Where(id => id != frozen.NodeId).Select(id => new PeerProgress(id)).ToImmutableArray(), electionDeadline)
         {
             Configuration = config, SupportsConfiguration = recovered.SupportsConfiguration,
             FirstIndex = recovered.FirstIndex, UncommittedBytes = recovered.UncommittedBytes,
-            Snapshot = recovered.Snapshot,
+            Snapshot = recovered.Snapshot, Membership = recovered.Membership,
             Role = config.IsVoter(frozen.NodeId) ? RaftRole.Follower :
                 config.Contains(frozen.NodeId) ? RaftRole.Learner : RaftRole.Removed
         };
@@ -45,7 +45,7 @@ internal static class RaftCore
         bool localAppendGroup = false)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (localAppendGroup && (options.WireVersion != 2 || request is not AppendRequest))
+        if (localAppendGroup && (options.WireVersion < 2 || request is not AppendRequest))
             throw new ArgumentException("A local append group must contain AppendEntries.", nameof(request));
         RaftOptions.ValidateId(from, nameof(from));
         if (from == options.NodeId || (validateMembership && !options.Members.Contains(from, StringComparer.Ordinal) &&
@@ -76,6 +76,7 @@ internal static class RaftCore
                 throw new ArgumentException("Invalid snapshot chunk metadata/bounds/checksum.", nameof(request));
             RaftOptions.ValidateId(chunk.StorageId, nameof(request));
             _ = new ClusterConfiguration(metadata.Voters, metadata.Learners, metadata.LastIncludedIndex, metadata.LastIncludedTerm).Validate();
+            MembershipCodec.ValidateSnapshotRequest(metadata, options.WireVersion == 3);
         }
         else if (request is AppendRequest append)
         {
@@ -94,17 +95,20 @@ internal static class RaftCore
                 ArgumentNullException.ThrowIfNull(entry);
                 bytes = checked(bytes + entry.Command.Length + LogEntry.EncodedOverhead);
                 if (entry.Index != append.PreviousIndex + i + 1 || entry.Term < previousTerm || entry.Term > append.Term ||
-                    entry.Command.Length > options.MaxCommandBytes ||
+                    entry.Command.Length > (entry.Kind == LogEntryKind.Membership && options.WireVersion == 3 ? MembershipCodec.MaxRecordBytes :
+                        entry.Kind == LogEntryKind.Configuration ? options.ConfigurationByteLimit : options.MaxCommandBytes) ||
+                    entry.Kind > (options.WireVersion == 3 ? LogEntryKind.Membership : LogEntryKind.Configuration) ||
                     bytes > (localAppendGroup ? options.ProposalBatchByteLimit : options.ReplicationByteLimit) ||
-                    (localAppendGroup && entry.Kind == LogEntryKind.Configuration))
+                    (localAppendGroup && entry.Kind is LogEntryKind.Configuration or LogEntryKind.Membership))
                     throw new ArgumentException("Invalid or oversized log batch.", nameof(request));
+                if (entry.Kind == LogEntryKind.Membership) MembershipCodec.ValidateLogPayload(entry.Command.Span);
                 previousTerm = entry.Term;
             }
         }
         else throw new ArgumentException("Expected a request.", nameof(request));
     }
 
-    private sealed class Reducer(RaftState initial)
+    private sealed partial class Reducer(RaftState initial)
     {
         public RaftState State { get; private set; } = initial;
         public ImmutableArray<CoreEffect>.Builder Effects { get; } = ImmutableArray.CreateBuilder<CoreEffect>();
@@ -112,6 +116,11 @@ internal static class RaftCore
         private long Commit => State.HardState.CommitIndex;
         private int Quorum => State.Configuration.Quorum;
         private bool IsVoter => State.Configuration.IsVoter(State.Options.NodeId);
+        // A promoted learner can miss the promotion entry when its leader dies. It must be
+        // able to answer the newer candidate's request; only that candidate's latest logged
+        // voter configuration determines whether this durable vote counts. It still cannot campaign.
+        private bool CanGrantVotes => IsVoter || (State.Options.WireVersion == 3 &&
+            State.Configuration.Learners.Contains(State.Options.NodeId, StringComparer.Ordinal));
 
         public void Accept(CoreEvent input)
         {
@@ -134,6 +143,14 @@ internal static class RaftCore
                         if (complete.Result is { } durable) State = State with { UncommittedBytes = durable.Number };
                         if (continuation is not null) Push(continuation);
                         // Latest-in-log configuration is authoritative, including rollback after suffix replacement.
+                        if (State.Membership is not null)
+                        {
+                            var refresh = ChangesMembership(persist.Write) || State.Membership.PendingIndex <= Commit;
+                            if (refresh || State.Membership.Committed.ActiveOperation is not null)
+                                Push(new CoreAction.CheckMembership());
+                            if (refresh)
+                                Push(new CoreAction.RefreshMembership());
+                        }
                         if (State.SupportsConfiguration && ChangesConfiguration(persist.Write)) Push(new CoreAction.RefreshConfiguration());
                     }
                     else if (State.Pending?.Effect is CoreEffect.ReadLog read && read.Id == complete.Id)
@@ -169,13 +186,14 @@ internal static class RaftCore
                     return;
             }
             if (!State.IsIdle) throw new InvalidOperationException("Complete the pending effect before admitting another event.");
+            if (State.Membership?.Committed.ActiveOperation is not null) Push(new CoreAction.CheckMembership());
             switch (input)
             {
                 case CoreEvent.Tick: Push(new CoreAction.Tick()); break;
                 case CoreEvent.Campaign: Push(new CoreAction.Campaign()); break;
                 case CoreEvent.Request request:
                     ValidateRequest(State.Options, request.From, request.Message,
-                        validateMembership: !(request.Message is AppendRequest && request.From == State.LeaderId),
+                        validateMembership: State.Options.WireVersion != 3 && !(request.Message is AppendRequest && request.From == State.LeaderId),
                         localAppendGroup: request.LocalAppendGroup);
                     State = State with { InboundReadContext = request.Message is AppendRequest readAppend ? readAppend.ReadContext : 0 };
                     var message = request.Message is AppendRequest mutable && mutable.Entries is not ImmutableArray<LogEntry>
@@ -201,6 +219,8 @@ internal static class RaftCore
                     break;
                 case CoreEvent.ReadIndex read: Push(new CoreAction.StartRead(read.Clients)); break;
                 case CoreEvent.TransferLeadership transfer: Push(new CoreAction.BeginTransfer(transfer.ClientId, transfer.Target)); break;
+                case CoreEvent.MembershipRequest request: Push(new CoreAction.StartMembership(request.ClientId, request.Operation)); break;
+                case CoreEvent.CancelMembership cancel: Push(new CoreAction.CancelMembership(cancel.ClientId, cancel.OperationId)); break;
                 case CoreEvent.ConfigChange config:
                     Push(new CoreAction.ChangeConfiguration(config.ClientId, config.Voters, config.Learners));
                     break;
@@ -237,6 +257,13 @@ internal static class RaftCore
             switch (action)
             {
                 case CoreAction.Tick: Tick(); break;
+                case CoreAction.CheckMembership: CheckMembership(); break;
+                case CoreAction.RefreshMembership: Read(new LogQuery.Membership(), new CoreAction.RefreshMembership()); break;
+                case CoreAction.StartMembership start: StartMembership(start.ClientId, start.Request); break;
+                case CoreAction.CancelMembership cancel: CancelMembership(cancel.ClientId, cancel.OperationId); break;
+                case CoreAction.MembershipAccepted accepted:
+                    Effects.Add(new CoreEffect.Control(new ControlResult.Membership(accepted.ClientId, accepted.Status)));
+                    break;
                 case CoreAction.PreCampaign:
                     if (!IsVoter || State.InstallingSnapshot is not null) break;
                     if (Quorum == 1) { Push(new CoreAction.Campaign()); break; }
@@ -257,7 +284,7 @@ internal static class RaftCore
                     var proposal = preVote.Request;
                     var fresh = proposal.LastLogTerm > State.LastTerm ||
                         (proposal.LastLogTerm == State.LastTerm && proposal.LastLogIndex >= State.LastIndex);
-                    var allowed = IsVoter && proposal.Term > Term &&
+                    var allowed = CanGrantVotes && proposal.Term > Term &&
                         State.Role != RaftRole.Leader && State.LeaderContactElapsed >= State.Options.ElectionMinTicks && fresh;
                     Reply(new PreVoteResponse(Term, proposal.Round, proposal.Term, allowed));
                     break;
@@ -379,7 +406,7 @@ internal static class RaftCore
                     Push(new CoreAction.CheckTransfer());
                     if (Commit != success.OldCommit)
                     {
-                        var coalesceCommit = State.Options.CoalesceCommitNotifications && State.Options.WireVersion == 2 &&
+                        var coalesceCommit = State.Options.CoalesceCommitNotifications && State.Options.WireVersion >= 2 &&
                             State.SupportsConfiguration && State.Configuration.Index <= success.OldCommit &&
                             State.Transfer is null && State.ReadRound is null && State.PendingReadCount == 0;
                         Push(new CoreAction.SendAll(OnlyIfNecessary: coalesceCommit));
@@ -503,7 +530,7 @@ internal static class RaftCore
 
         private void Vote(string from, VoteRequest request)
         {
-            if (!IsVoter) { Reply(new VoteResponse(Term, false)); return; }
+            if (!CanGrantVotes) { Reply(new VoteResponse(Term, false)); return; }
             if (request.Term < Term) { Reply(new VoteResponse(Term, false)); return; }
             var fresh = request.LastLogTerm > State.LastTerm ||
                 (request.LastLogTerm == State.LastTerm && request.LastLogIndex >= State.LastIndex);
@@ -797,6 +824,8 @@ internal static class RaftCore
         {
             CoreFailure? error = State.Role != RaftRole.Leader ? new("NotLeader", "Leadership transfer requires a leader.") :
                 State.Transfer is not null ? new("Busy", "Another transfer is already in progress.") :
+                State.Membership is { } membership && (membership.Committed.ActiveOperation is not null ||
+                    membership.PendingOperationId is not null) && client != 0 ? new("Busy", "A membership operation owns leadership transfer.") :
                 !State.Configuration.IsVoter(target) ? new("Argument", "The transfer target must be a current voter.") : null;
             if (error is not null) { Effects.Add(new CoreEffect.Control(new ControlResult.Transfer(client, error))); return; }
             if (target == State.Options.NodeId) { Effects.Add(new CoreEffect.Control(new ControlResult.Transfer(client))); return; }
@@ -821,6 +850,9 @@ internal static class RaftCore
         private void FinishTransfer(CoreFailure? error)
         {
             if (State.Transfer is not { } transfer) return;
+            if (transfer.ClientId == 0 && State.Membership?.Committed.ActiveOperation is not null &&
+                error is not null && error.Type != "NotLeader" && State.Role == RaftRole.Leader)
+                State = State with { MembershipTransferFailure = error };
             Effects.Add(new CoreEffect.Control(new ControlResult.Transfer(transfer.ClientId, error)));
             State = State with { Transfer = null };
         }
@@ -830,8 +862,11 @@ internal static class RaftCore
         private void ChangeConfiguration(CoreAction.ChangeConfiguration change)
         {
             CoreFailure? error = State.Role != RaftRole.Leader ? new("NotLeader", "Configuration changes require a leader.") :
-                !State.SupportsConfiguration || State.Options.WireVersion != 2 ? new("Argument", "Configuration changes require v2 storage and protocol.") :
+                !State.SupportsConfiguration || State.Options.WireVersion < 2 ? new("Argument", "Configuration changes require v2 storage and protocol.") :
                 State.Transfer is not null ? new("Busy", "Leadership transfer is in progress.") :
+                State.Membership is not null && (change.MembershipOperationId is null ||
+                    change.MembershipOperationId != State.Membership.Committed.ActiveOperation?.OperationId)
+                    ? new("Busy", "Use the journaled membership operation API.") :
                 !State.HasCommittedCurrentTerm ? new("Busy", "Commit a current-term entry before changing configuration.") :
                 State.Configuration.Index > Commit ? new("Busy", "A configuration change is already uncommitted.") : null;
             ClusterConfiguration? config = null;
@@ -855,8 +890,8 @@ internal static class RaftCore
                         else if (peer < 0 || State.LastIndex - State.Peers[peer].MatchIndex > State.Options.MaxLearnerPromotionLag)
                             error = new("Busy", "The learner has not caught up sufficiently for promotion.");
                     }
-                    if (config.Encode().Length > State.Options.MaxCommandBytes)
-                        error = new("Argument", "Configuration exceeds MaxCommandBytes.");
+                    if (config.Encode().Length > State.Options.ConfigurationByteLimit)
+                        error = new("Argument", "Configuration exceeds its application/replication byte budget.");
                 }
                 catch (ArgumentException invalid) { error = new("Argument", invalid.Message); }
             }
@@ -968,6 +1003,11 @@ internal static class RaftCore
             switch (continuation)
             {
                 case CoreAction.PreviousTerm previous: PreviousTerm(previous.Request, result.Number); break;
+                case CoreAction.RefreshMembership:
+                    PublishMembership(result.Membership ?? throw new InvalidOperationException("Missing membership completion."));
+                    break;
+                case CoreAction.MembershipLookup lookup: MembershipLookup(lookup, result.MembershipOperation); break;
+                case CoreAction.CancelMembershipLookup cancel: CancelMembershipLookup(cancel, result.MembershipOperation); break;
                 case CoreAction.Conflict conflict:
                     Reply(new AppendResponse(Term, conflict.Request.RequestId, false, 0, result.Number, conflict.Term));
                     break;

@@ -12,5 +12,6 @@
     <InternalsVisibleTo Include="Raft.Tests" />
     <InternalsVisibleTo Include="Raft.Benchmarks" />
     <InternalsVisibleTo Include="Raft.Simulator" />
+    <InternalsVisibleTo Include="Raft.CrashHarness" />
   </ItemGroup>
 </Project>

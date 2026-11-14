@@ -4,6 +4,8 @@ using Raft.Storage;
 
 if (args.Length != 2) return 2;
 var options = new RaftOptions { NodeId = "n1", Members = new[] { "n1", "n2", "n3" } };
+if (args[1].StartsWith("v4-", StringComparison.Ordinal)) options = options with { WireVersion = 3,
+    InitialPeers = options.Members.Select((id, index) => new PeerDescriptor(id, "127.0.0.1", 7301 + index)).ToArray() };
 if (args[1] == "committed")
 {
     var storage = new DBreezeRaftStorage(args[0], options);
@@ -13,11 +15,12 @@ if (args[1] == "committed")
     // Deliberately skip Dispose and all finally blocks, modelling abrupt process exit after acknowledgment.
     Environment.Exit(17);
 }
-else if (args[1].StartsWith("snapshot-", StringComparison.Ordinal) || args[1].StartsWith("v3-snapshot-", StringComparison.Ordinal))
+else if (args[1].StartsWith("snapshot-", StringComparison.Ordinal) || args[1].StartsWith("v3-snapshot-", StringComparison.Ordinal) ||
+    args[1].StartsWith("v4-snapshot-", StringComparison.Ordinal))
 {
-    var unified = args[1].StartsWith("v3-", StringComparison.Ordinal);
-    await SnapshotCrashScenario.RunAsync(args[0], unified ? args[1][3..] : args[1],
-        unified ? DBreezeLogLayout.UnifiedTableV3 : DBreezeLogLayout.SeparateTablesV2);
+    var layout = args[1].StartsWith("v4-", StringComparison.Ordinal) ? DBreezeLogLayout.UnifiedTableV4 :
+        args[1].StartsWith("v3-", StringComparison.Ordinal) ? DBreezeLogLayout.UnifiedTableV3 : DBreezeLogLayout.SeparateTablesV2;
+    await SnapshotCrashScenario.RunAsync(args[0], layout == DBreezeLogLayout.SeparateTablesV2 ? args[1] : args[1][3..], layout);
 }
 else if (args[1].StartsWith("apply-v2-", StringComparison.Ordinal))
 {
@@ -36,10 +39,12 @@ else if (args[1].StartsWith("apply-v2-", StringComparison.Ordinal))
     });
     machine.ApplyAsync(new LogEntry(2, 8, "increment"u8), default).GetAwaiter().GetResult();
 }
-else if (args[1].StartsWith("v2-", StringComparison.Ordinal) || args[1].StartsWith("v3-", StringComparison.Ordinal))
+else if (args[1].StartsWith("v2-", StringComparison.Ordinal) || args[1].StartsWith("v3-", StringComparison.Ordinal) ||
+    args[1].StartsWith("v4-", StringComparison.Ordinal))
 {
     var boundary = Enum.Parse<PersistenceBoundary>(args[1][3..]);
-    var layout = args[1].StartsWith("v3-", StringComparison.Ordinal) ? DBreezeLogLayout.UnifiedTableV3 : DBreezeLogLayout.SeparateTablesV2;
+    var layout = args[1].StartsWith("v4-", StringComparison.Ordinal) ? DBreezeLogLayout.UnifiedTableV4 :
+        args[1].StartsWith("v3-", StringComparison.Ordinal) ? DBreezeLogLayout.UnifiedTableV3 : DBreezeLogLayout.SeparateTablesV2;
     using var storage = new DBreezeLogStorage(args[0], options, layout, point =>
     {
         if (point != boundary) return;

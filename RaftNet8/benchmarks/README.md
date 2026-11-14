@@ -1,6 +1,8 @@
 # Benchmarks
 
-The latest [R18 five-round HTML report](results/winner-r18-2026-11-13.html) records48short+24long configurations,360measurements and614400 individual request latencies. Fixed Pipeline wins median throughput against both baseline8b991bd and DotNext5.26.2 at12/12points, including8/8distributed. All raw slow rounds, paired wins, latency/managed-allocation losses, binary/source hashes and grouping/commit-notification differences remain explicit. Independent numeric/source/CSV and offline desktop/mobile/print/noJS/four-chart QA passed. See [current reproduction commands](Raft.Comparison/README.md).
+The [hot-membership HTML report](results/hot-membership-2026-11-14.html) compares wire3/v4 with the frozen immediately preceding HEAD e06c4f9 (wire2/v3), including full Add under load. It contains four charts, per-workload throughput/p99/allocation changes, all individual rounds and measured source/binary identities. This is a separate experiment from the historical competitor comparisons below.
+
+The historical [R18 five-round HTML report](results/winner-r18-2026-11-13.html) records48short+24long configurations,360measurements and614400 individual request latencies. Fixed Pipeline wins median throughput against both baseline8b991bd and DotNext5.26.2 at12/12points, including8/8distributed. All raw slow rounds, paired wins, latency/managed-allocation losses, binary/source hashes and grouping/commit-notification differences remain explicit. Independent numeric/source/CSV and offline desktop/mobile/print/noJS/four-chart QA passed. See [current reproduction commands](Raft.Comparison/README.md).
 
 The earlier [three-round report](results/dotnext-comparison-2026-11-13.html), R4/R5/R11 and all before/after artifacts remain historical evidence. No prior competitor numbers are mixed into R18.
 
@@ -9,6 +11,15 @@ Run from `RaftNet8/` in Release, one workload at a time on an otherwise idle hos
 Regenerate HTML from the saved summary with `python benchmarks/render_html.py` (standard library only, no raw artifacts required). `python benchmarks/summarize.py` recomputes CSV/JSON/Markdown and HTML from the complete raw measurements. The HTML embeds its data and pinned, MIT-licensed Chart.js; no server, CDN or network is needed to view it.
 
 ## Durable cluster comparison
+
+For the new feature comparison, preserve baseline runtime/source ZIP and current runtime in separate directories before measuring. The runner verifies the unchanged business/checkpoint implementation, alternates five HEAD/current pairs per topology/payload, then runs three full-Add rounds. All nodes use separate engines in one benchmark process over real TCP; functional process tests cover separate OS processes. Pipeline, H-drive storage and acknowledgment semantics are identical. Add changes3→4 or5→6 voters; its cost includes extra replication and catch-up.
+
+~~~sh
+python -X utf8 -B benchmarks/run_hot_membership.py --baseline .artifacts/hot-membership/baseline-runtime/comparison/Raft.Comparison.dll --source .artifacts/hot-membership/baseline-source-e06c4f9.zip --current .artifacts/hot-membership/current-runtime-delivery/Raft.Comparison.dll --out .artifacts/hot-membership/performance-delivery
+python -X utf8 -B benchmarks/render_hot_membership.py .artifacts/hot-membership/performance-delivery --out benchmarks/results/hot-membership-2026-11-14.html
+~~~
+
+Use a new output directory for each rerun; completed measurements are never overwritten. Defaults:8192 commands after2048 warmup, concurrency64,52 measurements. Generated HTML is standalone/offline with embedded SVG/data; CSV and summary JSON are beside it. The renderer rejects incomplete experiments and changing runtime/source metadata. No v4 converter or historical competitor rerun is implied.
 
 ```sh
 # 36 cases: 1/3/5 voters, 64-byte/16-KiB commands, all batching/pipeline combinations
