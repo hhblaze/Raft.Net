@@ -12,6 +12,48 @@ namespace Raft.Tests;
 [Collection("OS process clusters")]
 public sealed class DashboardIdentityTests
 {
+    [Theory]
+    [InlineData("onlylowercasepassword")]
+    [InlineData("")]
+    public async Task Bootstrap_password_rejection_has_a_distinct_exit_code_and_allows_retry_in_the_same_directory(string weakPassword)
+    {
+        using var directory = new ClusterTestDirectory();
+        var previousPassword = Environment.GetEnvironmentVariable("RAFT_DASHBOARD_BOOTSTRAP_PASSWORD");
+        var previousError = Console.Error;
+        var previousInput = Console.In;
+        using var error = new StringWriter();
+        var arguments = new[] { "bootstrap-admin", "--urls", "http://127.0.0.1:0", "--Dashboard:DataDirectory", directory.Path,
+            "--Logging:LogLevel:Default", "Error" };
+        try
+        {
+            Environment.SetEnvironmentVariable("RAFT_DASHBOARD_BOOTSTRAP_PASSWORD", weakPassword);
+            Console.SetIn(new StringReader(""));
+            Console.SetError(error);
+            Assert.Equal(2, await RaftClusterDashboard.Program.Main(arguments));
+            Assert.Contains("uppercase", error.ToString(), StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("digit", error.ToString(), StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("non alphanumeric", error.ToString(), StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("onlylowercasepassword", error.ToString(), StringComparison.Ordinal);
+            await using (var empty = DashboardHost.Create(arguments[1..]))
+                Assert.Empty(empty.Services.GetRequiredService<DashboardStore>().List<DashboardUser>(1, 1));
+
+            Environment.SetEnvironmentVariable("RAFT_DASHBOARD_BOOTSTRAP_PASSWORD", Password);
+            Assert.Equal(0, await RaftClusterDashboard.Program.Main(arguments));
+            await using var created = DashboardHost.Create(arguments[1..]);
+            using var scope = created.Services.CreateScope();
+            var users = scope.ServiceProvider.GetRequiredService<UserManager<DashboardUser>>();
+            var admin = await users.FindByNameAsync("admin");
+            Assert.NotNull(admin);
+            Assert.True(await users.CheckPasswordAsync(admin, Password));
+        }
+        finally
+        {
+            Console.SetError(previousError);
+            Console.SetIn(previousInput);
+            Environment.SetEnvironmentVariable("RAFT_DASHBOARD_BOOTSTRAP_PASSWORD", previousPassword);
+        }
+    }
+
     [Fact]
     public async Task One_collector_isolates_two_clusters_with_the_same_node_and_entity_names_and_filters_viewer_access()
     {

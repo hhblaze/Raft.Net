@@ -9,13 +9,14 @@ PowerShell7, .NET8 runtime/SDK and Node.js22.12+ or24+ are needed to build. Prod
 From RaftNet8:
 
 ```powershell
-$env:RAFT_DASHBOARD_BOOTSTRAP_PASSWORD = 'Choose-a-private-password-12-or-more'
 ./scripts/start-dashboard-stand.ps1 -Voters 3
 # Separate private-PKI stand; use other ports when the first stand is still running:
 ./scripts/start-dashboard-stand.ps1 -Voters 5 -Secure -DashboardPort 7440
 ```
 
-The script creates an owned directory under D:\Temp\RaftNet8, starts one process per voter plus two joining processes, bootstraps the root cluster credential, creates the first dashboard account, imports the connection and starts the dashboard. It stays attached; Ctrl+C stops only its own children. It retains the databases, logs, certificate files and process manifest. It never starts remote processes. Existing user data is not reused or removed. Ports6101+/7101+/7201+ must be available or be overridden together. In the browser sign in as admin. Use Add with n4/n5 for the3-voter stand, n6/n7 for5 voters; peer/client/management base ports increment by node number minus one.
+The script creates an owned directory under D:\Temp\RaftNet8 and asks for the first dashboard administrator password. Use at least12 characters, including A–Z, a–z, a digit and a non-alphanumeric character. Identity validates it before cluster nodes start; a rejected interactive entry shows the missing requirements and prompts again. For unattended runs, supply RAFT_DASHBOARD_BOOTSTRAP_PASSWORD through the host environment. An invalid environment password fails immediately rather than waiting for input.
+
+After creating the account, the script starts one process per voter plus two joining processes, bootstraps the root cluster credential, imports the connection and starts the dashboard. It stays attached; Ctrl+C stops only its own children. It retains the databases, logs, certificate files and process manifest. It never starts remote processes. Existing user data is not reused or removed. Ports6101+/7101+/7201+ must be available or be overridden together. In the browser sign in as admin. Use Add with n4/n5 for the3-voter stand, n6/n7 for5 voters; peer/client/management base ports increment by node number minus one.
 
 HTTP/plain TCP is an explicit supported local profile. The default dashboard listens on127.0.0.1:7400; a node's management API defaults to loopback7201. Publishing externally requires an explicit host configuration. HTTP exposes passwords and bearer tokens to anyone able to observe that network: use the HTTPS profile across untrusted networks.
 
@@ -33,6 +34,8 @@ dotnet D:/Temp/RaftNet8/dashboard-published/RaftClusterDashboard.dll `
 ```
 
 bootstrap-admin reads RAFT_DASHBOARD_BOOTSTRAP_PASSWORD or stdin; never pass a password as a CLI argument. It refuses to run when an account exists. Use a private directory accessible only to the service account. On Windows the Data Protection key ring is protected with DPAPI for that account; on other platforms protect its persisted key ring using host filesystem/encryption controls. Back up keys with the dashboard database: losing them loses access to saved credentials and MFA keys. A different OS account cannot automatically decrypt DPAPI keys. Do not run two dashboard processes over one DBreeze directory.
+
+CLI exit code2 means password validation failed: its requirements are written to stderr without the submitted password, and no account is created. A subsequent attempt can use the same data directory. Other bootstrap failures retain their original diagnostics and are not treated as password input errors.
 
 ASP.NET Identity supplies password hashing, five-attempt lockout for15 minutes, TOTP and ten single-use recovery codes. Codes are stored hashed; authenticator keys are protected. SecureProfile requires TOTP for Admin/Operator. RequirePrivilegedMfa also enables this rule locally. Sessions last8 hours with sliding expiration, use HttpOnly/SameSiteStrict cookies and Secure in HTTPS mode. Every mutation, including login, requires the same-origin antiforgery cookie/header pair. Login/MFA attempts are limited to10/minute/IP. Changing account grants invalidates the security stamp; an existing SSE session is terminated too. Sensitive account/profile/token changes require authentication within5 minutes. Log out and sign in again to reauthenticate. Preserve recovery codes offline; there is no unauthenticated network password/MFA reset.
 

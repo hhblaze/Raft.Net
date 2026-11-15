@@ -5,14 +5,14 @@
     {
       "language": "en",
       "chapters": 34,
-      "words_with_code": 14913,
-      "bytes": 320073
+      "words_with_code": 14955,
+      "bytes": 320567
     },
     {
       "language": "ru",
       "chapters": 34,
-      "words_with_code": 14177,
-      "bytes": 443297
+      "words_with_code": 14213,
+      "bytes": 444231
     }
   ],
   "source_sha256": {

@@ -33,10 +33,10 @@ function Invoke-Checked([string[]]$Arguments) {
 }
 if (!$SkipBuild) { Invoke-Checked @('build', (Join-Path $solutionRoot 'HumanTest/Raft.Cluster.Demo'), '-c', 'Release') }
 Invoke-Checked @('publish', (Join-Path $solutionRoot 'src/RaftClusterDashboard'), '-c', 'Release', '-o', $published)
+$passwordFromEnvironment = ![string]::IsNullOrEmpty($env:RAFT_DASHBOARD_BOOTSTRAP_PASSWORD)
 $password = $env:RAFT_DASHBOARD_BOOTSTRAP_PASSWORD
-if (!$password) { $password = [Net.NetworkCredential]::new('', (Read-Host 'New dashboard admin password (12+ characters)' -AsSecureString)).Password }
 $processes = [Collections.Generic.List[object]]::new()
-function Start-Owned([string]$Name, [string[]]$Arguments, [bool]$Wait = $false, [string]$BootstrapPassword = '') {
+function Start-Owned([string]$Name, [string[]]$Arguments, [bool]$Wait = $false, [string]$BootstrapPassword = '', [bool]$AllowPasswordRetry = $false) {
     $start = [Diagnostics.ProcessStartInfo]::new($dotnet)
     $start.UseShellExecute = $false
     $start.CreateNoWindow = $true
@@ -50,6 +50,7 @@ function Start-Owned([string]$Name, [string[]]$Arguments, [bool]$Wait = $false, 
     if ($BootstrapPassword) { $start.Environment['RAFT_DASHBOARD_BOOTSTRAP_PASSWORD'] = $BootstrapPassword }
     if ($Arguments[0] -eq $dashboard) { $start.Environment['ASPNETCORE_ENVIRONMENT'] = 'Stand' }
     $child = [Diagnostics.Process]::Start($start)
+    if ($Wait) { $child.StandardInput.Close() } # A missing secret must reach validation, never wait on an unattended prompt.
     # Asynchronous stream copies avoid filling redirected pipes in long-lived node processes.
     $output = [IO.FileStream]::new((Join-Path $runRoot ($Name + '.log')), [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::Read)
     $errorOutput = [IO.FileStream]::new((Join-Path $runRoot ($Name + '.err')), [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::Read)
@@ -58,8 +59,14 @@ function Start-Owned([string]$Name, [string[]]$Arguments, [bool]$Wait = $false, 
     if ($Wait) {
         $child.WaitForExit(); $outTask.GetAwaiter().GetResult() | Out-Null; $errTask.GetAwaiter().GetResult() | Out-Null
         $output.Dispose(); $errorOutput.Dispose()
-        if ($child.ExitCode -ne 0) { throw "$Name failed. See $runRoot\$Name.err" }
+        $exitCode = $child.ExitCode
         $child.Dispose()
+        if ($AllowPasswordRetry -and $exitCode -eq 2) {
+            Write-Host ([IO.File]::ReadAllText((Join-Path $runRoot ($Name + '.err'))).Trim()) -ForegroundColor Yellow
+            return $false
+        }
+        if ($exitCode -ne 0) { throw "$Name failed. See $runRoot\$Name.err" }
+        if ($AllowPasswordRetry) { return $true }
     } else {
         $processes.Add([pscustomobject]@{ Name=$Name; Process=$child; OutTask=$outTask; ErrTask=$errTask; Output=$output; ErrorOutput=$errorOutput })
     }
@@ -81,6 +88,20 @@ try {
     }
     $settings = Join-Path $runRoot 'dashboard-settings.json'
     $configuration | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $settings -Encoding utf8
+    # Create the local account before starting cluster processes. Identity remains the password-policy authority.
+    Copy-Item -LiteralPath $settings -Destination (Join-Path $published 'appsettings.Stand.json')
+    $attempt = 0
+    do {
+        if (!$passwordFromEnvironment) {
+            $password = [Net.NetworkCredential]::new('', (Read-Host 'New dashboard admin password (12+ characters; A-Z, a-z, digit and special character)' -AsSecureString)).Password
+        }
+        $attempt++
+        $created = Start-Owned "dashboard-bootstrap-$attempt" @($dashboard, 'bootstrap-admin') $true $password $true
+        $password = $null
+        if (!$created -and $passwordFromEnvironment) {
+            throw 'RAFT_DASHBOARD_BOOTSTRAP_PASSWORD does not meet the displayed password requirements. Cluster nodes have not been started.'
+        }
+    } until ($created)
     for ($index = 1; $index -le $Voters + 2; $index++) {
         $arguments = @($demo, 'node', "n$index", '--daemon', '--control-stdin', '--root', $nodeRoot, '--voters', "$Voters", '--group', 'movies', '--management', 'true', '--tokens', "$([bool]$Secure)".ToLowerInvariant(),
             '--peer-base-port', "$PeerBasePort", '--client-base-port', "$ClientBasePort", '--management-base-port', "$ManagementBasePort")
@@ -90,10 +111,6 @@ try {
     $bootstrapArguments = @($demo, 'bootstrap-stand', '--root', $nodeRoot, '--voters', "$Voters", '--management-base-port', "$ManagementBasePort")
     if ($Secure) { $bootstrapArguments += @('--pki', $pki) }
     Start-Owned 'cluster-bootstrap' $bootstrapArguments $true
-    # ASP.NET configuration is loaded explicitly; private files stay inside this experiment directory.
-    Copy-Item -LiteralPath $settings -Destination (Join-Path $published 'appsettings.Stand.json')
-    Start-Owned 'dashboard-bootstrap' @($dashboard, 'bootstrap-admin') $true $password
-    $password = $null
     Start-Owned 'dashboard-import' @($dashboard, 'import-cluster', '--connection-file', (Join-Path $nodeRoot 'dashboard-connection.json')) $true
     Start-Owned 'dashboard' @($dashboard, '--control-stdin', 'true')
     $manifest = [pscustomobject]@{ Root=$runRoot; Url=$url; Secure=[bool]$Secure; Processes=@($processes | ForEach-Object { @{Name=$_.Name; Id=$_.Process.Id} }) }

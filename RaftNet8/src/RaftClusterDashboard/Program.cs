@@ -12,7 +12,7 @@ namespace RaftClusterDashboard;
 
 public static class Program
 {
-    public static async Task Main(string[] args)
+    public static async Task<int> Main(string[] args)
     {
         var command = args.FirstOrDefault();
         var bootstrap = command == "bootstrap-admin";
@@ -38,7 +38,7 @@ public static class Program
             store.SaveProfile(new(Guid.NewGuid().ToString("N"), connection.Name, connection.GroupId, connection.ManagementEndpoints, store.Protect(connection.Credential), connection.CertificateAlias));
             Console.WriteLine("Cluster profile imported; its credential is protected in the dashboard database.");
             await app.DisposeAsync();
-            return;
+            return 0;
         }
         if (bootstrap)
         {
@@ -57,10 +57,20 @@ public static class Program
             }
             var users = scope.ServiceProvider.GetRequiredService<UserManager<DashboardUser>>();
             var result = await users.CreateAsync(new() { UserName = username, Role = "Admin", LockoutEnabled = true }, password ?? "");
-            if (!result.Succeeded) throw new InvalidOperationException(string.Join("; ", result.Errors.Select(error => error.Description)));
+            if (!result.Succeeded)
+            {
+                var errors = result.Errors.ToArray();
+                if (errors.Length > 0 && errors.All(error => error.Code.StartsWith("Password", StringComparison.Ordinal)))
+                {
+                    foreach (var error in errors) Console.Error.WriteLine(error.Description);
+                    await app.DisposeAsync();
+                    return 2; // Expected password validation failure; the launcher may prompt again.
+                }
+                throw new InvalidOperationException(string.Join("; ", errors.Select(error => error.Description)));
+            }
             Console.WriteLine("Administrator created. Start the dashboard and complete MFA enrollment when required.");
             await app.DisposeAsync();
-            return;
+            return 0;
         }
         if (app.Configuration.GetValue<bool>("control-stdin"))
         {
@@ -71,6 +81,7 @@ public static class Program
             await app.DisposeAsync();
         }
         else await app.RunAsync();
+        return 0;
     }
 }
 internal sealed record ImportedConnection(string Name, string GroupId, string[] ManagementEndpoints, string Credential, string? CertificateAlias = null);
