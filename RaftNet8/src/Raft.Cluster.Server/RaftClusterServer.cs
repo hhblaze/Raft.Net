@@ -21,10 +21,12 @@ public sealed record ClusterServerOptions
     public Action<WebApplicationBuilder>? ConfigureHttpServer { get; init; }
     /// <summary>Null means trusted-network access. The host may validate bearer tokens or client certificates here.</summary>
     public Func<HttpContext, CancellationToken, ValueTask<bool>>? Authorize { get; init; }
+    public ClusterSecurityOptions Security { get; init; } = new();
+    public ClusterManagementOptions? Management { get; init; }
 }
 
 /// <summary>HTTP(S) gateway over an existing node and its MessageLedger. Neither dependency is owned.</summary>
-public sealed class RaftClusterServer : IAsyncDisposable
+public sealed partial class RaftClusterServer : IAsyncDisposable
 {
     private readonly RaftNode _node;
     private readonly MessageLedger _ledger;
@@ -40,6 +42,9 @@ public sealed class RaftClusterServer : IAsyncDisposable
     {
         _node = node; _ledger = ledger; _options = options; _http = http;
         _requests = new(options.MaxConcurrentRequests);
+        _ownsReadFences = options.Management?.HttpClient is null;
+        _readFences = options.Management?.HttpClient ?? new(new SocketsHttpHandler
+            { AllowAutoRedirect = false, ConnectTimeout = TimeSpan.FromSeconds(2) }) { Timeout = Timeout.InfiniteTimeSpan };
     }
     public Exception? RegistrationError => Volatile.Read(ref _registrationError);
 
@@ -69,6 +74,7 @@ public sealed class RaftClusterServer : IAsyncDisposable
         try
         {
             await http.StartAsync(token).ConfigureAwait(false);
+            await server.StartManagementAsync(token).ConfigureAwait(false);
             server._registration = server.RegisterBootstrapAsync();
             return server;
         }
@@ -148,7 +154,8 @@ public sealed class RaftClusterServer : IAsyncDisposable
     {
         var status = _node.Status;
         var stored = _ledger.GetEndpoints();
-        var known = stored.Endpoints.Concat(_options.InitialEndpoints).Append(_options.Endpoint)
+        var known = stored.Endpoints.Where(endpoint => !_options.Security.SecureTransport || endpoint.Address.Scheme == "https")
+            .Concat(_options.InitialEndpoints).Append(_options.Endpoint)
             .DistinctBy(endpoint => endpoint.NodeId)
             .Where(endpoint => status.Configuration?.Contains(endpoint.NodeId) == true)
             .OrderBy(endpoint => endpoint.NodeId, StringComparer.Ordinal).ToArray();
@@ -163,6 +170,7 @@ public sealed class RaftClusterServer : IAsyncDisposable
         {
             context.Response.StatusCode = 429;
             context.Response.Headers.RetryAfter = "1";
+            _telemetry?.Failed();
             return;
         }
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted, _stop.Token);
@@ -174,11 +182,15 @@ public sealed class RaftClusterServer : IAsyncDisposable
             if (_options.Authorize is { } authorize && !await authorize(context, token).ConfigureAwait(false))
             { context.Response.StatusCode = 401; return; }
             var path = context.Request.Path.Value;
+            if (path != ClusterLimits.ApiPath + "/topology" && _node.Status.Role != RaftRole.Leader)
+                throw new NotLeaderException(_node.Status.LeaderId);
+            var authorization = AuthorizeData(context);
             if (path == ClusterLimits.ApiPath + "/topology" && context.Request.Method == "GET")
             {
                 var leader = _node.Status.Role == RaftRole.Leader;
                 executing = true;
                 if (leader) await _node.ReadIndexAsync(token).ConfigureAwait(false);
+                if (leader) _ = AuthorizeData(context);
                 await context.Response.WriteAsJsonAsync(GetTopology(leader), token).ConfigureAwait(false);
                 return;
             }
@@ -194,7 +206,9 @@ public sealed class RaftClusterServer : IAsyncDisposable
                 var bytes = GC.AllocateUninitializedArray<byte>((int)length);
                 await context.Request.Body.ReadExactlyAsync(bytes, token).ConfigureAwait(false);
                 executing = true;
-                var result = await ExecuteAsync(new(MessageOperation.Append, requestId, entity, EntityMode.Standard, bytes), token).ConfigureAwait(false);
+                var started = System.Diagnostics.Stopwatch.GetTimestamp();
+                var result = await ExecuteAsync(new(MessageOperation.Append, requestId, entity, EntityMode.Standard, bytes, authorization), token).ConfigureAwait(false);
+                _telemetry?.Published(bytes.Length, System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds);
                 await context.Response.WriteAsJsonAsync(result.MessageId, token).ConfigureAwait(false);
             }
             else if (context.Request.Method == "POST" && path == ClusterLimits.ApiPath + "/create")
@@ -204,13 +218,14 @@ public sealed class RaftClusterServer : IAsyncDisposable
                 if (!Enum.IsDefined(mode)) throw new ArgumentException("Invalid entity mode.");
                 if (requestId == Guid.Empty) throw new ArgumentException("Request ID must not be empty.");
                 executing = true;
-                await ExecuteAsync(new(MessageOperation.Create, requestId, entity, mode, ReadOnlyMemory<byte>.Empty), token).ConfigureAwait(false);
+                await ExecuteAsync(new(MessageOperation.Create, requestId, entity, mode, ReadOnlyMemory<byte>.Empty, authorization), token).ConfigureAwait(false);
                 await context.Response.WriteAsJsonAsync(_ledger.GetEntity(entity), token).ConfigureAwait(false);
             }
             else if (context.Request.Method == "GET" && path == ClusterLimits.ApiPath + "/entity")
             {
                 executing = true;
                 await _node.ReadIndexAsync(token).ConfigureAwait(false);
+                _ = AuthorizeData(context);
                 var info = _ledger.GetEntity(entity);
                 if (info is null) context.Response.StatusCode = 404;
                 else await context.Response.WriteAsJsonAsync(info, token).ConfigureAwait(false);
@@ -225,6 +240,7 @@ public sealed class RaftClusterServer : IAsyncDisposable
                     byteLimit is < ClusterLimits.MaxPayloadBytes or > ClusterLimits.MaxBatchBytes) throw new ArgumentException("Invalid batch limits.");
                 executing = true;
                 await _node.ReadIndexAsync(token).ConfigureAwait(false);
+                _ = AuthorizeData(context);
                 var batch = _ledger.ReadBatch(entity, after, idsOnly, count, byteLimit);
                 context.Response.ContentType = "application/vnd.raft-cluster.batch-v1";
                 context.Response.ContentLength = 9L + batch.Messages.Sum(message => 16L + (idsOnly ? 0 : message.PayloadLength));
@@ -248,6 +264,7 @@ public sealed class RaftClusterServer : IAsyncDisposable
                 if (id <= 0) throw new ArgumentException("Message ID must be positive.");
                 executing = true;
                 await _node.ReadIndexAsync(token).ConfigureAwait(false);
+                _ = AuthorizeData(context);
                 var message = _ledger.GetMessage(entity, id);
                 if (message is null) { context.Response.StatusCode = 404; return; }
                 context.Response.ContentType = "application/octet-stream";
@@ -259,14 +276,14 @@ public sealed class RaftClusterServer : IAsyncDisposable
         catch (NotLeaderException error) { await ErrorAsync(context, 409, "not_leader", error.Message, error.LeaderId).ConfigureAwait(false); }
         catch (LeadershipTransferInProgressException error) { await ErrorAsync(context, 503, "transferring", error.Message).ConfigureAwait(false); }
         catch (UncommittedLogLimitException error) { await ErrorAsync(context, 429, "busy", error.Message).ConfigureAwait(false); }
-        catch (ClusterRequestException error) { await ErrorAsync(context, error.Code == "entity_not_found" ? 404 : 409, error.Code, error.Message).ConfigureAwait(false); }
+        catch (ClusterRequestException error) { await ErrorAsync(context, StatusCode(error.Code), error.Code, error.Message).ConfigureAwait(false); }
         catch (OperationCanceledException) when (token.IsCancellationRequested)
         { if (!context.Response.HasStarted) context.Response.StatusCode = 504; else context.Abort(); }
         catch (Exception error) when (!executing && error is (ArgumentException or FormatException or OverflowException or EndOfStreamException or BadHttpRequestException))
         { await ErrorAsync(context, 400, "invalid_request", error.Message).ConfigureAwait(false); }
         catch (Exception)
         { await ErrorAsync(context, 503, "unavailable", "The node is unavailable. Observe RaftNode.Completion for its original failure.").ConfigureAwait(false); }
-        finally { _requests.Release(); }
+        finally { if (context.Response.StatusCode >= 400) _telemetry?.Failed(); _requests.Release(); }
     }
     private static async Task ErrorAsync(HttpContext context, int status, string code, string message, string? leader = null)
     {
@@ -280,6 +297,8 @@ public sealed class RaftClusterServer : IAsyncDisposable
     {
         if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
         _stop.Cancel();
+        await StopManagementAsync().ConfigureAwait(false);
+        if (_observationReads is not null) await _observationReads.DisposeAsync().ConfigureAwait(false);
         if (_registration is not null) await _registration.ConfigureAwait(false);
         await _http.StopAsync().ConfigureAwait(false);
         await _http.DisposeAsync().ConfigureAwait(false);

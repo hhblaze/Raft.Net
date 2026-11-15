@@ -1,0 +1,1 @@
+pwsh -File ./scripts/start-dashboard-stand.ps1 -Voters 3

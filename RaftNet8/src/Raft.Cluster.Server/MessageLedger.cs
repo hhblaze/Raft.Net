@@ -7,7 +7,7 @@ using Raft.Storage;
 namespace Raft.Cluster.Server;
 
 /// <summary>Durable application ledger. Standard history is independent of the compactable Raft log.</summary>
-public sealed class MessageLedger : IRaftBatchStateMachine, ICheckpointStateMachine, ISnapshotStateMachine, IDisposable
+public sealed partial class MessageLedger : IRaftBatchStateMachine, ICheckpointStateMachine, ISnapshotStateMachine, IDisposable
 {
     private const string Table = "cluster-v1";
     private static readonly byte[] FormatKey = 6.ToIndex("format");
@@ -28,22 +28,26 @@ public sealed class MessageLedger : IRaftBatchStateMachine, ICheckpointStateMach
     private readonly Dictionary<Guid, RequestOutcome> _outcomes = new();
     private readonly Queue<Guid> _outcomeOrder = new();
 
-    public MessageLedger(string directory, long cacheBytes = 32 * 1024 * 1024)
+    public MessageLedger(string directory, long cacheBytes = 32 * 1024 * 1024, ClusterLedgerVersion version = ClusterLedgerVersion.V1)
     {
         if (cacheBytes is < 0 or > 1024L * 1024 * 1024) throw new ArgumentOutOfRangeException(nameof(cacheBytes));
         _cacheLimit = cacheBytes;
-        _database = new(directory, "raft-cluster-v1", Table, [Table], ApplyCommand);
+        Version = version;
+        if (!Enum.IsDefined(version)) throw new ArgumentOutOfRangeException(nameof(version));
+        var formatId = version == ClusterLedgerVersion.V2 ? "raft-cluster-v2" : "raft-cluster-v1";
+        _database = new(directory, formatId, Table, [Table], (tx, entry) => ApplyCommand(tx, entry, version));
         try
         {
             _database.Read(tx =>
             {
                 var format = tx.Select<byte[], string>(Table, FormatKey);
-                if (format.Exists && format.Value != "raft-cluster-v1") throw new InvalidDataException("Incompatible cluster ledger format.");
+                if (format.Exists && format.Value != formatId) throw new InvalidDataException("Incompatible cluster ledger format. Stop the cluster and use the copy-based cluster migration tool.");
                 // An election no-op may checkpoint an otherwise empty ledger before its first business command.
                 if (!format.Exists && tx.SelectForward<byte[], byte[]>(Table).Any(row => row.Key.Length > 0 && row.Key[0] is >= 1 and <= 6))
                     throw new InvalidDataException("Missing cluster ledger identity.");
                 return true;
             });
+            RefreshAdministration();
             WarmCache();
         }
         catch { _database.Dispose(); throw; }
@@ -60,8 +64,10 @@ public sealed class MessageLedger : IRaftBatchStateMachine, ICheckpointStateMach
         try
         {
             var result = _database.ApplyBatchAsync(entries, token);
-            if (entries.Any(entry => !entry.IsNoOp && entry.Command.Length >= 5 && entry.Command.Span[4] == (byte)MessageOperation.RegisterEndpoint))
+            if (entries.Any(entry => !entry.IsNoOp && entry.Command.Length >= 5 &&
+                Kind(entry.Command) is MessageOperation.RegisterEndpoint or MessageOperation.AdminResult))
                 Volatile.Write(ref _endpoints, null);
+            if (entries.Any(entry => !entry.IsNoOp && IsAdministrative(entry.Command))) RefreshAdministration(alreadyLocked: true);
             return result;
         }
         finally { _applicationGate.ExitWriteLock(); }
@@ -81,6 +87,7 @@ public sealed class MessageLedger : IRaftBatchStateMachine, ICheckpointStateMach
         lock (_outcomeGate) { _outcomes.Clear(); _outcomeOrder.Clear(); }
         lock (_cacheGate) { _cache.Clear(); _lru.Clear(); _cacheBytes = 0; }
         WarmCache();
+        RefreshAdministration();
     }
 
     private static T? Select<T>(Transaction tx, byte[] key)
@@ -91,15 +98,20 @@ public sealed class MessageLedger : IRaftBatchStateMachine, ICheckpointStateMach
     private static void Insert<T>(Transaction tx, byte[] key, T value) => tx.Insert<byte[], byte[]>(Table, key, JsonSerializer.SerializeToUtf8Bytes(value));
     private static EntityInfo? Entity(Transaction tx, string name) => Select<EntityInfo>(tx, 1.ToIndex(name));
 
-    private static void ApplyCommand(Transaction tx, LogEntry entry)
+    private static void ApplyCommand(Transaction tx, LogEntry entry, ClusterLedgerVersion version)
     {
         var command = MessageCommand.Decode(entry.Command);
+        if (version == ClusterLedgerVersion.V1 && (command.Operation > MessageOperation.RegisterEndpoint || command.Authorization is not null))
+            throw new InvalidDataException("cluster-v2 command cannot be applied by cluster-v1.");
         var requestKey = 4.ToIndex(command.RequestId.ToByteArray());
         if (tx.Select<byte[], byte[]>(Table, requestKey).Exists) return; // Same ID/body conflicts are returned by the caller, never fail-stop application.
-        tx.Insert<byte[], string>(Table, FormatKey, "raft-cluster-v1");
+        tx.Insert<byte[], string>(Table, FormatKey, version == ClusterLedgerVersion.V2 ? "raft-cluster-v2" : "raft-cluster-v1");
         long id = 0;
-        string? error = null;
-        if (command.Operation == MessageOperation.RegisterEndpoint)
+        string? error = version == ClusterLedgerVersion.V2 ? AuthorizeApplication(tx, command) : null;
+        if (error is not null) { }
+        else if (command.Operation > MessageOperation.RegisterEndpoint)
+            error = ApplyAdministration(tx, entry, command);
+        else if (command.Operation == MessageOperation.RegisterEndpoint)
         {
             var endpoint = JsonSerializer.Deserialize<ClientEndpoint>(command.Payload.Span)?.Validate()
                 ?? throw new InvalidDataException("Missing client endpoint.");
@@ -118,7 +130,18 @@ public sealed class MessageLedger : IRaftBatchStateMachine, ICheckpointStateMach
         else
         {
             var entity = Entity(tx, command.Name);
-            if (entity is null)
+            var settings = version == ClusterLedgerVersion.V2 ? Select<EntitySettings>(tx, 7.ToIndex(command.Name)) ?? new() : null;
+            if (command.Operation == MessageOperation.Append && settings is not null)
+            {
+                if (settings.WritesPaused) error = "entity_paused";
+                else if (command.Payload.Length > settings.MaxPayloadBytes) error = "payload_limit";
+                else if (settings.MaxRetainedBytes is { } limit &&
+                    (entity?.Mode == EntityMode.HighSpeedCache ? command.Payload.Length : (entity?.RetainedBytes ?? 0) + command.Payload.Length) > limit)
+                    error = "entity_quota";
+            }
+            if (entity is null && version == ClusterLedgerVersion.V2 && command.Authorization is { } auth &&
+                !Permitted(tx, auth, ClusterPermission.CreateEntity, command.Name)) error = "forbidden";
+            if (entity is null && error is null)
             {
                 var count = tx.Select<byte[], int>(Table, EntityCountKey);
                 if ((count.Exists ? count.Value : 0) >= ClusterLimits.MaxEntities) error = "entity_limit";
@@ -128,7 +151,7 @@ public sealed class MessageLedger : IRaftBatchStateMachine, ICheckpointStateMach
                     tx.Insert<byte[], int>(Table, EntityCountKey, (count.Exists ? count.Value : 0) + 1);
                 }
             }
-            if (entity is not null)
+            if (entity is not null && error is null)
             {
                 if (command.Operation == MessageOperation.Create && entity.Mode != command.Mode) error = "entity_mode_conflict";
                 else if (command.Operation == MessageOperation.Append)
@@ -144,7 +167,11 @@ public sealed class MessageLedger : IRaftBatchStateMachine, ICheckpointStateMach
                         }
                         tx.Insert<byte[], int>(Table, 2.ToIndex(entity.EntityId, id), command.Payload.Length);
                         tx.Insert<byte[], byte[]>(Table, 3.ToIndex(entity.EntityId, id), command.Payload.ToArray());
-                        entity = entity with { LastMessageId = id };
+                        entity = version == ClusterLedgerVersion.V2
+                            ? entity with { LastMessageId = id, RetainedMessages = entity.Mode == EntityMode.HighSpeedCache ? 1 : id,
+                                RetainedBytes = entity.Mode == EntityMode.HighSpeedCache ? command.Payload.Length : checked(entity.RetainedBytes + command.Payload.Length),
+                                LatestPayloadBytes = command.Payload.Length, PublishedBytes = checked(entity.PublishedBytes + command.Payload.Length) }
+                            : entity with { LastMessageId = id };
                     }
                 }
                 if (error is null) Insert(tx, 1.ToIndex(entity.Name), entity);

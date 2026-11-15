@@ -2,6 +2,8 @@
 
 Embedded crash-tolerant consensus for logical commands applied to DBreeze. All supported projects target **net8.0**. DBreeze is pinned to **1.142.2026.1016-beta**, using its .NET 8 asset; the beta suffix is upstream's version name. Dependencies are centrally managed and locked. The assembly/package is `Raft.Net8`, namespace `Raft`.
 
+The [standalone cluster dashboard](src/RaftClusterDashboard/README.md) adds ASP.NET8 + React/TypeScript/Ant Design6/Vite administration: actual telemetry, durable hot operations, entity policies and scoped client tokens. Start an independent-process [local/secure stand](docs/CLUSTER-DASHBOARD.md) with `scripts/start-dashboard-stand.ps1`. Fresh message hosts use explicit cluster-v2; existing cluster-v1 data requires the documented whole-group copy upgrade. Core wire3/raft8-v4 stays unchanged.
+
 Implemented: pre-vote, check-quorum, ReadIndex, leadership transfer, learners, journaled hot Add/Remove with replicated routes and durable operation IDs, corrected single-server membership changes, batched durable writes, bounded replication pipelines, CRC-checked recovery, and chunked resumable snapshots. See the [interactive solution](HumanTest/Raft.HumanTest.sln), [operational runbook](docs/OPERATIONS.md), [configuration reference](docs/CONFIGURATION.md), [architecture/storage notes](docs/ARCHITECTURE.md), and [LLM usage skill](../_docs/raft_skill.md).
 
 Accepted performance baseline: commit `d44147effdb20271854dd758cc6f9073543a554d`, including Hot Add/Remove, accepted by the user on2026-11-14. Future comparisons use fresh paired runs against this version. See the [baseline identity and evidence](benchmarks/baselines/hot-membership-2026-11-14.json).

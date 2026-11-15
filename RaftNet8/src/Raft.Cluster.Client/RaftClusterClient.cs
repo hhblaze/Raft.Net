@@ -18,11 +18,19 @@ public sealed record RaftClusterClientOptions
     public TimeSpan HandlerRetryDelay { get; init; } = TimeSpan.FromMilliseconds(500);
     /// <summary>A caller-owned HttpClient may supply authentication, mTLS and normal certificate validation.</summary>
     public HttpClient? HttpClient { get; init; }
+    /// <summary>Called for discovery and every retry. Return the current opaque cluster token; never include 'Bearer '.</summary>
+    public Func<CancellationToken, ValueTask<string?>>? AccessTokenProvider { get; init; }
 }
 
 /// <summary>External non-voting client. Durable subscription cursors belong to the application.</summary>
 public sealed class RaftClusterClient : IAsyncDisposable
 {
+    private async ValueTask AuthenticateAsync(HttpRequestMessage request, CancellationToken token)
+    {
+        if (_options.AccessTokenProvider is not { } provider) return;
+        var secret = await provider(token).ConfigureAwait(false);
+        if (!string.IsNullOrEmpty(secret)) request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", secret);
+    }
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
     private readonly RaftClusterClientOptions _options;
     private readonly HttpClient _http;
@@ -309,6 +317,7 @@ public sealed class RaftClusterClient : IAsyncDisposable
         try
         {
             var candidates = Candidates().ToList();
+            var accessDenied = false;
             for (var index = 0; index < candidates.Count; index++)
             {
                 var endpoint = candidates[index];
@@ -317,9 +326,10 @@ public sealed class RaftClusterClient : IAsyncDisposable
                 try
                 {
                     using var request = new HttpRequestMessage(HttpMethod.Get, Url(endpoint, "/topology"));
+                    await AuthenticateAsync(request, attempt.Token).ConfigureAwait(false);
                     using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, attempt.Token).ConfigureAwait(false);
                     if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
-                        throw new ClusterRequestException("unauthorized", "Cluster access denied.");
+                    { accessDenied = true; continue; } // A follower may not yet have applied a newly issued grant.
                     if (!response.IsSuccessStatusCode) continue;
                     var topology = await JsonAsync<ClusterTopology>(response, attempt.Token).ConfigureAwait(false);
                     AcceptTopology(topology);
@@ -330,6 +340,8 @@ public sealed class RaftClusterClient : IAsyncDisposable
                 catch (HttpRequestException) { }
                 catch (OperationCanceledException) when (!deadline.IsCancellationRequested) { }
             }
+            if (accessDenied && Topology?.IsAuthoritative != true)
+                throw new ClusterRequestException("unauthorized", "Cluster access denied by the available endpoints.");
             return Topology ?? throw new HttpRequestException("No cluster endpoint supplied a topology.");
         }
         finally { _discovery.Release(); }
@@ -381,6 +393,7 @@ public sealed class RaftClusterClient : IAsyncDisposable
             var candidates = Candidates();
             var endpoint = candidates[round % candidates.Length];
             using var request = new HttpRequestMessage(method, Url(endpoint, path));
+            await AuthenticateAsync(request, token).ConfigureAwait(false);
             if (content is not null) { request.Content = content(); request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream"); }
             if (requestId is { } id) request.Headers.Add("X-Raft-RequestId", id.ToString("D"));
             HttpResponseMessage? response = null;
@@ -389,7 +402,7 @@ public sealed class RaftClusterClient : IAsyncDisposable
                 response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false);
                 if (response.IsSuccessStatusCode || (allowNotFound && response.StatusCode == HttpStatusCode.NotFound)) return response;
                 if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
-                    throw new ClusterRequestException("unauthorized", "Cluster access denied.");
+                    throw new ClusterRequestException(response.StatusCode == HttpStatusCode.Forbidden ? "forbidden" : "unauthorized", "Cluster access denied.");
                 if (response.StatusCode is HttpStatusCode.TooManyRequests or HttpStatusCode.ServiceUnavailable or HttpStatusCode.GatewayTimeout)
                 { response.Dispose(); response = null; }
                 else

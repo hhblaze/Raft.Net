@@ -7,5 +7,6 @@
     <ProjectReference Include="../Raft.Cluster.Protocol/Raft.Cluster.Protocol.csproj" />
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <InternalsVisibleTo Include="Raft.Tests" />
+    <InternalsVisibleTo Include="Raft.Cluster.Demo" />
   </ItemGroup>
 </Project>

@@ -207,9 +207,11 @@ def main():
     from content_en import chapters as en
     from content_ru import chapters as ru
     from client_chapters import client_chapters
+    from dashboard_chapters import dashboard_chapters
     editions = {"en": en(), "ru": ru()}
     for language, chapters in editions.items():
         chapters[1:1] = client_chapters(language == "ru")
+        chapters[4:4] = dashboard_chapters(language == "ru")
     if [item[0] for item in editions["en"]] != [item[0] for item in editions["ru"]]:
         raise ValueError("The language editions must have matching chapter anchors")
     stats = [build_book(language, chapters) for language, chapters in editions.items()]

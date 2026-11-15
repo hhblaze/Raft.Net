@@ -1,0 +1,1986 @@
+{
+  "cohorts": [
+    "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0"
+  ],
+  "summaries": [
+    {
+      "voters": 3,
+      "payload": 64,
+      "variant": "baseline",
+      "rounds": 5,
+      "throughput": 497.9085954814187,
+      "allocation": 517838.36328125,
+      "p50": 122.3508,
+      "p99": 186.1453,
+      "pooledP99": 186.1954,
+      "minimum": 496.3072005862629,
+      "maximum": 517.7234456345764
+    },
+    {
+      "voters": 3,
+      "payload": 64,
+      "variant": "off",
+      "rounds": 5,
+      "throughput": 492.5493315632983,
+      "allocation": 524726.07421875,
+      "p50": 121.876,
+      "p99": 218.1327,
+      "pooledP99": 220.1678,
+      "minimum": 467.06029343587466,
+      "maximum": 511.65743255746696
+    },
+    {
+      "voters": 3,
+      "payload": 64,
+      "variant": "on",
+      "rounds": 5,
+      "throughput": 497.10045769165384,
+      "allocation": 528654.966796875,
+      "p50": 123.458,
+      "p99": 193.0116,
+      "pooledP99": 616.2173,
+      "minimum": 365.55000688842216,
+      "maximum": 508.8701053646861
+    },
+    {
+      "voters": 3,
+      "payload": 16384,
+      "variant": "baseline",
+      "rounds": 5,
+      "throughput": 372.7836008125445,
+      "allocation": 818276.982421875,
+      "p50": 176.58,
+      "p99": 234.4941,
+      "pooledP99": 227.8458,
+      "minimum": 370.44739952618187,
+      "maximum": 374.5609231068581
+    },
+    {
+      "voters": 3,
+      "payload": 16384,
+      "variant": "off",
+      "rounds": 5,
+      "throughput": 385.4261780330942,
+      "allocation": 823361.59375,
+      "p50": 175.8034,
+      "p99": 221.6489,
+      "pooledP99": 220.4335,
+      "minimum": 374.9701012609688,
+      "maximum": 392.49134918786297
+    },
+    {
+      "voters": 3,
+      "payload": 16384,
+      "variant": "on",
+      "rounds": 5,
+      "throughput": 372.75373331155777,
+      "allocation": 824624.65234375,
+      "p50": 178.1143,
+      "p99": 231.7273,
+      "pooledP99": 1070.1506,
+      "minimum": 74.94426733697483,
+      "maximum": 380.9210272405964
+    },
+    {
+      "voters": 5,
+      "payload": 64,
+      "variant": "baseline",
+      "rounds": 5,
+      "throughput": 376.5255028187383,
+      "allocation": 853500.814453125,
+      "p50": 163.9175,
+      "p99": 258.061,
+      "pooledP99": 256.0422,
+      "minimum": 364.46783824924455,
+      "maximum": 379.9951374352701
+    },
+    {
+      "voters": 5,
+      "payload": 64,
+      "variant": "off",
+      "rounds": 5,
+      "throughput": 383.52363368418037,
+      "allocation": 863240.509765625,
+      "p50": 157.9527,
+      "p99": 239.7107,
+      "pooledP99": 253.0221,
+      "minimum": 373.6851364802852,
+      "maximum": 389.65150296366306
+    },
+    {
+      "voters": 5,
+      "payload": 64,
+      "variant": "on",
+      "rounds": 5,
+      "throughput": 374.17377684387395,
+      "allocation": 871306.6875,
+      "p50": 165.9333,
+      "p99": 257.0001,
+      "pooledP99": 256.6369,
+      "minimum": 357.9235710663848,
+      "maximum": 386.2074131249478
+    },
+    {
+      "voters": 5,
+      "payload": 16384,
+      "variant": "baseline",
+      "rounds": 5,
+      "throughput": 285.26529135831004,
+      "allocation": 1316185.7578125,
+      "p50": 232.0518,
+      "p99": 295.9918,
+      "pooledP99": 296.7975,
+      "minimum": 277.4469021766387,
+      "maximum": 285.5806906847092
+    },
+    {
+      "voters": 5,
+      "payload": 16384,
+      "variant": "off",
+      "rounds": 5,
+      "throughput": 280.3673041673396,
+      "allocation": 1326641.03515625,
+      "p50": 233.215,
+      "p99": 284.699,
+      "pooledP99": 290.0486,
+      "minimum": 275.4774450857807,
+      "maximum": 290.91635968574843
+    },
+    {
+      "voters": 5,
+      "payload": 16384,
+      "variant": "on",
+      "rounds": 5,
+      "throughput": 280.9261449142978,
+      "allocation": 1333804.681640625,
+      "p50": 239.5576,
+      "p99": 300.9906,
+      "pooledP99": 300.1367,
+      "minimum": 265.7288462500486,
+      "maximum": 287.1239348523923
+    }
+  ],
+  "comparisons": [
+    {
+      "voters": 3,
+      "payload": 64,
+      "candidate": "off",
+      "control": "baseline",
+      "rounds": 5,
+      "passed": false,
+      "uncertain": true,
+      "metrics": {
+        "throughput": {
+          "ratio": 0.9723599093477528,
+          "ci95": [
+            0.9380442468246258,
+            1.0282421786553357
+          ],
+          "pairs": [
+            0.9565716952048886,
+            0.9380442468246258,
+            1.0282421786553357,
+            0.9723599093477528,
+            0.9924283407161419
+          ]
+        },
+        "allocation": {
+          "ratio": 1.0129943729166873,
+          "ci95": [
+            1.0108587194868845,
+            1.0178860433480683
+          ],
+          "pairs": [
+            1.0163935065437382,
+            1.0129943729166873,
+            1.0108587194868845,
+            1.0120273790489085,
+            1.0178860433480683
+          ]
+        },
+        "p99": {
+          "ratio": 1.1779627824069991,
+          "ci95": [
+            0.7613850986655548,
+            1.2646281527433532
+          ],
+          "pairs": [
+            1.2104677276417508,
+            1.1779627824069991,
+            0.7613850986655548,
+            1.2646281527433532,
+            1.1235926988218343
+          ]
+        }
+      }
+    },
+    {
+      "voters": 3,
+      "payload": 64,
+      "candidate": "on",
+      "control": "off",
+      "rounds": 5,
+      "passed": true,
+      "uncertain": true,
+      "metrics": {
+        "throughput": {
+          "ratio": 1.0168109380195067,
+          "ci95": [
+            0.7480969110551416,
+            1.064317529616556
+          ],
+          "pairs": [
+            1.0275230645747964,
+            1.064317529616556,
+            0.9677725644901953,
+            0.7480969110551416,
+            1.0168109380195067
+          ]
+        },
+        "allocation": {
+          "ratio": 1.004467001407587,
+          "ci95": [
+            1.003281518723962,
+            1.0135120252860275
+          ],
+          "pairs": [
+            1.00329015614227,
+            1.0078787261929816,
+            1.003281518723962,
+            1.0135120252860275,
+            1.004467001407587
+          ]
+        },
+        "p99": {
+          "ratio": 0.9031266808987743,
+          "ci95": [
+            0.8044525190400155,
+            2.8566804251646785
+          ],
+          "pairs": [
+            0.8044525190400155,
+            0.8072566758833387,
+            1.2687626357115303,
+            2.8566804251646785,
+            0.9031266808987743
+          ]
+        }
+      }
+    },
+    {
+      "voters": 3,
+      "payload": 64,
+      "candidate": "on",
+      "control": "baseline",
+      "rounds": 5,
+      "passed": true,
+      "uncertain": true,
+      "metrics": {
+        "throughput": {
+          "ratio": 0.9951045701542599,
+          "ci95": [
+            0.7274194446169115,
+            1.0091119920407228
+          ],
+          "pairs": [
+            0.9828994797424353,
+            0.9983769354514086,
+            0.9951045701542599,
+            0.7274194446169115,
+            1.0091119920407228
+          ]
+        },
+        "allocation": {
+          "ratio": 1.0209754782159288,
+          "ci95": [
+            1.0141758713021611,
+            1.0257019185847696
+          ],
+          "pairs": [
+            1.0197375998822564,
+            1.0209754782159288,
+            1.0141758713021611,
+            1.0257019185847696,
+            1.022432941736467
+          ]
+        },
+        "p99": {
+          "ratio": 0.9737638127180499,
+          "ci95": [
+            0.9509183200401627,
+            3.612638489054104
+          ],
+          "pairs": [
+            0.9737638127180499,
+            0.9509183200401627,
+            0.9660169645743928,
+            3.612638489054104,
+            1.0147465447690596
+          ]
+        }
+      }
+    },
+    {
+      "voters": 3,
+      "payload": 16384,
+      "candidate": "off",
+      "control": "baseline",
+      "rounds": 5,
+      "passed": true,
+      "uncertain": false,
+      "metrics": {
+        "throughput": {
+          "ratio": 1.0290079777572962,
+          "ci95": [
+            1.0066975738702086,
+            1.0512651579181662
+          ],
+          "pairs": [
+            1.0512651579181662,
+            1.0066975738702086,
+            1.0290079777572962,
+            1.0281268030640769,
+            1.0412955132501127
+          ]
+        },
+        "allocation": {
+          "ratio": 1.0050108950040033,
+          "ci95": [
+            1.0010300297179084,
+            1.011344156683256
+          ],
+          "pairs": [
+            1.0010300297179084,
+            1.003054659155398,
+            1.0050108950040033,
+            1.005784990920894,
+            1.011344156683256
+          ]
+        },
+        "p99": {
+          "ratio": 0.9426222553368634,
+          "ci95": [
+            0.8853634604878312,
+            1.0845344090397295
+          ],
+          "pairs": [
+            0.9426222553368634,
+            0.8853634604878312,
+            0.9452216494999234,
+            1.0845344090397295,
+            0.8895359466944751
+          ]
+        }
+      }
+    },
+    {
+      "voters": 3,
+      "payload": 16384,
+      "candidate": "on",
+      "control": "off",
+      "rounds": 5,
+      "passed": true,
+      "uncertain": true,
+      "metrics": {
+        "throughput": {
+          "ratio": 0.9524424560263095,
+          "ci95": [
+            0.19553969705258323,
+            1.0158704012923043
+          ],
+          "pairs": [
+            0.9497119722074232,
+            1.0158704012923043,
+            0.9524424560263095,
+            0.19553969705258323,
+            0.9697221858115986
+          ]
+        },
+        "allocation": {
+          "ratio": 1.0015340266091322,
+          "ci95": [
+            0.9973188008330248,
+            1.3876591830702125
+          ],
+          "pairs": [
+            0.9981899421319121,
+            1.0015340266091322,
+            1.011318795019937,
+            1.3876591830702125,
+            0.9973188008330248
+          ]
+        },
+        "p99": {
+          "ratio": 1.0454701106118731,
+          "ci95": [
+            0.9416428622856005,
+            4.988680881888359
+          ],
+          "pairs": [
+            1.0204115406920458,
+            0.9416428622856005,
+            1.0454701106118731,
+            4.988680881888359,
+            1.3987693546177034
+          ]
+        }
+      }
+    },
+    {
+      "voters": 3,
+      "payload": 16384,
+      "candidate": "on",
+      "control": "baseline",
+      "rounds": 5,
+      "passed": true,
+      "uncertain": true,
+      "metrics": {
+        "throughput": {
+          "ratio": 0.9983991064394099,
+          "ci95": [
+            0.2010396036027905,
+            1.022674268347518
+          ],
+          "pairs": [
+            0.9983991064394099,
+            1.022674268347518,
+            0.9800708856058251,
+            0.2010396036027905,
+            1.0097673611847098
+          ]
+        },
+        "allocation": {
+          "ratio": 1.0086325415728317,
+          "ci95": [
+            0.9992181074364254,
+            1.395686778845569
+          ],
+          "pairs": [
+            0.9992181074364254,
+            1.0045933716929563,
+            1.016386407317357,
+            1.395686778845569,
+            1.0086325415728317
+          ]
+        },
+        "p99": {
+          "ratio": 0.9882009824554222,
+          "ci95": [
+            0.8336961830968455,
+            5.410396072126589
+          ],
+          "pairs": [
+            0.9618626278588998,
+            0.8336961830968455,
+            0.9882009824554222,
+            5.410396072126589,
+            1.2442556220670788
+          ]
+        }
+      }
+    },
+    {
+      "voters": 5,
+      "payload": 64,
+      "candidate": "off",
+      "control": "baseline",
+      "rounds": 5,
+      "passed": true,
+      "uncertain": true,
+      "metrics": {
+        "throughput": {
+          "ratio": 1.0196779400475955,
+          "ci95": [
+            0.983394521841586,
+            1.0420278339408033
+          ],
+          "pairs": [
+            1.0196779400475955,
+            0.983394521841586,
+            1.0150008864770512,
+            1.0398210756556305,
+            1.0420278339408033
+          ]
+        },
+        "allocation": {
+          "ratio": 1.0107859187310078,
+          "ci95": [
+            1.0081707445594652,
+            1.0180867256893686
+          ],
+          "pairs": [
+            1.0086006847116527,
+            1.0180867256893686,
+            1.0110628281170957,
+            1.0081707445594652,
+            1.0107859187310078
+          ]
+        },
+        "p99": {
+          "ratio": 0.9288916186483042,
+          "ci95": [
+            0.7968798578834656,
+            1.1568396880559049
+          ],
+          "pairs": [
+            0.9288916186483042,
+            1.1568396880559049,
+            0.9590127963538075,
+            0.7968798578834656,
+            0.8048616463146597
+          ]
+        }
+      }
+    },
+    {
+      "voters": 5,
+      "payload": 64,
+      "candidate": "on",
+      "control": "off",
+      "rounds": 5,
+      "passed": true,
+      "uncertain": true,
+      "metrics": {
+        "throughput": {
+          "ratio": 0.9711958939891576,
+          "ci95": [
+            0.9332503648552819,
+            1.0335102347463134
+          ],
+          "pairs": [
+            0.9871908308269886,
+            1.0335102347463134,
+            0.9332503648552819,
+            0.9711958939891576,
+            0.9602780279247826
+          ]
+        },
+        "allocation": {
+          "ratio": 1.0043529113062826,
+          "ci95": [
+            1.000994637801961,
+            1.016232619820852
+          ],
+          "pairs": [
+            1.016232619820852,
+            1.0040535536004496,
+            1.0043529113062826,
+            1.000994637801961,
+            1.0069524851749427
+          ]
+        },
+        "p99": {
+          "ratio": 1.07815818432082,
+          "ci95": [
+            0.7745308689786037,
+            1.1782628572701725
+          ],
+          "pairs": [
+            1.0721261086801714,
+            0.7745308689786037,
+            1.1782628572701725,
+            1.07815818432082,
+            1.1310738053828817
+          ]
+        }
+      }
+    },
+    {
+      "voters": 5,
+      "payload": 64,
+      "candidate": "on",
+      "control": "baseline",
+      "rounds": 5,
+      "passed": true,
+      "uncertain": true,
+      "metrics": {
+        "throughput": {
+          "ratio": 1.006616712811538,
+          "ci95": [
+            0.9472499476331426,
+            1.0163483031167362
+          ],
+          "pairs": [
+            1.006616712811538,
+            1.0163483031167362,
+            0.9472499476331426,
+            1.0098699591601377,
+            1.0006364334194076
+          ]
+        },
+        "allocation": {
+          "ratio": 1.017813392846026,
+          "ci95": [
+            1.0091735092928353,
+            1.0249729161776278
+          ],
+          "pairs": [
+            1.0249729161776278,
+            1.0222135948018567,
+            1.0154638949329686,
+            1.0091735092928353,
+            1.017813392846026
+          ]
+        },
+        "p99": {
+          "ratio": 0.9103579251038533,
+          "ci95": [
+            0.8591625406974702,
+            1.1299691575904953
+          ],
+          "pairs": [
+            0.9958889564870321,
+            0.8960080488588769,
+            1.1299691575904953,
+            0.8591625406974702,
+            0.9103579251038533
+          ]
+        }
+      }
+    },
+    {
+      "voters": 5,
+      "payload": 16384,
+      "candidate": "off",
+      "control": "baseline",
+      "rounds": 5,
+      "passed": true,
+      "uncertain": false,
+      "metrics": {
+        "throughput": {
+          "ratio": 0.9926085849899561,
+          "ci95": [
+            0.9795981782638814,
+            1.0192366241082644
+          ],
+          "pairs": [
+            0.9926085849899561,
+            1.0105259852165935,
+            1.0192366241082644,
+            0.9821635752382877,
+            0.9795981782638814
+          ]
+        },
+        "allocation": {
+          "ratio": 1.0089756514526804,
+          "ci95": [
+            0.9970820665162433,
+            1.0124181037159714
+          ],
+          "pairs": [
+            1.008189264711209,
+            1.0124181037159714,
+            0.9970820665162433,
+            1.0089756514526804,
+            1.0109658597242759
+          ]
+        },
+        "p99": {
+          "ratio": 0.9505202508988425,
+          "ci95": [
+            0.9235156388369696,
+            1.0924936414353261
+          ],
+          "pairs": [
+            1.0924936414353261,
+            1.0525751000999322,
+            0.9235156388369696,
+            0.9505202508988425,
+            0.9487682077023986
+          ]
+        }
+      }
+    },
+    {
+      "voters": 5,
+      "payload": 16384,
+      "candidate": "on",
+      "control": "off",
+      "rounds": 5,
+      "passed": true,
+      "uncertain": true,
+      "metrics": {
+        "throughput": {
+          "ratio": 0.9937278535004176,
+          "ci95": [
+            0.9477882845121129,
+            1.0263431513619738
+          ],
+          "pairs": [
+            0.9937278535004176,
+            0.9477882845121129,
+            0.965659494769417,
+            1.0000906682776023,
+            1.0263431513619738
+          ]
+        },
+        "allocation": {
+          "ratio": 1.0034004940285652,
+          "ci95": [
+            0.9982195300918882,
+            1.0165375824849945
+          ],
+          "pairs": [
+            0.9982195300918882,
+            1.0033742197358706,
+            1.0116474874681542,
+            1.0165375824849945,
+            1.0034004940285652
+          ]
+        },
+        "p99": {
+          "ratio": 1.0423605281367339,
+          "ci95": [
+            0.9189952168011004,
+            1.2292438995088613
+          ],
+          "pairs": [
+            0.9189952168011004,
+            1.0120994949461075,
+            1.0423605281367339,
+            1.2292438995088613,
+            1.0577330433433754
+          ]
+        }
+      }
+    },
+    {
+      "voters": 5,
+      "payload": 16384,
+      "candidate": "on",
+      "control": "baseline",
+      "rounds": 5,
+      "passed": true,
+      "uncertain": true,
+      "metrics": {
+        "throughput": {
+          "ratio": 0.9842355234868727,
+          "ci95": [
+            0.957764689983348,
+            1.0054038813478006
+          ],
+          "pairs": [
+            0.9863827985281559,
+            0.957764689983348,
+            0.9842355234868727,
+            0.9822526263179783,
+            1.0054038813478006
+          ]
+        },
+        "allocation": {
+          "ratio": 1.0144036430933516,
+          "ci95": [
+            1.0063942140637092,
+            1.0256616695139302
+          ],
+          "pairs": [
+            1.0063942140637092,
+            1.0158342248624825,
+            1.0086955673907125,
+            1.0256616695139302,
+            1.0144036430933516
+          ]
+        },
+        "p99": {
+          "ratio": 1.0039964308646812,
+          "ci95": [
+            0.9626362490406368,
+            1.1684212197770343
+          ],
+          "pairs": [
+            1.0039964308646812,
+            1.06531072720399,
+            0.9626362490406368,
+            1.1684212197770343,
+            1.0035434837604975
+          ]
+        }
+      }
+    }
+  ],
+  "sources": [
+    {
+      "path": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r1-baseline\\client-bench-20261115-170800-cb4ed9db\\results.json",
+      "sha256": "aa18eb0b21434f534f2540d0e70c57caf0d435f6026da8ba23ba223c1de25c69",
+      "core": "06F57E4DCD2ED8B82CB90337EB571187D652A4D49EC8759343A549F74D272513",
+      "client": "C757989EE484B33CD05318A8014FD3633ED6A774D0121F3D7D98DED7D91FE092",
+      "server": "24864AF49F4136656B3EA342FA4263E2E6905D43C6758FB523C5BDAFB992AA65",
+      "runtime": ".NET 8.0.34",
+      "os": "Microsoft Windows 10.0.26200",
+      "variant": "baseline",
+      "started": "2026-11-15T17:07:59.8791955+00:00",
+      "ended": "2026-11-15T17:09:10.6648014+00:00",
+      "dashboardSha256AfterCohort": null,
+      "harnessSha256": "890ACA69C5247F23DC3313993508BAA6B17FCD1B3B65B009209EED9FD02C6DF0"
+    },
+    {
+      "path": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r1-off\\client-bench-20261115-170910-d8f2932a\\results.json",
+      "sha256": "d12179920d9b767ef98db950b01ba10bed275b9ee16aa71ce1d7b8801a534729",
+      "core": "8D2EA7B6AF5948262698F60729075E6CED68E170AE902D171384D70C57872989",
+      "client": "B17871794B582DE6E062F8060101AE4544F54E52DCA925FE82CA79D2D12B5D52",
+      "server": "D574AFE0F12BFBF49090633D4119EF44446DD22289E967EA92F4F0AAB0A0C755",
+      "runtime": ".NET 8.0.34",
+      "os": "Microsoft Windows 10.0.26200",
+      "variant": "off",
+      "started": "2026-11-15T17:09:10.7494994+00:00",
+      "ended": "2026-11-15T17:10:20.908652+00:00",
+      "dashboardSha256AfterCohort": null,
+      "harnessSha256": "3EF937F4D319384034B640023BCD84B6ADC7A888E4F10CD41F19BC01B40E834D"
+    },
+    {
+      "path": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r1-on\\client-bench-20261115-171021-6eafda85\\results.json",
+      "sha256": "66755437281cb9effa595de9458ac66153dd9905e5046d3e66fefdee2a06c393",
+      "core": "8D2EA7B6AF5948262698F60729075E6CED68E170AE902D171384D70C57872989",
+      "client": "B17871794B582DE6E062F8060101AE4544F54E52DCA925FE82CA79D2D12B5D52",
+      "server": "D574AFE0F12BFBF49090633D4119EF44446DD22289E967EA92F4F0AAB0A0C755",
+      "runtime": ".NET 8.0.34",
+      "os": "Microsoft Windows 10.0.26200",
+      "variant": "on",
+      "started": "2026-11-15T17:10:20.943405+00:00",
+      "ended": "2026-11-15T17:11:36.4844627+00:00",
+      "dashboardSha256AfterCohort": "760bd0af3814f062e3e038d787af67fccbd4035f93bc3b1181e77842e78c0806",
+      "harnessSha256": "3EF937F4D319384034B640023BCD84B6ADC7A888E4F10CD41F19BC01B40E834D"
+    },
+    {
+      "path": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r2-on\\client-bench-20261115-171136-96f448e3\\results.json",
+      "sha256": "2571a835170c329231d45b73ac39ebb90e1e175ce01f7b06d92b3c32de8ed64a",
+      "core": "8D2EA7B6AF5948262698F60729075E6CED68E170AE902D171384D70C57872989",
+      "client": "B17871794B582DE6E062F8060101AE4544F54E52DCA925FE82CA79D2D12B5D52",
+      "server": "D574AFE0F12BFBF49090633D4119EF44446DD22289E967EA92F4F0AAB0A0C755",
+      "runtime": ".NET 8.0.34",
+      "os": "Microsoft Windows 10.0.26200",
+      "variant": "on",
+      "started": "2026-11-15T17:11:36.5018053+00:00",
+      "ended": "2026-11-15T17:12:52.8957943+00:00",
+      "dashboardSha256AfterCohort": "760bd0af3814f062e3e038d787af67fccbd4035f93bc3b1181e77842e78c0806",
+      "harnessSha256": "3EF937F4D319384034B640023BCD84B6ADC7A888E4F10CD41F19BC01B40E834D"
+    },
+    {
+      "path": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r2-off\\client-bench-20261115-171253-a1f76047\\results.json",
+      "sha256": "5a936ca2a35dd757a1a0d335948f684a3318130d9541e35eb08a91c1f9c86547",
+      "core": "8D2EA7B6AF5948262698F60729075E6CED68E170AE902D171384D70C57872989",
+      "client": "B17871794B582DE6E062F8060101AE4544F54E52DCA925FE82CA79D2D12B5D52",
+      "server": "D574AFE0F12BFBF49090633D4119EF44446DD22289E967EA92F4F0AAB0A0C755",
+      "runtime": ".NET 8.0.34",
+      "os": "Microsoft Windows 10.0.26200",
+      "variant": "off",
+      "started": "2026-11-15T17:12:52.9088041+00:00",
+      "ended": "2026-11-15T17:14:05.1862268+00:00",
+      "dashboardSha256AfterCohort": null,
+      "harnessSha256": "3EF937F4D319384034B640023BCD84B6ADC7A888E4F10CD41F19BC01B40E834D"
+    },
+    {
+      "path": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r2-baseline\\client-bench-20261115-171405-f66d0deb\\results.json",
+      "sha256": "41f147f809c4794d36009e53b3abe56086a31c6939c61d9bec74341e68b9b70e",
+      "core": "06F57E4DCD2ED8B82CB90337EB571187D652A4D49EC8759343A549F74D272513",
+      "client": "C757989EE484B33CD05318A8014FD3633ED6A774D0121F3D7D98DED7D91FE092",
+      "server": "24864AF49F4136656B3EA342FA4263E2E6905D43C6758FB523C5BDAFB992AA65",
+      "runtime": ".NET 8.0.34",
+      "os": "Microsoft Windows 10.0.26200",
+      "variant": "baseline",
+      "started": "2026-11-15T17:14:05.204561+00:00",
+      "ended": "2026-11-15T17:15:16.1282086+00:00",
+      "dashboardSha256AfterCohort": null,
+      "harnessSha256": "890ACA69C5247F23DC3313993508BAA6B17FCD1B3B65B009209EED9FD02C6DF0"
+    },
+    {
+      "path": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r3-baseline\\client-bench-20261115-171516-70d09be9\\results.json",
+      "sha256": "accdf0476bad30f8f71fab8bb66c614e2db2b073a9a84d49c5e4ff0a7878c299",
+      "core": "06F57E4DCD2ED8B82CB90337EB571187D652A4D49EC8759343A549F74D272513",
+      "client": "C757989EE484B33CD05318A8014FD3633ED6A774D0121F3D7D98DED7D91FE092",
+      "server": "24864AF49F4136656B3EA342FA4263E2E6905D43C6758FB523C5BDAFB992AA65",
+      "runtime": ".NET 8.0.34",
+      "os": "Microsoft Windows 10.0.26200",
+      "variant": "baseline",
+      "started": "2026-11-15T17:15:16.1383949+00:00",
+      "ended": "2026-11-15T17:16:26.3483516+00:00",
+      "dashboardSha256AfterCohort": null,
+      "harnessSha256": "890ACA69C5247F23DC3313993508BAA6B17FCD1B3B65B009209EED9FD02C6DF0"
+    },
+    {
+      "path": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r3-off\\client-bench-20261115-171626-177e8982\\results.json",
+      "sha256": "3a79c6080e77c3d11744dc5190e77fe2e0574dd837813675da57e1b19f92346c",
+      "core": "8D2EA7B6AF5948262698F60729075E6CED68E170AE902D171384D70C57872989",
+      "client": "B17871794B582DE6E062F8060101AE4544F54E52DCA925FE82CA79D2D12B5D52",
+      "server": "D574AFE0F12BFBF49090633D4119EF44446DD22289E967EA92F4F0AAB0A0C755",
+      "runtime": ".NET 8.0.34",
+      "os": "Microsoft Windows 10.0.26200",
+      "variant": "off",
+      "started": "2026-11-15T17:16:26.3614468+00:00",
+      "ended": "2026-11-15T17:17:36.2020363+00:00",
+      "dashboardSha256AfterCohort": null,
+      "harnessSha256": "3EF937F4D319384034B640023BCD84B6ADC7A888E4F10CD41F19BC01B40E834D"
+    },
+    {
+      "path": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r3-on\\client-bench-20261115-171736-4f17eabe\\results.json",
+      "sha256": "a308810e023055aa848917b1e955d035928424691370c8d4c1c84c74a2dbe2a6",
+      "core": "8D2EA7B6AF5948262698F60729075E6CED68E170AE902D171384D70C57872989",
+      "client": "B17871794B582DE6E062F8060101AE4544F54E52DCA925FE82CA79D2D12B5D52",
+      "server": "D574AFE0F12BFBF49090633D4119EF44446DD22289E967EA92F4F0AAB0A0C755",
+      "runtime": ".NET 8.0.34",
+      "os": "Microsoft Windows 10.0.26200",
+      "variant": "on",
+      "started": "2026-11-15T17:17:36.2147888+00:00",
+      "ended": "2026-11-15T17:18:53.7062027+00:00",
+      "dashboardSha256AfterCohort": "760bd0af3814f062e3e038d787af67fccbd4035f93bc3b1181e77842e78c0806",
+      "harnessSha256": "3EF937F4D319384034B640023BCD84B6ADC7A888E4F10CD41F19BC01B40E834D"
+    },
+    {
+      "path": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r4-on\\client-bench-20261115-171853-6d2b5c13\\results.json",
+      "sha256": "17da8275bb44689056404d6b9551399f2de1448b71737a0165cd2f8f5870d4aa",
+      "core": "8D2EA7B6AF5948262698F60729075E6CED68E170AE902D171384D70C57872989",
+      "client": "B17871794B582DE6E062F8060101AE4544F54E52DCA925FE82CA79D2D12B5D52",
+      "server": "D574AFE0F12BFBF49090633D4119EF44446DD22289E967EA92F4F0AAB0A0C755",
+      "runtime": ".NET 8.0.34",
+      "os": "Microsoft Windows 10.0.26200",
+      "variant": "on",
+      "started": "2026-11-15T17:18:53.7177235+00:00",
+      "ended": "2026-11-15T17:21:01.8393578+00:00",
+      "dashboardSha256AfterCohort": "760bd0af3814f062e3e038d787af67fccbd4035f93bc3b1181e77842e78c0806",
+      "harnessSha256": "3EF937F4D319384034B640023BCD84B6ADC7A888E4F10CD41F19BC01B40E834D"
+    },
+    {
+      "path": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r4-off\\client-bench-20261115-172101-79cbd949\\results.json",
+      "sha256": "1c15426a16329fc6b9a9ef1a4617531802a139ee2fab8ce29da8a51a5fa6c222",
+      "core": "8D2EA7B6AF5948262698F60729075E6CED68E170AE902D171384D70C57872989",
+      "client": "B17871794B582DE6E062F8060101AE4544F54E52DCA925FE82CA79D2D12B5D52",
+      "server": "D574AFE0F12BFBF49090633D4119EF44446DD22289E967EA92F4F0AAB0A0C755",
+      "runtime": ".NET 8.0.34",
+      "os": "Microsoft Windows 10.0.26200",
+      "variant": "off",
+      "started": "2026-11-15T17:21:01.8530647+00:00",
+      "ended": "2026-11-15T17:22:12.7587085+00:00",
+      "dashboardSha256AfterCohort": null,
+      "harnessSha256": "3EF937F4D319384034B640023BCD84B6ADC7A888E4F10CD41F19BC01B40E834D"
+    },
+    {
+      "path": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r4-baseline\\client-bench-20261115-172212-b5e17bed\\results.json",
+      "sha256": "e5b598d61dd00ff704abcf2788bf80267c1c913a97f1b54230582041a4a02747",
+      "core": "06F57E4DCD2ED8B82CB90337EB571187D652A4D49EC8759343A549F74D272513",
+      "client": "C757989EE484B33CD05318A8014FD3633ED6A774D0121F3D7D98DED7D91FE092",
+      "server": "24864AF49F4136656B3EA342FA4263E2E6905D43C6758FB523C5BDAFB992AA65",
+      "runtime": ".NET 8.0.34",
+      "os": "Microsoft Windows 10.0.26200",
+      "variant": "baseline",
+      "started": "2026-11-15T17:22:12.7784053+00:00",
+      "ended": "2026-11-15T17:23:23.8062288+00:00",
+      "dashboardSha256AfterCohort": null,
+      "harnessSha256": "890ACA69C5247F23DC3313993508BAA6B17FCD1B3B65B009209EED9FD02C6DF0"
+    },
+    {
+      "path": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r5-baseline\\client-bench-20261115-172323-d31ed662\\results.json",
+      "sha256": "8eea5891b90d78e7b4792506589e900f7ae03ca4ca9431da9e707261310301dc",
+      "core": "06F57E4DCD2ED8B82CB90337EB571187D652A4D49EC8759343A549F74D272513",
+      "client": "C757989EE484B33CD05318A8014FD3633ED6A774D0121F3D7D98DED7D91FE092",
+      "server": "24864AF49F4136656B3EA342FA4263E2E6905D43C6758FB523C5BDAFB992AA65",
+      "runtime": ".NET 8.0.34",
+      "os": "Microsoft Windows 10.0.26200",
+      "variant": "baseline",
+      "started": "2026-11-15T17:23:23.821564+00:00",
+      "ended": "2026-11-15T17:24:34.5335477+00:00",
+      "dashboardSha256AfterCohort": null,
+      "harnessSha256": "890ACA69C5247F23DC3313993508BAA6B17FCD1B3B65B009209EED9FD02C6DF0"
+    },
+    {
+      "path": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r5-off\\client-bench-20261115-172434-b01c10e1\\results.json",
+      "sha256": "7afe0ebebaab2c97142d67c8f25aabb8bb665be8ac6e1f4695df08b4357917d3",
+      "core": "8D2EA7B6AF5948262698F60729075E6CED68E170AE902D171384D70C57872989",
+      "client": "B17871794B582DE6E062F8060101AE4544F54E52DCA925FE82CA79D2D12B5D52",
+      "server": "D574AFE0F12BFBF49090633D4119EF44446DD22289E967EA92F4F0AAB0A0C755",
+      "runtime": ".NET 8.0.34",
+      "os": "Microsoft Windows 10.0.26200",
+      "variant": "off",
+      "started": "2026-11-15T17:24:34.5431801+00:00",
+      "ended": "2026-11-15T17:25:45.5062418+00:00",
+      "dashboardSha256AfterCohort": null,
+      "harnessSha256": "3EF937F4D319384034B640023BCD84B6ADC7A888E4F10CD41F19BC01B40E834D"
+    },
+    {
+      "path": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r5-on\\client-bench-20261115-172545-385930d2\\results.json",
+      "sha256": "cd7014df4fbb19100558ab5fb5173ebcfdc32624a042798edc5f7084b6e12757",
+      "core": "8D2EA7B6AF5948262698F60729075E6CED68E170AE902D171384D70C57872989",
+      "client": "B17871794B582DE6E062F8060101AE4544F54E52DCA925FE82CA79D2D12B5D52",
+      "server": "D574AFE0F12BFBF49090633D4119EF44446DD22289E967EA92F4F0AAB0A0C755",
+      "runtime": ".NET 8.0.34",
+      "os": "Microsoft Windows 10.0.26200",
+      "variant": "on",
+      "started": "2026-11-15T17:25:45.5215596+00:00",
+      "ended": "2026-11-15T17:27:02.0665914+00:00",
+      "dashboardSha256AfterCohort": "760bd0af3814f062e3e038d787af67fccbd4035f93bc3b1181e77842e78c0806",
+      "harnessSha256": "3EF937F4D319384034B640023BCD84B6ADC7A888E4F10CD41F19BC01B40E834D"
+    }
+  ],
+  "workload": {
+    "requestsPerCell": [
+      4096
+    ],
+    "concurrency": [
+      64
+    ],
+    "warmup": 128,
+    "observations": 60,
+    "latencies": 245760
+  },
+  "rounds": [
+    {
+      "Voters": 3,
+      "PayloadBytes": 64,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 517.7234456345764,
+      "P50Milliseconds": 122.3347,
+      "P99Milliseconds": 180.2053,
+      "AllocatedBytesPerCommand": 517438.107421875,
+      "variant": "baseline",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/1",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r1-baseline\\client-bench-20261115-170800-cb4ed9db\\results.json",
+      "observationRequests": null,
+      "observationReadIndexCalls": null
+    },
+    {
+      "Voters": 3,
+      "PayloadBytes": 16384,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 373.35142921041785,
+      "P50Milliseconds": 175.2774,
+      "P99Milliseconds": 226.2846,
+      "AllocatedBytesPerCommand": 818276.982421875,
+      "variant": "baseline",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/1",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r1-baseline\\client-bench-20261115-170800-cb4ed9db\\results.json",
+      "observationRequests": null,
+      "observationReadIndexCalls": null
+    },
+    {
+      "Voters": 5,
+      "PayloadBytes": 64,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 376.5255028187383,
+      "P50Milliseconds": 166.2775,
+      "P99Milliseconds": 258.061,
+      "AllocatedBytesPerCommand": 853500.814453125,
+      "variant": "baseline",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/1",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r1-baseline\\client-bench-20261115-170800-cb4ed9db\\results.json",
+      "observationRequests": null,
+      "observationReadIndexCalls": null
+    },
+    {
+      "Voters": 5,
+      "PayloadBytes": 16384,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 285.26529135831004,
+      "P50Milliseconds": 230.2996,
+      "P99Milliseconds": 299.7925,
+      "AllocatedBytesPerCommand": 1321015.12890625,
+      "variant": "baseline",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/1",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r1-baseline\\client-bench-20261115-170800-cb4ed9db\\results.json",
+      "observationRequests": null,
+      "observationReadIndexCalls": null
+    },
+    {
+      "Voters": 3,
+      "PayloadBytes": 64,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 495.2395940379827,
+      "P50Milliseconds": 114.5249,
+      "P99Milliseconds": 218.1327,
+      "AllocatedBytesPerCommand": 525920.732421875,
+      "variant": "off",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/1",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r1-off\\client-bench-20261115-170910-d8f2932a\\results.json",
+      "observationRequests": 0,
+      "observationReadIndexCalls": 0
+    },
+    {
+      "Voters": 3,
+      "PayloadBytes": 16384,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 392.49134918786297,
+      "P50Milliseconds": 172.4008,
+      "P99Milliseconds": 213.3009,
+      "AllocatedBytesPerCommand": 819119.83203125,
+      "variant": "off",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/1",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r1-off\\client-bench-20261115-170910-d8f2932a\\results.json",
+      "observationRequests": 0,
+      "observationReadIndexCalls": 0
+    },
+    {
+      "Voters": 5,
+      "PayloadBytes": 64,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 383.93474908959615,
+      "P50Milliseconds": 161.8462,
+      "P99Milliseconds": 239.7107,
+      "AllocatedBytesPerCommand": 860841.505859375,
+      "variant": "off",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/1",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r1-off\\client-bench-20261115-170910-d8f2932a\\results.json",
+      "observationRequests": 0,
+      "observationReadIndexCalls": 0
+    },
+    {
+      "Voters": 5,
+      "PayloadBytes": 16384,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 283.1567772019197,
+      "P50Milliseconds": 232.3564,
+      "P99Milliseconds": 327.5214,
+      "AllocatedBytesPerCommand": 1331833.271484375,
+      "variant": "off",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/1",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r1-off\\client-bench-20261115-170910-d8f2932a\\results.json",
+      "observationRequests": 0,
+      "observationReadIndexCalls": 0
+    },
+    {
+      "Voters": 3,
+      "PayloadBytes": 64,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 508.8701053646861,
+      "P50Milliseconds": 121.8007,
+      "P99Milliseconds": 175.4774,
+      "AllocatedBytesPerCommand": 527651.09375,
+      "variant": "on",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/1",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r1-on\\client-bench-20261115-171021-6eafda85\\results.json",
+      "observationRequests": 24,
+      "observationReadIndexCalls": 9
+    },
+    {
+      "Voters": 3,
+      "PayloadBytes": 16384,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 372.75373331155777,
+      "P50Milliseconds": 179.6602,
+      "P99Milliseconds": 217.6547,
+      "AllocatedBytesPerCommand": 817637.177734375,
+      "variant": "on",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/1",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r1-on\\client-bench-20261115-171021-6eafda85\\results.json",
+      "observationRequests": 33,
+      "observationReadIndexCalls": 13
+    },
+    {
+      "Voters": 5,
+      "PayloadBytes": 64,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 379.0168639371098,
+      "P50Milliseconds": 158.3996,
+      "P99Milliseconds": 257.0001,
+      "AllocatedBytesPerCommand": 874815.21875,
+      "variant": "on",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/1",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r1-on\\client-bench-20261115-171021-6eafda85\\results.json",
+      "observationRequests": 55,
+      "observationReadIndexCalls": 12
+    },
+    {
+      "Voters": 5,
+      "PayloadBytes": 16384,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 281.3807764129596,
+      "P50Milliseconds": 231.9188,
+      "P99Milliseconds": 300.9906,
+      "AllocatedBytesPerCommand": 1329461.982421875,
+      "variant": "on",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/1",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r1-on\\client-bench-20261115-171021-6eafda85\\results.json",
+      "observationRequests": 75,
+      "observationReadIndexCalls": 18
+    },
+    {
+      "Voters": 3,
+      "PayloadBytes": 64,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 497.10045769165384,
+      "P50Milliseconds": 124.2167,
+      "P99Milliseconds": 193.0116,
+      "AllocatedBytesPerCommand": 528654.966796875,
+      "variant": "on",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/2",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r2-on\\client-bench-20261115-171136-96f448e3\\results.json",
+      "observationRequests": 24,
+      "observationReadIndexCalls": 9
+    },
+    {
+      "Voters": 3,
+      "PayloadBytes": 16384,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 380.9210272405964,
+      "P50Milliseconds": 173.1576,
+      "P99Milliseconds": 213.1822,
+      "AllocatedBytesPerCommand": 824624.65234375,
+      "variant": "on",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/2",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r2-on\\client-bench-20261115-171136-96f448e3\\results.json",
+      "observationRequests": 33,
+      "observationReadIndexCalls": 12
+    },
+    {
+      "Voters": 5,
+      "PayloadBytes": 64,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 386.2074131249478,
+      "P50Milliseconds": 161.2162,
+      "P99Milliseconds": 211.5992,
+      "AllocatedBytesPerCommand": 872396.998046875,
+      "variant": "on",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/2",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r2-on\\client-bench-20261115-171136-96f448e3\\results.json",
+      "observationRequests": 50,
+      "observationReadIndexCalls": 12
+    },
+    {
+      "Voters": 5,
+      "PayloadBytes": 16384,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 265.7288462500486,
+      "P50Milliseconds": 247.6313,
+      "P99Milliseconds": 301.7939,
+      "AllocatedBytesPerCommand": 1337026.5390625,
+      "variant": "on",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/2",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r2-on\\client-bench-20261115-171136-96f448e3\\results.json",
+      "observationRequests": 80,
+      "observationReadIndexCalls": 18
+    },
+    {
+      "Voters": 3,
+      "PayloadBytes": 64,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 467.06029343587466,
+      "P50Milliseconds": 119.2115,
+      "P99Milliseconds": 239.0957,
+      "AllocatedBytesPerCommand": 524522.3984375,
+      "variant": "off",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/2",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r2-off\\client-bench-20261115-171253-a1f76047\\results.json",
+      "observationRequests": 0,
+      "observationReadIndexCalls": 0
+    },
+    {
+      "Voters": 3,
+      "PayloadBytes": 16384,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 374.9701012609688,
+      "P50Milliseconds": 175.8034,
+      "P99Milliseconds": 226.3939,
+      "AllocatedBytesPerCommand": 823361.59375,
+      "variant": "off",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/2",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r2-off\\client-bench-20261115-171253-a1f76047\\results.json",
+      "observationRequests": 0,
+      "observationReadIndexCalls": 0
+    },
+    {
+      "Voters": 5,
+      "PayloadBytes": 64,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 373.6851364802852,
+      "P50Milliseconds": 156.2568,
+      "P99Milliseconds": 273.1966,
+      "AllocatedBytesPerCommand": 868874.966796875,
+      "variant": "off",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/2",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r2-off\\client-bench-20261115-171253-a1f76047\\results.json",
+      "observationRequests": 0,
+      "observationReadIndexCalls": 0
+    },
+    {
+      "Voters": 5,
+      "PayloadBytes": 16384,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 280.3673041673396,
+      "P50Milliseconds": 233.215,
+      "P99Milliseconds": 298.186,
+      "AllocatedBytesPerCommand": 1332530.2890625,
+      "variant": "off",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/2",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r2-off\\client-bench-20261115-171253-a1f76047\\results.json",
+      "observationRequests": 0,
+      "observationReadIndexCalls": 0
+    },
+    {
+      "Voters": 3,
+      "PayloadBytes": 64,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 497.9085954814187,
+      "P50Milliseconds": 122.3508,
+      "P99Milliseconds": 202.9739,
+      "AllocatedBytesPerCommand": 517793.990234375,
+      "variant": "baseline",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/2",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r2-baseline\\client-bench-20261115-171405-f66d0deb\\results.json",
+      "observationRequests": null,
+      "observationReadIndexCalls": null
+    },
+    {
+      "Voters": 3,
+      "PayloadBytes": 16384,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 372.4754196232054,
+      "P50Milliseconds": 178.0807,
+      "P99Milliseconds": 255.7073,
+      "AllocatedBytesPerCommand": 820854.1640625,
+      "variant": "baseline",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/2",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r2-baseline\\client-bench-20261115-171405-f66d0deb\\results.json",
+      "observationRequests": null,
+      "observationReadIndexCalls": null
+    },
+    {
+      "Voters": 5,
+      "PayloadBytes": 64,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 379.9951374352701,
+      "P50Milliseconds": 167.3126,
+      "P99Milliseconds": 236.1577,
+      "AllocatedBytesPerCommand": 853439.048828125,
+      "variant": "baseline",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/2",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r2-baseline\\client-bench-20261115-171405-f66d0deb\\results.json",
+      "observationRequests": null,
+      "observationReadIndexCalls": null
+    },
+    {
+      "Voters": 5,
+      "PayloadBytes": 16384,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 277.4469021766387,
+      "P50Milliseconds": 238.9459,
+      "P99Milliseconds": 283.2919,
+      "AllocatedBytesPerCommand": 1316185.7578125,
+      "variant": "baseline",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/2",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r2-baseline\\client-bench-20261115-171405-f66d0deb\\results.json",
+      "observationRequests": null,
+      "observationReadIndexCalls": null
+    },
+    {
+      "Voters": 3,
+      "PayloadBytes": 64,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 497.6040111742715,
+      "P50Milliseconds": 124.959,
+      "P99Milliseconds": 226.4012,
+      "AllocatedBytesPerCommand": 519089.427734375,
+      "variant": "baseline",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/3",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r3-baseline\\client-bench-20261115-171516-70d09be9\\results.json",
+      "observationRequests": null,
+      "observationReadIndexCalls": null
+    },
+    {
+      "Voters": 3,
+      "PayloadBytes": 16384,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 374.5609231068581,
+      "P50Milliseconds": 174.9406,
+      "P99Milliseconds": 234.4941,
+      "AllocatedBytesPerCommand": 814571.142578125,
+      "variant": "baseline",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/3",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r3-baseline\\client-bench-20261115-171516-70d09be9\\results.json",
+      "observationRequests": null,
+      "observationReadIndexCalls": null
+    },
+    {
+      "Voters": 5,
+      "PayloadBytes": 64,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 377.8554667231334,
+      "P50Milliseconds": 161.2984,
+      "P99Milliseconds": 243.3662,
+      "AllocatedBytesPerCommand": 853795.12109375,
+      "variant": "baseline",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/3",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r3-baseline\\client-bench-20261115-171516-70d09be9\\results.json",
+      "observationRequests": null,
+      "observationReadIndexCalls": null
+    },
+    {
+      "Voters": 5,
+      "PayloadBytes": 16384,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 285.4257321652592,
+      "P50Milliseconds": 234.2227,
+      "P99Milliseconds": 308.2774,
+      "AllocatedBytesPerCommand": 1322306.4765625,
+      "variant": "baseline",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/3",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r3-baseline\\client-bench-20261115-171516-70d09be9\\results.json",
+      "observationRequests": null,
+      "observationReadIndexCalls": null
+    },
+    {
+      "Voters": 3,
+      "PayloadBytes": 64,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 511.65743255746696,
+      "P50Milliseconds": 121.876,
+      "P99Milliseconds": 172.3785,
+      "AllocatedBytesPerCommand": 524726.07421875,
+      "variant": "off",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/3",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r3-off\\client-bench-20261115-171626-177e8982\\results.json",
+      "observationRequests": 0,
+      "observationReadIndexCalls": 0
+    },
+    {
+      "Voters": 3,
+      "PayloadBytes": 16384,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 385.4261780330942,
+      "P50Milliseconds": 176.7697,
+      "P99Milliseconds": 221.6489,
+      "AllocatedBytesPerCommand": 818652.873046875,
+      "variant": "off",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/3",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r3-off\\client-bench-20261115-171626-177e8982\\results.json",
+      "observationRequests": 0,
+      "observationReadIndexCalls": 0
+    },
+    {
+      "Voters": 5,
+      "PayloadBytes": 64,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 383.52363368418037,
+      "P50Milliseconds": 156.3604,
+      "P99Milliseconds": 233.3913,
+      "AllocatedBytesPerCommand": 863240.509765625,
+      "variant": "off",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/3",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r3-off\\client-bench-20261115-171626-177e8982\\results.json",
+      "observationRequests": 0,
+      "observationReadIndexCalls": 0
+    },
+    {
+      "Voters": 5,
+      "PayloadBytes": 16384,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 290.91635968574843,
+      "P50Milliseconds": 230.9485,
+      "P99Milliseconds": 284.699,
+      "AllocatedBytesPerCommand": 1318448.07421875,
+      "variant": "off",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/3",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r3-off\\client-bench-20261115-171626-177e8982\\results.json",
+      "observationRequests": 0,
+      "observationReadIndexCalls": 0
+    },
+    {
+      "Voters": 3,
+      "PayloadBytes": 64,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 495.16802564660895,
+      "P50Milliseconds": 121.9044,
+      "P99Milliseconds": 218.7074,
+      "AllocatedBytesPerCommand": 526447.97265625,
+      "variant": "on",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/3",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r3-on\\client-bench-20261115-171736-4f17eabe\\results.json",
+      "observationRequests": 27,
+      "observationReadIndexCalls": 10
+    },
+    {
+      "Voters": 3,
+      "PayloadBytes": 16384,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 367.0962556226738,
+      "P50Milliseconds": 178.1143,
+      "P99Milliseconds": 231.7273,
+      "AllocatedBytesPerCommand": 827919.037109375,
+      "variant": "on",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/3",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r3-on\\client-bench-20261115-171736-4f17eabe\\results.json",
+      "observationRequests": 33,
+      "observationReadIndexCalls": 12
+    },
+    {
+      "Voters": 5,
+      "PayloadBytes": 64,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 357.9235710663848,
+      "P50Milliseconds": 168.3875,
+      "P99Milliseconds": 274.9963,
+      "AllocatedBytesPerCommand": 866998.119140625,
+      "variant": "on",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/3",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r3-on\\client-bench-20261115-171736-4f17eabe\\results.json",
+      "observationRequests": 60,
+      "observationReadIndexCalls": 14
+    },
+    {
+      "Voters": 5,
+      "PayloadBytes": 16384,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 280.9261449142978,
+      "P50Milliseconds": 239.5576,
+      "P99Milliseconds": 296.759,
+      "AllocatedBytesPerCommand": 1333804.681640625,
+      "variant": "on",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/3",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r3-on\\client-bench-20261115-171736-4f17eabe\\results.json",
+      "observationRequests": 70,
+      "observationReadIndexCalls": 16
+    },
+    {
+      "Voters": 3,
+      "PayloadBytes": 64,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 365.55000688842216,
+      "P50Milliseconds": 128.5093,
+      "P99Milliseconds": 664.3476,
+      "AllocatedBytesPerCommand": 531147.802734375,
+      "variant": "on",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/4",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r4-on\\client-bench-20261115-171853-6d2b5c13\\results.json",
+      "observationRequests": 33,
+      "observationReadIndexCalls": 12
+    },
+    {
+      "Voters": 3,
+      "PayloadBytes": 16384,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 74.94426733697483,
+      "P50Milliseconds": 860.5846,
+      "P99Milliseconds": 1185.9177,
+      "AllocatedBytesPerCommand": 1147269.884765625,
+      "variant": "on",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/4",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r4-on\\client-bench-20261115-171853-6d2b5c13\\results.json",
+      "observationRequests": 162,
+      "observationReadIndexCalls": 63
+    },
+    {
+      "Voters": 5,
+      "PayloadBytes": 64,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 368.0651209279482,
+      "P50Milliseconds": 165.9333,
+      "P99Milliseconds": 261.6967,
+      "AllocatedBytesPerCommand": 871306.6875,
+      "variant": "on",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/4",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r4-on\\client-bench-20261115-171853-6d2b5c13\\results.json",
+      "observationRequests": 55,
+      "observationReadIndexCalls": 12
+    },
+    {
+      "Voters": 5,
+      "PayloadBytes": 16384,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 275.5024221512449,
+      "P50Milliseconds": 242.6945,
+      "P99Milliseconds": 345.8431,
+      "AllocatedBytesPerCommand": 1348580.470703125,
+      "variant": "on",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/4",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r4-on\\client-bench-20261115-171853-6d2b5c13\\results.json",
+      "observationRequests": 75,
+      "observationReadIndexCalls": 17
+    },
+    {
+      "Voters": 3,
+      "PayloadBytes": 64,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 488.6399094641867,
+      "P50Milliseconds": 127.5983,
+      "P99Milliseconds": 232.5593,
+      "AllocatedBytesPerCommand": 524066.6015625,
+      "variant": "off",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/4",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r4-off\\client-bench-20261115-172101-79cbd949\\results.json",
+      "observationRequests": 0,
+      "observationReadIndexCalls": 0
+    },
+    {
+      "Voters": 3,
+      "PayloadBytes": 16384,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 383.26881173811637,
+      "P50Milliseconds": 176.433,
+      "P99Milliseconds": 237.7217,
+      "AllocatedBytesPerCommand": 826766.326171875,
+      "variant": "off",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/4",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r4-off\\client-bench-20261115-172101-79cbd949\\results.json",
+      "observationRequests": 0,
+      "observationReadIndexCalls": 0
+    },
+    {
+      "Voters": 5,
+      "PayloadBytes": 64,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 378.9813396102118,
+      "P50Milliseconds": 157.9527,
+      "P99Milliseconds": 242.7257,
+      "AllocatedBytesPerCommand": 870440.9140625,
+      "variant": "off",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/4",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r4-off\\client-bench-20261115-172101-79cbd949\\results.json",
+      "observationRequests": 0,
+      "observationReadIndexCalls": 0
+    },
+    {
+      "Voters": 5,
+      "PayloadBytes": 16384,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 275.4774450857807,
+      "P50Milliseconds": 239.9901,
+      "P99Milliseconds": 281.3462,
+      "AllocatedBytesPerCommand": 1326641.03515625,
+      "variant": "off",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/4",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r4-off\\client-bench-20261115-172101-79cbd949\\results.json",
+      "observationRequests": 0,
+      "observationReadIndexCalls": 0
+    },
+    {
+      "Voters": 3,
+      "PayloadBytes": 64,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 502.52988092851376,
+      "P50Milliseconds": 122.3777,
+      "P99Milliseconds": 183.8954,
+      "AllocatedBytesPerCommand": 517838.36328125,
+      "variant": "baseline",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/4",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r4-baseline\\client-bench-20261115-172212-b5e17bed\\results.json",
+      "observationRequests": null,
+      "observationReadIndexCalls": null
+    },
+    {
+      "Voters": 3,
+      "PayloadBytes": 16384,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 372.7836008125445,
+      "P50Milliseconds": 178.4282,
+      "P99Milliseconds": 219.1924,
+      "AllocatedBytesPerCommand": 822011,
+      "variant": "baseline",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/4",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r4-baseline\\client-bench-20261115-172212-b5e17bed\\results.json",
+      "observationRequests": null,
+      "observationReadIndexCalls": null
+    },
+    {
+      "Voters": 5,
+      "PayloadBytes": 64,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 364.46783824924455,
+      "P50Milliseconds": 159.7206,
+      "P99Milliseconds": 304.5951,
+      "AllocatedBytesPerCommand": 863386.404296875,
+      "variant": "baseline",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/4",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r4-baseline\\client-bench-20261115-172212-b5e17bed\\results.json",
+      "observationRequests": null,
+      "observationReadIndexCalls": null
+    },
+    {
+      "Voters": 5,
+      "PayloadBytes": 16384,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 280.4802092349492,
+      "P50Milliseconds": 230.6648,
+      "P99Milliseconds": 295.9918,
+      "AllocatedBytesPerCommand": 1314839.494140625,
+      "variant": "baseline",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/4",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r4-baseline\\client-bench-20261115-172212-b5e17bed\\results.json",
+      "observationRequests": null,
+      "observationReadIndexCalls": null
+    },
+    {
+      "Voters": 3,
+      "PayloadBytes": 64,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 496.3072005862629,
+      "P50Milliseconds": 120.8966,
+      "P99Milliseconds": 186.1453,
+      "AllocatedBytesPerCommand": 518155.83984375,
+      "variant": "baseline",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/5",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r5-baseline\\client-bench-20261115-172323-d31ed662\\results.json",
+      "observationRequests": null,
+      "observationReadIndexCalls": null
+    },
+    {
+      "Voters": 3,
+      "PayloadBytes": 16384,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 370.44739952618187,
+      "P50Milliseconds": 176.58,
+      "P99Milliseconds": 236.2832,
+      "AllocatedBytesPerCommand": 816896.677734375,
+      "variant": "baseline",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/5",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r5-baseline\\client-bench-20261115-172323-d31ed662\\results.json",
+      "observationRequests": null,
+      "observationReadIndexCalls": null
+    },
+    {
+      "Voters": 5,
+      "PayloadBytes": 64,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 373.9357916093811,
+      "P50Milliseconds": 163.9175,
+      "P99Milliseconds": 262.7505,
+      "AllocatedBytesPerCommand": 853354.375,
+      "variant": "baseline",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/5",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r5-baseline\\client-bench-20261115-172323-d31ed662\\results.json",
+      "observationRequests": null,
+      "observationReadIndexCalls": null
+    },
+    {
+      "Voters": 5,
+      "PayloadBytes": 16384,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 285.5806906847092,
+      "P50Milliseconds": 232.0518,
+      "P99Milliseconds": 290.1382,
+      "AllocatedBytesPerCommand": 1312097.51953125,
+      "variant": "baseline",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/5",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r5-baseline\\client-bench-20261115-172323-d31ed662\\results.json",
+      "observationRequests": null,
+      "observationReadIndexCalls": null
+    },
+    {
+      "Voters": 3,
+      "PayloadBytes": 64,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 492.5493315632983,
+      "P50Milliseconds": 124.6675,
+      "P99Milliseconds": 209.1515,
+      "AllocatedBytesPerCommand": 527423.59765625,
+      "variant": "off",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/5",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r5-off\\client-bench-20261115-172434-b01c10e1\\results.json",
+      "observationRequests": 0,
+      "observationReadIndexCalls": 0
+    },
+    {
+      "Voters": 3,
+      "PayloadBytes": 16384,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 385.7452150217851,
+      "P50Milliseconds": 173.2517,
+      "P99Milliseconds": 210.1824,
+      "AllocatedBytesPerCommand": 826163.681640625,
+      "variant": "off",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/5",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r5-off\\client-bench-20261115-172434-b01c10e1\\results.json",
+      "observationRequests": 0,
+      "observationReadIndexCalls": 0
+    },
+    {
+      "Voters": 5,
+      "PayloadBytes": 64,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 389.65150296366306,
+      "P50Milliseconds": 160.5336,
+      "P99Milliseconds": 211.4778,
+      "AllocatedBytesPerCommand": 862558.5859375,
+      "variant": "off",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/5",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r5-off\\client-bench-20261115-172434-b01c10e1\\results.json",
+      "observationRequests": 0,
+      "observationReadIndexCalls": 0
+    },
+    {
+      "Voters": 5,
+      "PayloadBytes": 16384,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 279.75432434208216,
+      "P50Milliseconds": 237.7372,
+      "P99Milliseconds": 275.2739,
+      "AllocatedBytesPerCommand": 1326485.796875,
+      "variant": "off",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/5",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r5-off\\client-bench-20261115-172434-b01c10e1\\results.json",
+      "observationRequests": 0,
+      "observationReadIndexCalls": 0
+    },
+    {
+      "Voters": 3,
+      "PayloadBytes": 64,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 500.82954784775836,
+      "P50Milliseconds": 123.458,
+      "P99Milliseconds": 188.8903,
+      "AllocatedBytesPerCommand": 529779.599609375,
+      "variant": "on",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/5",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r5-on\\client-bench-20261115-172545-385930d2\\results.json",
+      "observationRequests": 24,
+      "observationReadIndexCalls": 9
+    },
+    {
+      "Voters": 3,
+      "PayloadBytes": 16384,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 374.0656930772906,
+      "P50Milliseconds": 177.4952,
+      "P99Milliseconds": 293.9967,
+      "AllocatedBytesPerCommand": 823948.572265625,
+      "variant": "on",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/5",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r5-on\\client-bench-20261115-172545-385930d2\\results.json",
+      "observationRequests": 33,
+      "observationReadIndexCalls": 13
+    },
+    {
+      "Voters": 5,
+      "PayloadBytes": 64,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 374.17377684387395,
+      "P50Milliseconds": 170.4898,
+      "P99Milliseconds": 239.197,
+      "AllocatedBytesPerCommand": 868555.51171875,
+      "variant": "on",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/5",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r5-on\\client-bench-20261115-172545-385930d2\\results.json",
+      "observationRequests": 55,
+      "observationReadIndexCalls": 12
+    },
+    {
+      "Voters": 5,
+      "PayloadBytes": 16384,
+      "RoundNumber": 1,
+      "Requests": 4096,
+      "Concurrency": 64,
+      "CommandsPerSecond": 287.1239348523923,
+      "P50Milliseconds": 233.7559,
+      "P99Milliseconds": 291.1663,
+      "AllocatedBytesPerCommand": 1330996.50390625,
+      "variant": "on",
+      "pair": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0/5",
+      "source": "D:\\Temp\\RaftNet8\\dashboard-overhead-0dfb416948af446cba9bc11706bad4f0\\r5-on\\client-bench-20261115-172545-385930d2\\results.json",
+      "observationRequests": 75,
+      "observationReadIndexCalls": 18
+    }
+  ]
+}

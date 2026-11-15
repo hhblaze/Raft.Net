@@ -97,6 +97,15 @@ public sealed class ProcessClusterTests
             await leader.SuccessAsync("set", "counter", $"after-kill-{i}-" + new string('x', 2048), token: token);
         var snapshot = (await leader.SuccessAsync("snapshot", token: token)).Snapshot!;
         Assert.True(snapshot.LastIncludedIndex > first.Proposal!.Value.Index + 8);
+        // An append prepared before compaction can legally finish after the follower restarts,
+        // even while a newer snapshot request is in flight. Reopen every surviving sender from
+        // compacted files to discard those already-owned request buffers and force image recovery.
+        var survivors = cluster.Voters.Where(id => id != killed).ToArray();
+        await cluster.WaitAsync(status => status.LastApplied >= snapshot.LastIncludedIndex, survivors, token);
+        foreach (var id in survivors.Where(id => id != leader.Id)) await cluster.Worker(id).SuccessAsync("snapshot", token: token);
+        foreach (var id in survivors) await cluster.StopAsync(id, kill: false);
+        foreach (var id in survivors) await cluster.StartAsync(id);
+        leader = await cluster.LeaderAsync(token);
         await cluster.StartAsync(killed);
         await cluster.WaitAsync(s => s.SnapshotIndex >= snapshot.LastIncludedIndex, [killed], token);
         var expected = "after-kill-31-" + new string('x', 2048);
@@ -165,6 +174,7 @@ public sealed class ProcessClusterTests
             finally { foreach (var listener in listeners) listener.Stop(); }
         }
         public IEnumerable<string> ActiveIds => _workers.Keys;
+        public Worker Worker(string id) => _workers[id];
         public PeerDescriptor Descriptor(string id)
         {
             var text = _endpoints.Split(',').Single(item => item.StartsWith(id + "=", StringComparison.Ordinal));
@@ -228,14 +238,21 @@ public sealed class ProcessClusterTests
         }
         public async Task WaitAsync(Func<WorkerStatus, bool> predicate, IEnumerable<string> ids, CancellationToken token)
         {
-            while (true)
+            WorkerStatus[] last = [];
+            try
             {
-                token.ThrowIfCancellationRequested();
-                var statuses = await Task.WhenAll(ids.Select(id => _workers[id].SuccessAsync("status", token: token)));
-                foreach (var status in statuses) Assert.Null(status.Status!.Fault);
-                if (statuses.All(status => predicate(status.Status!))) return;
-                await Task.Delay(40, token);
+                while (true)
+                {
+                    token.ThrowIfCancellationRequested();
+                    var statuses = await Task.WhenAll(ids.Select(id => _workers[id].SuccessAsync("status", token: token)));
+                    foreach (var status in statuses) Assert.Null(status.Status!.Fault);
+                    last = statuses.Select(status => status.Status!).ToArray();
+                    if (last.All(predicate)) return;
+                    await Task.Delay(40, token);
+                }
             }
+            catch (OperationCanceledException) when (token.IsCancellationRequested)
+            { throw new TimeoutException("Process condition deadline expired. Last node status: " + System.Text.Json.JsonSerializer.Serialize(last)); }
         }
         public Task WaitCaughtUpAsync(Worker leader, string peer, CancellationToken token) =>
             WaitAsync(s => s.Peers.Any(p => p.NodeId == peer && p.MatchIndex >= s.LastLogIndex), [leader.Id], token);

@@ -11,6 +11,7 @@ public sealed record RaftClusterNodeOptions
     public required ClusterServerOptions ClientServer { get; init; }
     public long CacheBytes { get; init; } = 32 * 1024 * 1024;
     public RaftTransportSecurity? PeerSecurity { get; init; }
+    public ClusterLedgerVersion ApplicationVersion { get; init; } = ClusterLedgerVersion.V2;
 }
 
 /// <summary>Owns one disk-backed wire3/v4 node, its message ledger, peer transport and client listener.</summary>
@@ -44,9 +45,18 @@ public sealed class RaftClusterNode : IAsyncDisposable
             throw new ArgumentException("Message cluster hosting requires wire3/v4 and an absolute data directory.");
         if (settings.Peer.NodeId != settings.Raft.NodeId || settings.ClientServer.Endpoint.NodeId != settings.Raft.NodeId)
             throw new ArgumentException("Node, peer, and client endpoint identities must agree.");
+        if (settings.ClientServer.Security.SecureTransport && settings.PeerSecurity is not TlsRaftTransportSecurity)
+            throw new ArgumentException("The secure cluster profile requires peer mutual TLS.");
+        if (settings.ClientServer.Security.SecureTransport && (settings.ClientServer.Endpoint.Address.Scheme != "https" ||
+            settings.ClientServer.InitialEndpoints.Any(endpoint => endpoint.Address.Scheme != "https") ||
+            settings.ClientServer.Management is { Endpoint.Scheme: not "https" } ||
+            settings.ClientServer.Management?.InitialEndpoints.Any(endpoint => endpoint.Address.Scheme != "https") == true))
+            throw new ArgumentException("The secure cluster profile requires HTTPS client and management routes.");
+        if ((settings.ClientServer.Management is not null || settings.ClientServer.Security.RequireClientTokens) && settings.ApplicationVersion != ClusterLedgerVersion.V2)
+            throw new ArgumentException("Native administration and client security require cluster-v2.");
         var options = ConfigureMessageLimits(settings.Raft) with
         { SnapshotDirectory = settings.Raft.SnapshotDirectory ?? Path.Combine(settings.DataDirectory, "images") };
-        var ledger = new MessageLedger(Path.Combine(settings.DataDirectory, "messages"), settings.CacheBytes);
+        var ledger = new MessageLedger(Path.Combine(settings.DataDirectory, "messages"), settings.CacheBytes, settings.ApplicationVersion);
         RaftStorageAdapter? log = null;
         RaftNode? node = null;
         TcpRaftTransport? peers = null;
@@ -54,11 +64,15 @@ public sealed class RaftClusterNode : IAsyncDisposable
         try
         {
             log = new(new DBreezeLogStorage(Path.Combine(settings.DataDirectory, "log"), options, DBreezeLogLayout.UnifiedTableV4));
-            peers = new(options, settings.Peer, settings.PeerSecurity);
+            peers = new(options, settings.Peer, settings.ApplicationVersion == ClusterLedgerVersion.V2
+                ? new ClusterApplicationTransport(settings.PeerSecurity) : settings.PeerSecurity);
             node = await RaftNode.CreateAsync(options, log, peers, ledger, cancellationToken: token).ConfigureAwait(false);
             await node.StartAsync().ConfigureAwait(false);
             peers.Start(node.HandleAsync);
-            server = await RaftClusterServer.StartAsync(node, ledger, settings.ClientServer with { GroupId = options.GroupId }, token).ConfigureAwait(false);
+            server = await RaftClusterServer.StartAsync(node, ledger, settings.ClientServer with
+                { GroupId = options.GroupId, Management = settings.ClientServer.Management is { } management
+                    ? management with { DataDirectory = settings.DataDirectory, LocalPeer = settings.Peer,
+                        EffectiveConfiguration = DescribeOptions(options, settings) } : null }, token).ConfigureAwait(false);
             return new(options, node, ledger, peers, server);
         }
         catch
@@ -80,5 +94,26 @@ public sealed class RaftClusterNode : IAsyncDisposable
             try { await _peers.DisposeAsync().ConfigureAwait(false); }
             finally { try { await Node.DisposeAsync().ConfigureAwait(false); } finally { Ledger.Dispose(); } }
         }
+    }
+    private static IReadOnlyDictionary<string, string> DescribeOptions(RaftOptions options, RaftClusterNodeOptions settings)
+    {
+        var values = typeof(RaftOptions).GetProperties().Where(property =>
+            (Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType) is var type &&
+            (type.IsPrimitive || type == typeof(TimeSpan))).ToDictionary(property => property.Name,
+                property => Convert.ToString(property.GetValue(options), System.Globalization.CultureInfo.InvariantCulture) ?? "automatic", StringComparer.Ordinal);
+        values["MessagePayloadBytes"] = ClusterLimits.MaxPayloadBytes.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        values["MessageCacheBytes"] = settings.CacheBytes.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        values["MaxEntities"] = ClusterLimits.MaxEntities.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        values["MaxEndpoints"] = ClusterLimits.MaxEndpoints.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        values["HttpConcurrency"] = settings.ClientServer.MaxConcurrentRequests.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        values["RequireClientTokens"] = settings.ClientServer.Security.RequireClientTokens.ToString();
+        values["SecureTransport"] = settings.ClientServer.Security.SecureTransport.ToString();
+        if (settings.ClientServer.Management is { } management)
+        {
+            values["Telemetry.SampleIntervalSeconds"] = management.SampleIntervalSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            values["Telemetry.FileScanIntervalSeconds"] = management.FileScanIntervalSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            values["Management.BatchObservationReads"] = management.BatchObservationReads.ToString();
+        }
+        return new System.Collections.ObjectModel.ReadOnlyDictionary<string, string>(values);
     }
 }

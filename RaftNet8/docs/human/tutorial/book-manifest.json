@@ -4,15 +4,15 @@
   "editions": [
     {
       "language": "en",
-      "chapters": 30,
-      "words_with_code": 13459,
-      "bytes": 292502
+      "chapters": 34,
+      "words_with_code": 14913,
+      "bytes": 320073
     },
     {
       "language": "ru",
-      "chapters": 30,
-      "words_with_code": 12801,
-      "bytes": 403143
+      "chapters": 34,
+      "words_with_code": 14177,
+      "bytes": 443297
     }
   ],
   "source_sha256": {
@@ -22,11 +22,16 @@
     "RaftNet8/docs/human/tutorial/examples/TutorialNode/Program.cs": "c8897d97484cdfd3000c74a1554332cf9491dc3a9780bf0cfc5ec3e307c719fe",
     "RaftNet8/docs/human/tutorial/examples/TutorialNode/TutorialNode.csproj": "6159df425dfcf9c4995b84c97f55e293ea1042ca7e2cc287c5ca52bad915cfe9",
     "RaftNet8/docs/human/tutorial/examples/TutorialNode/TutorialSettings.cs": "b5302c9cf0271ad16f944c28779ac39d8d318a391ecb01cec3437c0c0e0ccdc4",
-    "RaftNet8/HumanTest/Raft.Cluster.Demo/ClientMeasurements.cs": "c70c3af99a2f6711e955821881174729efc50f1baeefb034833ef6606e445f0d",
-    "RaftNet8/HumanTest/Raft.Cluster.Demo/DemoCluster.cs": "8044b6b7b05686ece49b7439df3382a884b0b3cd98c62bb65b28fe746883aa58",
+    "RaftNet8/HumanTest/Raft.Cluster.Demo/AdministrationRecipes.cs": "183f36ff987460de734771b5b7a766e2e2455f6cd23a93c54c06f6c01acf85ab",
+    "RaftNet8/HumanTest/Raft.Cluster.Demo/ClientMeasurements.cs": "84030b737f15e24b7bc435e1ff31eac0b1b2b23608bce16f58767a22f844e3ab",
+    "RaftNet8/HumanTest/Raft.Cluster.Demo/DashboardProcessScenario.cs": "dd71bf78dff099e5077e9999eb811ce72c9d0905685c5118c47c3553875d767d",
+    "RaftNet8/HumanTest/Raft.Cluster.Demo/DemoCluster.cs": "ba8440774e843875f2597e9f61260a60d1f6e4cba1b878f1add6639434c27848",
+    "RaftNet8/HumanTest/Raft.Cluster.Demo/DemoSecurity.cs": "7361f2afcb86ae5acbbf234b67fcd7ca287ecf1d1405ca871b794e6f734e71ee",
     "RaftNet8/HumanTest/Raft.Cluster.Demo/FileMessages.cs": "04f9f4b52d2dac12a101b84354a0f8646fd09a30cc4aa62e834a6217cce9a2c3",
+    "RaftNet8/HumanTest/Raft.Cluster.Demo/MeasurementDashboard.cs": "b9e0c0f1aa430703759b7f7a04fd930b19ff1b968b7aa211f642a18250c63e7a",
+    "RaftNet8/HumanTest/Raft.Cluster.Demo/MeasurementEvents.cs": "630f3ce3d58e2f1c0ec7b4249b555b3fb00f9923df65b59dd141543507b2b8a0",
     "RaftNet8/HumanTest/Raft.Cluster.Demo/packages.lock.json": "6612a402282292f0f4813b2b261053ef6fc880c34fc0a87d8574c7d8cc287716",
-    "RaftNet8/HumanTest/Raft.Cluster.Demo/Program.cs": "bdd4f42a0476bf9a70a3c0a9027348d1183cf786065b645c610831abce8d6c02",
+    "RaftNet8/HumanTest/Raft.Cluster.Demo/Program.cs": "a2ae6a9c81abcb53610d2b114603b82a2cae3e4e8aa5bef9e43d407b635528f7",
     "RaftNet8/HumanTest/Raft.Cluster.Demo/QuickStartHost.cs": "d752a7fb74d89b2c3961353507de37f97d2317fbe2115f88dc008cefba7f225b",
     "RaftNet8/HumanTest/Raft.Cluster.Demo/Raft.Cluster.Demo.csproj": "959faf50efc3d07100781db08e38dfae692f52e448ac911095beb458e1cf0650"
   }

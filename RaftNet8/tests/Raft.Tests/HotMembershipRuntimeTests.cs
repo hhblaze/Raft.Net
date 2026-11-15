@@ -207,6 +207,14 @@ public sealed class HotMembershipRuntimeTests
         for (var i = 0; i < 24; i++) await leader.ProposeAsync(BitConverter.GetBytes(i), deadline.Token);
         var snapshot = await leader.CreateSnapshotAsync(deadline.Token);
         Assert.DoesNotContain(leader.Status.NodeId, new[] { "n1", "n2", "n3" });
+        // Reopen all compacted senders: an append already built before compaction is
+        // otherwise allowed to catch n3 up without installing an image.
+        await RuntimeCluster.EventuallyAsync(() => cluster.Hosts.Values.All(host => host.Node.Status.LastApplied >= snapshot.LastIncludedIndex));
+        var survivors = cluster.Hosts.Keys.ToArray();
+        foreach (var id in survivors.Where(id => id != leader.Status.NodeId)) await cluster.Hosts[id].Node.CreateSnapshotAsync(deadline.Token);
+        foreach (var id in survivors) await cluster.StopNodeAsync(id);
+        foreach (var id in survivors) await cluster.StartNodeAsync(id);
+        leader = await cluster.LeaderAsync();
         var recovered = await cluster.StartNodeAsync("n3");
         await RuntimeCluster.EventuallyAsync(() => recovered.Node.Status.LastApplied >= snapshot.LastIncludedIndex);
         Assert.NotNull(recovered.Node.Status.Snapshot);

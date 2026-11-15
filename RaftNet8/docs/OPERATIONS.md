@@ -106,6 +106,10 @@ Watch term churn, current voter quorum, peer lag/flight bytes, pending/admission
 
 Always observe `Completion`. Storage/application errors retain the original exception and halt the node; do not swallow them and keep participating. Stop/dispose, preserve data and recover/restore before rejoining. Status alone is stale diagnostic information. Diagnostic callback failures are counted separately and do not replace a storage error.
 
+## External message dashboard and security
+
+For the optional external message service, follow the separate [cluster dashboard/security runbook](CLUSTER-DASHBOARD.md). Fresh application state is cluster-v2; upgrade cluster-v1 through CopyNodeV1ToV2 into new directories with the whole group stopped. The application connection preamble rejects mixed versions outside unchanged core wire3 frames. Native management is authenticated even when ordinary client tokens are optional. HTTPS/mTLS profiles, bootstrap/recovery codes, live entity policies, durable admin operation IDs, diagnostic-certificate-only no-quorum observations and monitoring budgets are documented there. Certificate/private-key rotation is host deployment work; it is never a Raft command.
+
 ## Wire2 frame-limit upgrade
 
 MaxReplicationBytes now separates wire2 packet bytes (automatic1MiB+2688B) from MaxAppendBytes application bytes (default256KiB). Encoding and storage formats are unchanged, but older/smaller receivers reject oversized frames. Before a rolling upgrade with older wire2 nodes, explicitly set MaxReplicationBytes=262144 on every new node, matching the older cluster limit. Keep that value throughout the binary upgrade. To increase it afterward, ensure every node has compatible bounds; use a coordinated stop/configure/restart rather than assuming a mixed send/receive-limit rolling transition. Existing data requires no conversion. Wire1 remains on its old MaxAppendBytes limit and rejects an explicit modern override.

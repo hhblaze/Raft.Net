@@ -114,9 +114,13 @@ public sealed class ResponseBatchTests
             });
             await RuntimeCluster.EventuallyAsync(() => network.Nodes.Values.Count(n => n.Status.Role == RaftRole.Leader && n.Status.CommitIndex == 1) == 1);
             var leader = network.Nodes.Values.Single(n => n.Status.Role == RaftRole.Leader);
+            // The initial quorum does not imply that the third peer has left probing. This fixture needs both full windows.
+            await RuntimeCluster.EventuallyAsync(() => leader.Status.Peers.All(peer => peer.MatchIndex == 1));
             stopPulses.Cancel();
             try { await pulses; } catch (OperationCanceledException) { }
             await leader.ReadIndexAsync().WaitAsync(TimeSpan.FromSeconds(5));
+            // Drain startup/no-op/read flights before intercepting data replies; clocks stay stopped during the assertions.
+            await RuntimeCluster.EventuallyAsync(() => leader.Status.Peers.All(peer => peer.InFlightMessages == 0));
             var storeOfLeader = stores[leader.Status.NodeId];
             Volatile.Write(ref network.HeldLeader, leader.Status.NodeId);
             Volatile.Write(ref storeOfLeader.PauseAppend, 1);

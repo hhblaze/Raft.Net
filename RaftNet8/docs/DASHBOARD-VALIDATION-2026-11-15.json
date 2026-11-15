@@ -1,0 +1,1503 @@
+{
+  "Schema": "raft-dashboard-validation-v2",
+  "RecordedUtc": "2026-11-15T20:23:33.062391+00:00",
+  "Status": "Implemented and validated; final SDK8 full matrix passes12/12 median controls; historical failures/statistical limits retained",
+  "BaseCommit": "3fafaa20e440f2e6d43b1fd4678c21994d060822",
+  "TargetFramework": "net8.0",
+  "ValidationSdk": "8.0.428",
+  "Runtime": "8.0.34",
+  "DBreeze": "1.142.2026.1016-beta",
+  "Protocol": "wire3/raft8-v4",
+  "Application": "cluster-v2",
+  "CoreSourcesUnchanged": true,
+  "ExperimentRoot": "D:\\Temp\\RaftNet8",
+  "Validation": {
+    "Restore": "locked, passed; package inputs unchanged afterward",
+    "Build": "Release, zero warnings/errors",
+    "FullRegression": {
+      "Total": 473,
+      "Passed": 473,
+      "Skipped": 0,
+      "Trx": "D:\\Temp\\RaftNet8\\dashboard-continuation-validation-20261115\\full.trx"
+    },
+    "AdditionalIntegration": {
+      "Total": 1,
+      "Passed": 1,
+      "Skipped": 0,
+      "Trx": "D:\\Temp\\RaftNet8\\dashboard-continuation-validation-20261115\\multicluster.trx",
+      "Case": "Two independent clusters with matching node/entity names; isolated counters/credentials and scoped Viewer access",
+      "OnlyTestSourceAdded": true,
+      "ProductionBinariesStillMatchMeasuredFreeze": true
+    },
+    "HumanTest": {
+      "Passed": true,
+      "Log": "D:\\Temp\\RaftNet8\\dashboard-final-regression-20261115\\human-delivery.log"
+    },
+    "BenchmarkDotNet": {
+      "Passed": true,
+      "Cases": 29,
+      "Job": "Dry, functional smoke only",
+      "Log": "D:\\Temp\\RaftNet8\\dashboard-final-regression-20261115\\bdn-delivery.log",
+      "Scope": "Core sources/binaries unchanged"
+    },
+    "FrontendUnit": {
+      "Passed": 3,
+      "Command": "npm test"
+    },
+    "Browser": {
+      "HttpWorkflows": 2,
+      "HttpResults": "D:\\Temp\\RaftNet8\\dashboard-final-ui-7c1a927017784a3787434c693568a90f\\browser-results",
+      "HttpsTotpWorkflows": 1,
+      "HttpsResults": "D:\\Temp\\RaftNet8\\dashboard-final-ui-c38dd0da334f4f61b2af309cab9ad23b\\browser-results",
+      "TestOnlyCaAcceptance": "Chromium context only; peer/backend certificate checks remain enabled",
+      "RecoveryCodeScreenshotGuard": "Wait zero visible dialogs/masks before evidence capture"
+    },
+    "ProcessScenarios": [
+      "D:\\Temp\\RaftNet8\\dashboard-process-tls-3f43fdc6a4fd4822b2756a63a6468382\\result.json",
+      "D:\\Temp\\RaftNet8\\dashboard-process-http-5c8a519e55714f9e9d70427b750bff41\\result.json"
+    ],
+    "Books": {
+      "ChaptersPerLanguage": 34,
+      "CheckedSourceFiles": 18,
+      "Log": "D:\\Temp\\RaftNet8\\dashboard-continuation-validation-20261115\\books-final.json"
+    },
+    "ReportQA": "D:\\Temp\\RaftNet8\\dashboard-continuation-validation-20261115\\final-report-qa\\result.json",
+    "PreservedFailures": [
+      "D:\\Temp\\RaftNet8\\dashboard-final-regression-20261115\\full.trx",
+      "D:\\Temp\\RaftNet8\\dashboard-delivery-https-256ae6dcfd464561829820c30865da6e\\browser-results"
+    ],
+    "SourceChecks": {
+      "WhitespacePassed": true,
+      "PrivateKeyOrIssuedTokenPatterns": 0
+    }
+  },
+  "Performance": {
+    "Report": "benchmarks/results/dashboard-final-sdk8-2026-11-15.html",
+    "Cohorts": [
+      "D:\\Temp\\RaftNet8\\dashboard-overhead-3df0e6b6bce64814a3c9a9522369d7aa",
+      "D:\\Temp\\RaftNet8\\dashboard-overhead-2468636865624dfbaa6c193766e66fa6"
+    ],
+    "Freeze": "D:\\Temp\\RaftNet8\\dashboard-final-sdk8-b1f3c98c6bb94d6bb785054f0aa5af2d\\freeze.json",
+    "Observations": 120,
+    "LatencySamples": 491520,
+    "PairsPerPoint": 10,
+    "AllComparisonRows": 12,
+    "PassingComparisonRows": 12,
+    "ConfidenceIntervalsCrossingGate": 5,
+    "Sdk": "8.0.428",
+    "Runtime": "8.0.34",
+    "CoreIlProof": "D:\\Temp\\RaftNet8\\dashboard-tail-control-af08157b38a044b7b6c251f0b27e2710\\provenance.json",
+    "CoreIl": "4491 nonempty IL bodies,4537 definitions,zero differences; final native Core hash matches control",
+    "ValidationVersusTiming": "Final production binaries including400000 history rows/HTTP display/rejected429 accounting were frozen after473 tests/current browser checks; subsequent extra integration test changed only test source; all production hashes still match",
+    "Comparisons": [
+      {
+        "voters": 3,
+        "payload": 64,
+        "candidate": "off",
+        "control": "baseline",
+        "rounds": 10,
+        "passed": true,
+        "uncertain": true,
+        "metrics": {
+          "throughput": {
+            "ratio": 0.9904864977694582,
+            "ci95": [
+              0.6579698234505602,
+              1.0154559209842287
+            ],
+            "pairs": [
+              1.017975825126432,
+              0.203586914030356,
+              1.006004149663402,
+              0.979106945178936,
+              0.9690284158475619,
+              2.9169961814362595,
+              0.34691123105355853,
+              1.0154559209842287,
+              0.9627206255421185,
+              1.0018660503599803
+            ]
+          },
+          "allocation": {
+            "ratio": 1.010450600064788,
+            "ci95": [
+              1.0067445028618947,
+              1.015250301867058
+            ],
+            "pairs": [
+              1.0081634513253561,
+              1.0370848516676499,
+              1.0100047310067295,
+              1.0018541956101483,
+              1.0124939391931198,
+              1.0034842747170596,
+              1.0180066645409962,
+              1.0126839555973943,
+              1.0100269126398902,
+              1.0108742874896857
+            ]
+          },
+          "p99": {
+            "ratio": 1.006847406098165,
+            "ci95": [
+              0.9059339927283716,
+              2.711131306848421
+            ],
+            "pairs": [
+              0.8391601979380502,
+              4.517313809895087,
+              0.9806044827682698,
+              1.0330903294280598,
+              1.109061577389346,
+              0.25562894732831937,
+              4.313201036307496,
+              0.9468829926072728,
+              1.1193253118573667,
+              0.9727077875186931
+            ]
+          }
+        }
+      },
+      {
+        "voters": 3,
+        "payload": 64,
+        "candidate": "on",
+        "control": "off",
+        "rounds": 10,
+        "passed": true,
+        "uncertain": false,
+        "metrics": {
+          "throughput": {
+            "ratio": 1.0017802695124112,
+            "ci95": [
+              0.9863062382054821,
+              1.9159671699476273
+            ],
+            "pairs": [
+              0.996483000277831,
+              4.594477146242075,
+              1.0070775387469912,
+              0.9906078820779114,
+              0.9778093176272992,
+              1.0443168514571206,
+              2.787617488438134,
+              0.9948031587836652,
+              1.0460029444439534,
+              0.9768861000386644
+            ]
+          },
+          "allocation": {
+            "ratio": 1.0047187672051971,
+            "ci95": [
+              1.0018450365749019,
+              1.0096269923581522
+            ],
+            "pairs": [
+              1.0046927137657244,
+              0.9871022381302809,
+              1.0120460502888404,
+              1.0034801402626121,
+              1.0112521714646767,
+              1.0018450365749019,
+              1.0056000266319483,
+              1.0096269923581522,
+              1.0047448206446696,
+              1.0012827396895592
+            ]
+          },
+          "p99": {
+            "ratio": 0.9512164163867087,
+            "ci95": [
+              0.5832235006284501,
+              1.0377665673130663
+            ],
+            "pairs": [
+              1.0377665673130663,
+              0.23468400927629773,
+              1.0032794208112616,
+              0.9757555413638815,
+              0.9044679231728113,
+              0.8353434439503844,
+              0.26197907808408893,
+              1.0549288987133016,
+              0.926677291409536,
+              1.0473459556267977
+            ]
+          }
+        }
+      },
+      {
+        "voters": 3,
+        "payload": 64,
+        "candidate": "on",
+        "control": "baseline",
+        "rounds": 10,
+        "passed": true,
+        "uncertain": false,
+        "metrics": {
+          "throughput": {
+            "ratio": 0.9928588138456409,
+            "ci95": [
+              0.9587180356764233,
+              1.0131241830122788
+            ],
+            "pairs": [
+              1.0143956044322875,
+              0.9353754237864206,
+              1.0131241830122788,
+              0.9699110572914795,
+              0.9475250140613672,
+              3.046268267909958,
+              0.9670558146205022,
+              1.0101787578006867,
+              1.0070086089939805,
+              0.9787090186973012
+            ]
+          },
+          "allocation": {
+            "ratio": 1.0184953039875295,
+            "ci95": [
+              1.0091176312825245,
+              1.0237075289739268
+            ],
+            "pairs": [
+              1.012894473831491,
+              1.0237087782121475,
+              1.0221712987884033,
+              1.0053407887335581,
+              1.0238866946038667,
+              1.0053357399062515,
+              1.0237075289739268,
+              1.022433056299154,
+              1.0148193091866557,
+              1.0121709760594035
+            ]
+          },
+          "p99": {
+            "ratio": 1.0055771176204855,
+            "ci95": [
+              0.9348733153207347,
+              1.03945144166488
+            ],
+            "pairs": [
+              0.8708523980399236,
+              1.0601413160653663,
+              0.9838202975166764,
+              1.0080436136688673,
+              1.003110621572104,
+              0.2135379652346497,
+              1.1299684310831748,
+              0.9988942326015456,
+              1.0372533481981188,
+              1.0187615672643937
+            ]
+          }
+        }
+      },
+      {
+        "voters": 3,
+        "payload": 16384,
+        "candidate": "off",
+        "control": "baseline",
+        "rounds": 10,
+        "passed": true,
+        "uncertain": true,
+        "metrics": {
+          "throughput": {
+            "ratio": 0.9919858324240001,
+            "ci95": [
+              0.9791223806692317,
+              1.00052697067082
+            ],
+            "pairs": [
+              0.9862405708983498,
+              0.9907472540863294,
+              1.0009520912691066,
+              0.9555678870336095,
+              1.00052697067082,
+              0.9720041904401135,
+              0.9933378419211006,
+              0.983766856008608,
+              1.0164345084345858,
+              0.9932244107616707
+            ]
+          },
+          "allocation": {
+            "ratio": 1.0071059167168204,
+            "ci95": [
+              0.9970782240327964,
+              1.0132191941889725
+            ],
+            "pairs": [
+              1.0079109512155728,
+              1.017163687092281,
+              1.0148744401058745,
+              0.9980198482974081,
+              1.0132191941889725,
+              0.9995351492870708,
+              1.0086002441098687,
+              0.9941815089193821,
+              1.0063008822180681,
+              0.9946212987785222
+            ]
+          },
+          "p99": {
+            "ratio": 0.9830424716868926,
+            "ci95": [
+              0.9256163156718638,
+              1.1178994724151172
+            ],
+            "pairs": [
+              1.2475291841152412,
+              1.1177696448153605,
+              1.0759035222266515,
+              0.9693870253831562,
+              0.9184419505829817,
+              0.9882697607149931,
+              0.9778151826587923,
+              0.9256163156718638,
+              1.4387655739165854,
+              0.8675058095311934
+            ]
+          }
+        }
+      },
+      {
+        "voters": 3,
+        "payload": 16384,
+        "candidate": "on",
+        "control": "off",
+        "rounds": 10,
+        "passed": true,
+        "uncertain": false,
+        "metrics": {
+          "throughput": {
+            "ratio": 0.9946272744044006,
+            "ci95": [
+              0.9811456484439115,
+              1.0279619173424068
+            ],
+            "pairs": [
+              1.0359496032621187,
+              1.0250283360322734,
+              1.0341504539015975,
+              1.0217733807832161,
+              0.977338552999456,
+              0.9811456484439115,
+              0.9913969319098934,
+              0.9938284682418205,
+              0.9954260805669807,
+              0.9790461451366168
+            ]
+          },
+          "allocation": {
+            "ratio": 1.0002220205114662,
+            "ci95": [
+              0.9918709563361319,
+              1.0056295317731487
+            ],
+            "pairs": [
+              0.9978563857475509,
+              0.9898190832856677,
+              0.9920674692846198,
+              1.0071167337765095,
+              1.0025876552753816,
+              0.9919077940314877,
+              0.9916744433876439,
+              1.0056295317731487,
+              1.0041229605871254,
+              1.0060190661941752
+            ]
+          },
+          "p99": {
+            "ratio": 1.0105196527126568,
+            "ci95": [
+              0.9447796892686129,
+              1.0471767501194866
+            ],
+            "pairs": [
+              0.8916208653472544,
+              0.9513095249977542,
+              0.9447796892686129,
+              1.1054315688524177,
+              1.042544138747349,
+              1.0179607357954972,
+              1.0030785696298161,
+              1.0433328200858454,
+              0.7593501814420017,
+              1.0518093614916242
+            ]
+          }
+        }
+      },
+      {
+        "voters": 3,
+        "payload": 16384,
+        "candidate": "on",
+        "control": "baseline",
+        "rounds": 10,
+        "passed": true,
+        "uncertain": false,
+        "metrics": {
+          "throughput": {
+            "ratio": 0.9813228352914611,
+            "ci95": [
+              0.975054019112954,
+              1.0167404735136083
+            ],
+            "pairs": [
+              1.021695528143151,
+              1.0155440092846542,
+              1.0351350595196998,
+              0.9763738305022055,
+              0.9778535817523484,
+              0.9536776817195645,
+              0.9847920888305739,
+              0.9776955076141065,
+              1.0117854188840654,
+              0.9724125306118013
+            ]
+          },
+          "allocation": {
+            "ratio": 1.0054364343983804,
+            "ci95": [
+              1.0001931377630637,
+              1.008628924701697
+            ],
+            "pairs": [
+              1.0057503789353475,
+              1.0068080283091514,
+              1.0068239174374802,
+              1.005122489861413,
+              1.0158410561819338,
+              0.991446704986272,
+              1.0002030856782957,
+              0.9997782853121208,
+              1.0104498210942428,
+              1.0006079902140068
+            ]
+          },
+          "p99": {
+            "ratio": 1.011255804097088,
+            "ci95": [
+              0.9657258809473956,
+              1.0779359047361368
+            ],
+            "pairs": [
+              1.1123230506867856,
+              1.0633449098662089,
+              1.0164917954123018,
+              1.0715910202944807,
+              0.9575162723599699,
+              1.0060198127818742,
+              0.9808254547836988,
+              0.9657258809473956,
+              1.0925268996060649,
+              0.912450731613279
+            ]
+          }
+        }
+      },
+      {
+        "voters": 5,
+        "payload": 64,
+        "candidate": "off",
+        "control": "baseline",
+        "rounds": 10,
+        "passed": true,
+        "uncertain": true,
+        "metrics": {
+          "throughput": {
+            "ratio": 0.9901318630945743,
+            "ci95": [
+              0.9433520825582731,
+              1.0155172039938702
+            ],
+            "pairs": [
+              0.9881018637726106,
+              1.0155172039938702,
+              1.0568591216513703,
+              0.9298382773438131,
+              0.9940482141879762,
+              1.0322523806716208,
+              0.9769404490821764,
+              0.9433520825582731,
+              0.9921618624165383,
+              0.8566823502455565
+            ]
+          },
+          "allocation": {
+            "ratio": 1.0104384213374338,
+            "ci95": [
+              1.0082860717432502,
+              1.0152240779147848
+            ],
+            "pairs": [
+              1.0152240779147848,
+              1.015502124703278,
+              1.0074301822325549,
+              1.0101314961906755,
+              1.010182398672216,
+              1.0112059848651502,
+              1.0106944440026515,
+              1.0082860717432502,
+              1.0041818224314791,
+              1.0231699333352775
+            ]
+          },
+          "p99": {
+            "ratio": 1.0117150171537777,
+            "ci95": [
+              0.9439153279393259,
+              1.0385938423414518
+            ],
+            "pairs": [
+              1.035191504175512,
+              0.9648850234906836,
+              0.8224078438740897,
+              1.0488808182626743,
+              0.9999648987915155,
+              0.9335825686142448,
+              1.0234651355160396,
+              0.9439153279393259,
+              1.028306866420229,
+              1.1117981081872712
+            ]
+          }
+        }
+      },
+      {
+        "voters": 5,
+        "payload": 64,
+        "candidate": "on",
+        "control": "off",
+        "rounds": 10,
+        "passed": true,
+        "uncertain": false,
+        "metrics": {
+          "throughput": {
+            "ratio": 0.9979990235798396,
+            "ci95": [
+              0.9760167814126515,
+              1.0476211775811197
+            ],
+            "pairs": [
+              1.0585798146951797,
+              0.9953640441314562,
+              1.0366625404670597,
+              0.9682689882908699,
+              0.9746671189985494,
+              0.991695020817558,
+              1.0415427293902204,
+              1.000634003028223,
+              0.9760167814126515,
+              1.1440091214117234
+            ]
+          },
+          "allocation": {
+            "ratio": 1.0042524317534691,
+            "ci95": [
+              0.9981647267116611,
+              1.0126931492037574
+            ],
+            "pairs": [
+              0.9985734524540774,
+              0.9981647267116611,
+              1.0149482674927686,
+              1.0062930393118512,
+              1.0128888885453569,
+              1.005606743010305,
+              0.9913269830865529,
+              0.9963532536604812,
+              1.0126931492037574,
+              1.002898120496633
+            ]
+          },
+          "p99": {
+            "ratio": 1.0117354035741526,
+            "ci95": [
+              0.9837345048853753,
+              1.0457845784076283
+            ],
+            "pairs": [
+              0.9559605675104046,
+              0.9924466602048755,
+              1.0457845784076283,
+              1.197388056294505,
+              1.01954620901999,
+              1.011962364887959,
+              0.9412165226497716,
+              1.0606789735875426,
+              1.011508442260346,
+              1.004450244780067
+            ]
+          }
+        }
+      },
+      {
+        "voters": 5,
+        "payload": 64,
+        "candidate": "on",
+        "control": "baseline",
+        "rounds": 10,
+        "passed": true,
+        "uncertain": false,
+        "metrics": {
+          "throughput": {
+            "ratio": 0.9954308669428786,
+            "ci95": [
+              0.9564081398517716,
+              1.0317549548205647
+            ],
+            "pairs": [
+              1.0459846878523718,
+              1.0108093110524077,
+              1.095606261966895,
+              0.9003335680778192,
+              0.9688661090682478,
+              1.0236795461391168,
+              1.0175252217887576,
+              0.9439501706352955,
+              0.9683666275961716,
+              0.9800524228333495
+            ]
+          },
+          "allocation": {
+            "ratio": 1.0166819251795571,
+            "ci95": [
+              1.0105487008041378,
+              1.0224895180768556
+            ],
+            "pairs": [
+              1.0137758124978737,
+              1.013638400779559,
+              1.0224895180768556,
+              1.0164882934063426,
+              1.0232025270191833,
+              1.0168755569527714,
+              1.0019286739954893,
+              1.0046091082019328,
+              1.016928052131303,
+              1.026135203090615
+            ]
+          },
+          "p99": {
+            "ratio": 0.9953966995029024,
+            "ci95": [
+              0.9540263599283653,
+              1.0681281518153338
+            ],
+            "pairs": [
+              0.9896022578135718,
+              0.9575969190450317,
+              0.8600614402849915,
+              1.2559173642641333,
+              1.0195104217159476,
+              0.9447504239530464,
+              0.9633022959036841,
+              1.001191141192233,
+              1.0401410766183437,
+              1.1167458819147198
+            ]
+          }
+        }
+      },
+      {
+        "voters": 5,
+        "payload": 16384,
+        "candidate": "off",
+        "control": "baseline",
+        "rounds": 10,
+        "passed": true,
+        "uncertain": false,
+        "metrics": {
+          "throughput": {
+            "ratio": 1.0045156245727656,
+            "ci95": [
+              0.9856402380657268,
+              1.0215815542625626
+            ],
+            "pairs": [
+              0.9856402380657268,
+              0.9748834083654885,
+              1.021350673714554,
+              0.9844966461571383,
+              0.9943327439024181,
+              1.002105078856485,
+              1.0236938890014733,
+              1.0194692195236519,
+              1.0069261702890464,
+              1.0367029876036828
+            ]
+          },
+          "allocation": {
+            "ratio": 1.0095433986315676,
+            "ci95": [
+              0.9997743677957884,
+              1.0159363144333757
+            ],
+            "pairs": [
+              1.0171560381911096,
+              1.0168924346065873,
+              1.0098310955269145,
+              1.00220666416533,
+              1.0159363144333757,
+              1.0092557017362205,
+              1.0109288842594657,
+              0.997342071426247,
+              1.002187201721443,
+              0.996954782469313
+            ]
+          },
+          "p99": {
+            "ratio": 1.0226126530664361,
+            "ci95": [
+              0.9916520374896531,
+              1.0619194245639254
+            ],
+            "pairs": [
+              1.0192957165857426,
+              1.0042922093247213,
+              1.053321153825887,
+              1.0300245710192566,
+              1.0259295895471297,
+              0.9769923035007078,
+              0.951473034667266,
+              1.1449196859468413,
+              1.0063117714785985,
+              1.093814278108594
+            ]
+          }
+        }
+      },
+      {
+        "voters": 5,
+        "payload": 16384,
+        "candidate": "on",
+        "control": "off",
+        "rounds": 10,
+        "passed": true,
+        "uncertain": true,
+        "metrics": {
+          "throughput": {
+            "ratio": 1.0118300873559085,
+            "ci95": [
+              0.6612176927730974,
+              1.0290598487322726
+            ],
+            "pairs": [
+              1.0409821703901527,
+              0.3408693561644908,
+              0.9432110476084512,
+              1.0265254338436867,
+              0.981566029381704,
+              1.0253649933272542,
+              0.2661326489325097,
+              1.032754704137291,
+              1.0200177037866944,
+              1.0036424709251228
+            ]
+          },
+          "allocation": {
+            "ratio": 1.0085554665948548,
+            "ci95": [
+              1.0006247043625507,
+              1.1229737554188959
+            ],
+            "pairs": [
+              0.9914793287667427,
+              1.236084988578758,
+              0.9941820014948906,
+              1.0098625222590336,
+              1.0081188787118356,
+              1.001266254682496,
+              1.306357251836283,
+              1.0070674072302106,
+              1.008992054477874,
+              1.0102203484868655
+            ]
+          },
+          "p99": {
+            "ratio": 0.9793123623242346,
+            "ci95": [
+              0.9131292344025932,
+              3.220205161659976
+            ],
+            "pairs": [
+              0.9437472688452508,
+              5.431392953153605,
+              1.0282749160857219,
+              0.8825111999599357,
+              1.0090173701663478,
+              0.9589397063390587,
+              6.236348852147374,
+              0.8083001780862481,
+              0.9996850183094104,
+              0.9190851015214129
+            ]
+          }
+        }
+      },
+      {
+        "voters": 5,
+        "payload": 16384,
+        "candidate": "on",
+        "control": "baseline",
+        "rounds": 10,
+        "passed": true,
+        "uncertain": true,
+        "metrics": {
+          "throughput": {
+            "ratio": 1.018322380529819,
+            "ci95": [
+              0.6541555615307498,
+              1.0337808340974903
+            ],
+            "pairs": [
+              1.026033914245527,
+              0.33230787974498843,
+              0.9633492389299019,
+              1.0106108468141108,
+              0.9760032433165112,
+              1.027523467494887,
+              0.2724383663759847,
+              1.052861632186224,
+              1.0270825201009632,
+              1.0404791480940172
+            ]
+          },
+          "allocation": {
+            "ratio": 1.010866300065365,
+            "ci95": [
+              1.0064399399947994,
+              1.1345282115576607
+            ],
+            "pairs": [
+              1.0084891859967606,
+              1.2569654734165088,
+              1.0039558997227258,
+              1.0120909496988124,
+              1.0241845781492096,
+              1.0105336764943798,
+              1.3206342790431151,
+              1.0043906939928382,
+              1.0111989236363503,
+              1.0071440077717966
+            ]
+          },
+          "p99": {
+            "ratio": 1.005651604268283,
+            "ci95": [
+              0.9368767126144892,
+              3.2449432025270206
+            ],
+            "pairs": [
+              0.9619575486734574,
+              5.454705628633356,
+              1.0831037210616297,
+              0.9090082201584222,
+              1.0351807764206855,
+              0.9368767126144892,
+              5.933717767596382,
+              0.9254387860452832,
+              1.005994801695558,
+              1.005308406841008
+            ]
+          }
+        }
+      }
+    ],
+    "HistoricalSdk10Matrix": "benchmarks/results/dashboard-overhead-3fafaa2-2026-11-15.html",
+    "HistoricalFailure": "off/baseline3nodes64B p99+16.37%, FAIL, retained unchanged",
+    "IsolatedSdk8Control": "benchmarks/results/dashboard-tail-sdk8-2026-11-15.html",
+    "SeparateTokenTlsCosts": "benchmarks/results/dashboard-overhead-before-overview-2026-11-15.html",
+    "Limits": [
+      "Local loopback HTTP Standard history; all replicas/client in one process",
+      "Separate BFF collector; no browser/SSE fanout in timed workload",
+      "BFF allocations excluded from native process allocation count",
+      "Short cells may omit minute-history writes and repeated file scans",
+      "Five CIs cross a gate; median PASS is not a universal no-regression proof",
+      "Earlier SDK10/token/TLS/control cohorts are not pooled; no compiler/code causality claim"
+    ]
+  },
+  "ValidatedBinaries": [
+    {
+      "Path": "D:\\Temp\\RaftNet8\\dashboard-final-sdk8-b1f3c98c6bb94d6bb785054f0aa5af2d\\native\\net8.0\\Raft.Cluster.Client.dll",
+      "Sha256": "31611BA1BF811E5F37AED0C721DF42DFD2FEE0034BE6315D5A9E0FF8F0648353"
+    },
+    {
+      "Path": "D:\\Temp\\RaftNet8\\dashboard-final-sdk8-b1f3c98c6bb94d6bb785054f0aa5af2d\\native\\net8.0\\Raft.Cluster.Demo.dll",
+      "Sha256": "5DED469BC4FFE155C6C1613047907C5B1E558B22060E29846C364B6268814AFB"
+    },
+    {
+      "Path": "D:\\Temp\\RaftNet8\\dashboard-final-sdk8-b1f3c98c6bb94d6bb785054f0aa5af2d\\native\\net8.0\\Raft.Cluster.Protocol.dll",
+      "Sha256": "87D93FF648BA11105CEC62D94229D985550BE6611D3A2BD81397393F9042C0FF"
+    },
+    {
+      "Path": "D:\\Temp\\RaftNet8\\dashboard-final-sdk8-b1f3c98c6bb94d6bb785054f0aa5af2d\\native\\net8.0\\Raft.Cluster.Server.dll",
+      "Sha256": "C5439551CFA8D20291DB70E39C6228B44B10A40D4681BF08D73783A1F6CDA18E"
+    },
+    {
+      "Path": "D:\\Temp\\RaftNet8\\dashboard-final-sdk8-b1f3c98c6bb94d6bb785054f0aa5af2d\\native\\net8.0\\Raft.Net8.dll",
+      "Sha256": "4A3B4EC9F3274C3FA14EDABECAC020E5F91E64C4BC56EE217FD885EA2F02FF01"
+    },
+    {
+      "Path": "D:\\Temp\\RaftNet8\\dashboard-final-sdk8-b1f3c98c6bb94d6bb785054f0aa5af2d\\dashboard\\RaftClusterDashboard.dll",
+      "Sha256": "96A33E41D6D370943075EF796E755BD4D7ED465ACA79844383E099668BA35126"
+    },
+    {
+      "Path": "H:\\c\\blaze_svn\\Projects\\GitHub\\Raft.Net\\RaftNet8\\tests\\Raft.Tests\\bin\\Release\\net8.0\\Raft.Tests.dll",
+      "Sha256": "B0BC30A3D0CD919D98C7C2F0702054165072E34F3A25CAD4146ECFBFB9A4F02D"
+    }
+  ],
+  "SourceFiles": [
+    {
+      "Path": ".gitignore",
+      "Sha256": "3FAE30B16C0FF8F56FA7CE677F37858A217433BB8C99B2A3A8DCD3E71FF7E8C1",
+      "Bytes": 149
+    },
+    {
+      "Path": "AGENTS.md",
+      "Sha256": "821A11E632CBFF60FA73894F7C0138A24D4B73F349E0B02574169A8DFF086278",
+      "Bytes": 7844
+    },
+    {
+      "Path": "RaftNet8/HumanTest/Raft.Cluster.Demo/AdministrationRecipes.cs",
+      "Sha256": "183F36FF987460DE734771B5B7A766E2E2455F6CD23A93C54C06F6C01ACF85AB",
+      "Bytes": 2770
+    },
+    {
+      "Path": "RaftNet8/HumanTest/Raft.Cluster.Demo/ClientMeasurements.cs",
+      "Sha256": "84030B737F15E24B7BC435E1FF31EAC0B1B2B23608BCE16F58767A22F844E3AB",
+      "Bytes": 10418
+    },
+    {
+      "Path": "RaftNet8/HumanTest/Raft.Cluster.Demo/DashboardProcessScenario.cs",
+      "Sha256": "DD71BF78DFF099E5077E9999EB811CE72C9D0905685C5118C47C3553875D767D",
+      "Bytes": 11092
+    },
+    {
+      "Path": "RaftNet8/HumanTest/Raft.Cluster.Demo/DemoCluster.cs",
+      "Sha256": "BA8440774E843875F2597E9F61260A60D1F6E4CBA1B878F1ADD6639434C27848",
+      "Bytes": 6314
+    },
+    {
+      "Path": "RaftNet8/HumanTest/Raft.Cluster.Demo/DemoSecurity.cs",
+      "Sha256": "7361F2AFCB86AE5ACBBF234B67FCD7CA287ECF1D1405CA871B794E6F734E71EE",
+      "Bytes": 6400
+    },
+    {
+      "Path": "RaftNet8/HumanTest/Raft.Cluster.Demo/MeasurementDashboard.cs",
+      "Sha256": "B9E0C0F1AA430703759B7F7A04FD930B19FF1B968B7AA211F642A18250C63E7A",
+      "Bytes": 5006
+    },
+    {
+      "Path": "RaftNet8/HumanTest/Raft.Cluster.Demo/MeasurementEvents.cs",
+      "Sha256": "630F3CE3D58E2F1C0EC7B4249B555B3FB00F9923DF65B59DD141543507B2B8A0",
+      "Bytes": 566
+    },
+    {
+      "Path": "RaftNet8/HumanTest/Raft.Cluster.Demo/Program.cs",
+      "Sha256": "A2AE6A9C81ABCB53610D2B114603B82A2CAE3E4E8AA5BEF9E43D407B635528F7",
+      "Bytes": 20048
+    },
+    {
+      "Path": "RaftNet8/README.md",
+      "Sha256": "5DA10DC6CA2E24D324094C0546205968C741ED98B3EE1F2AAF857CB3C72E8B8B",
+      "Bytes": 19055
+    },
+    {
+      "Path": "RaftNet8/Raft.Net8.sln",
+      "Sha256": "1C3242FC08F5D6DC6E0D75A5B83226F71AB93F8B40894B7E8AC2161C8F315B8C",
+      "Bytes": 9451
+    },
+    {
+      "Path": "RaftNet8/benchmarks/README.md",
+      "Sha256": "ECF2EA06D5BE954BC7B2FD87545881D8C57945EEDE465541F3318D80BE72572C",
+      "Bytes": 18851
+    },
+    {
+      "Path": "RaftNet8/benchmarks/analyze_dashboard_traces.ps1",
+      "Sha256": "931299D238DFE1A913BC07D09DFB4C06435A9E3057D8A44ADCE13B6120780E46",
+      "Bytes": 4235
+    },
+    {
+      "Path": "RaftNet8/benchmarks/dashboard_report.py",
+      "Sha256": "4B2A9FA9B299505F8D86BE78ACA4258B1043BC86936636EFC5FE1EFF448A34B3",
+      "Bytes": 30113
+    },
+    {
+      "Path": "RaftNet8/benchmarks/isolate_dashboard.ps1",
+      "Sha256": "273AA01A163769E85646742487D74033845B99555F4C24240D3A92FEC7CF3F3F",
+      "Bytes": 6069
+    },
+    {
+      "Path": "RaftNet8/benchmarks/measure_dashboard.ps1",
+      "Sha256": "BFE4E286D909ED2AAFD08D8E9A5D6A0346E5CF0D27C534A78284246787F8F1B7",
+      "Bytes": 4699
+    },
+    {
+      "Path": "RaftNet8/benchmarks/results/dashboard-final-sdk8-2026-11-15.html",
+      "Sha256": "9F4C234E1D770A96CBAE777F75CCFADEE3737225B389037C3312333BD21C5205",
+      "Bytes": 53899
+    },
+    {
+      "Path": "RaftNet8/benchmarks/results/dashboard-final-sdk8-2026-11-15.json",
+      "Sha256": "6A6CA2547684C413C369C0BEEF9108C411111495020D8622BFC920F0A186FA94",
+      "Bytes": 131438
+    },
+    {
+      "Path": "RaftNet8/benchmarks/results/dashboard-overhead-3fafaa2-2026-11-15.html",
+      "Sha256": "F909213E45D037B38F33AF3FE70ABBB6DD1BF29A6AA1A04E97F17B694DECD046",
+      "Bytes": 56728
+    },
+    {
+      "Path": "RaftNet8/benchmarks/results/dashboard-overhead-3fafaa2-2026-11-15.json",
+      "Sha256": "747479BFCEC270DD3044626729AC5D930667ECE01155698E365D96CF44CE9BB3",
+      "Bytes": 131465
+    },
+    {
+      "Path": "RaftNet8/benchmarks/results/dashboard-overhead-after-overview-2026-11-15.html",
+      "Sha256": "6ADB3450FBD973F0D0051460934F3E581E50AA95714FCCDC2E0896DECBA739D0",
+      "Bytes": 57066
+    },
+    {
+      "Path": "RaftNet8/benchmarks/results/dashboard-overhead-after-overview-2026-11-15.json",
+      "Sha256": "203C4FB3E4750ECBE2CCFDC9BCB039C53B0F3900344576061C8E0604D9A9F595",
+      "Bytes": 145500
+    },
+    {
+      "Path": "RaftNet8/benchmarks/results/dashboard-overhead-before-overview-2026-11-15.html",
+      "Sha256": "27E6FE4E514CE1582EC6EC9BB1BD12CA3AC17DFFA06A0A7DF73C19CF0259B9AF",
+      "Bytes": 43884
+    },
+    {
+      "Path": "RaftNet8/benchmarks/results/dashboard-overhead-before-overview-2026-11-15.json",
+      "Sha256": "165BF43203DBD790637D966F1EAADAD327CF3C30A71AAA325E6C205391C53524",
+      "Bytes": 167623
+    },
+    {
+      "Path": "RaftNet8/benchmarks/results/dashboard-overhead-before-result-cache-2026-11-15.html",
+      "Sha256": "16E754C1812B759EFCD2B8B2B420755C1BC75403DFF2ADFA980BFC72C4FCEEBC",
+      "Bytes": 50793
+    },
+    {
+      "Path": "RaftNet8/benchmarks/results/dashboard-overhead-before-result-cache-2026-11-15.json",
+      "Sha256": "747479BFCEC270DD3044626729AC5D930667ECE01155698E365D96CF44CE9BB3",
+      "Bytes": 131465
+    },
+    {
+      "Path": "RaftNet8/benchmarks/results/dashboard-overhead-combined-five-2026-11-15.html",
+      "Sha256": "8C1607A757AF4136560BA9EAAB03AB9941CF7A48B2437DE5CF7BCAA602B32323",
+      "Bytes": 32863
+    },
+    {
+      "Path": "RaftNet8/benchmarks/results/dashboard-overhead-combined-five-2026-11-15.json",
+      "Sha256": "A59F1F69AACFBDCAF8710FCC355E4A6A0E648ACF8A67DA227E3A1FEA5FA2BC1B",
+      "Bytes": 72825
+    },
+    {
+      "Path": "RaftNet8/benchmarks/results/dashboard-overhead-overview-2026-11-15.html",
+      "Sha256": "B9C0DBFDB876AF04001A326EDB9A8A20F6A5FD30F618567CD03043998A8B10C1",
+      "Bytes": 40780
+    },
+    {
+      "Path": "RaftNet8/benchmarks/results/dashboard-overhead-overview-2026-11-15.json",
+      "Sha256": "0320B01D12E99F3CA33579C07044027C0FECAEFA19BD75D49B5573D5E278BA6E",
+      "Bytes": 91297
+    },
+    {
+      "Path": "RaftNet8/benchmarks/results/dashboard-tail-sdk8-2026-11-15.html",
+      "Sha256": "39F0DC4247A85022E6E0CBD61D76299134E2C64E47BE92D0CA37765BB223F3E9",
+      "Bytes": 25821
+    },
+    {
+      "Path": "RaftNet8/benchmarks/results/dashboard-tail-sdk8-2026-11-15.json",
+      "Sha256": "7A15866077D66263587CB08118B787D58936582125CDDC6AB1CCEF357366551A",
+      "Bytes": 33377
+    },
+    {
+      "Path": "RaftNet8/docs/CLUSTER-CLIENTS.md",
+      "Sha256": "423678FC13269B9871331CDCF21D288520AE8BD21083F624E616A5E462209599",
+      "Bytes": 14656
+    },
+    {
+      "Path": "RaftNet8/docs/CLUSTER-DASHBOARD.md",
+      "Sha256": "61B4DE3B3AB9EC2D7DCFFA34EFFB19D29CB1F3B43CD8806616BA6E5122BD08E6",
+      "Bytes": 24090
+    },
+    {
+      "Path": "RaftNet8/docs/DASHBOARD-AUDIT.md",
+      "Sha256": "DAE4ADA3C630486ECE49EB39863C8AD1D8657ADA97A863CFC475D81B417F0F1E",
+      "Bytes": 8398
+    },
+    {
+      "Path": "RaftNet8/docs/OPERATIONS.md",
+      "Sha256": "8D5221291324C7A95D583255632C1F939C39EADCE0B087647CCD1E2EE148034A",
+      "Bytes": 18243
+    },
+    {
+      "Path": "RaftNet8/docs/VALIDATION.md",
+      "Sha256": "53AE9A853A0AA9D9A1C0EA82355270D31885FC5F0F37F8993AB3E751954FB7F7",
+      "Bytes": 22329
+    },
+    {
+      "Path": "RaftNet8/docs/human/tutorial/book-en.html",
+      "Sha256": "F92903C3BF001B5D70C5C312D7DF7ECAF6B44100F03FDA04981FF1772C4E9613",
+      "Bytes": 320073
+    },
+    {
+      "Path": "RaftNet8/docs/human/tutorial/book-manifest.json",
+      "Sha256": "94BFE991DFEC25A7D80F6A40BC7B4F37E3F4F7130B0CE27C333F4FD35F9AD3BD",
+      "Bytes": 2758
+    },
+    {
+      "Path": "RaftNet8/docs/human/tutorial/book-ru.html",
+      "Sha256": "E2AF2CD438091EDFD3AD84968FB62486407291753D606ECEA335F390D966D5B3",
+      "Bytes": 443297
+    },
+    {
+      "Path": "RaftNet8/docs/human/tutorial/build.py",
+      "Sha256": "F3C04B171192590ADAA89F1C047C8AD9EBA6C440CEC1A4D908F9AEB21C91BD6F",
+      "Bytes": 32276
+    },
+    {
+      "Path": "RaftNet8/docs/human/tutorial/client_chapters.py",
+      "Sha256": "3781723288B29EA53C91BA02C68F2762AA935D447E1398884CCE9FF2D054DDE4",
+      "Bytes": 29324
+    },
+    {
+      "Path": "RaftNet8/docs/human/tutorial/dashboard_chapters.py",
+      "Sha256": "6F6396DC559B1D27CB0E1BC67572CB4E340F0A028539A3ADF2299E4835691CDD",
+      "Bytes": 26209
+    },
+    {
+      "Path": "RaftNet8/docs/human/tutorial/verify_books.py",
+      "Sha256": "F0641B23076B1B3F84FC702C6D541F2A550EFD67BCB535B14329E8D2FBA16A7B",
+      "Bytes": 3829
+    },
+    {
+      "Path": "RaftNet8/scripts/!!!how2run.txt",
+      "Sha256": "DA6F059A16C3496C5243F09B84D58FC7D33FB37250CE11FCC7790B27F7A77E5E",
+      "Bytes": 56
+    },
+    {
+      "Path": "RaftNet8/scripts/start-dashboard-stand.ps1",
+      "Sha256": "A68B483F801C45160FE329C720033E3DA8AB712538EA8F421E781BB5EE609149",
+      "Bytes": 7905
+    },
+    {
+      "Path": "RaftNet8/src/Raft.Cluster.Client/RaftClusterAdminClient.cs",
+      "Sha256": "53E45FBDEFD0CF4DAD463D95B18429C3191773736C6B342404D840EBBD4DB58C",
+      "Bytes": 15360
+    },
+    {
+      "Path": "RaftNet8/src/Raft.Cluster.Client/RaftClusterClient.cs",
+      "Sha256": "6DA779D357F27B8CC9DB1C260B70BA4BCA2AB69930B2FFF6CF9EB10E203AD330",
+      "Bytes": 29984
+    },
+    {
+      "Path": "RaftNet8/src/Raft.Cluster.Protocol/Administration.cs",
+      "Sha256": "40FE69E77A80055BD1943C6A82621F8F418E43EC44A66460D1345D6E61113834",
+      "Bytes": 5915
+    },
+    {
+      "Path": "RaftNet8/src/Raft.Cluster.Protocol/Contracts.cs",
+      "Sha256": "FA1341EAEDFAB085BEFD6525D3408B67F8CFE63068CB90012E6B1817D29AAC63",
+      "Bytes": 3162
+    },
+    {
+      "Path": "RaftNet8/src/Raft.Cluster.Server/ClusterAdministrationOptions.cs",
+      "Sha256": "88D487C1C91805007EAA843DE0BB3DB5F05D76D0000AF86FABA20B9558A883B7",
+      "Bytes": 2124
+    },
+    {
+      "Path": "RaftNet8/src/Raft.Cluster.Server/ClusterApplicationTransport.cs",
+      "Sha256": "FE5EF1262D8AA1323EA0F10BDF486FE41FFDC551952665C9C393EEEA640ED2D2",
+      "Bytes": 2091
+    },
+    {
+      "Path": "RaftNet8/src/Raft.Cluster.Server/ClusterStorageMigration.cs",
+      "Sha256": "9C12C19168D78C9B29CAFE5170ED631E0E64659D9D7C07E82020C872B1B474D7",
+      "Bytes": 20715
+    },
+    {
+      "Path": "RaftNet8/src/Raft.Cluster.Server/CoreTelemetry.cs",
+      "Sha256": "A19C18C30AC3B745FE01A273D58571E781895B14495CA323CA21A92849615BF5",
+      "Bytes": 2978
+    },
+    {
+      "Path": "RaftNet8/src/Raft.Cluster.Server/MessageCommand.cs",
+      "Sha256": "D32DF378EBC9D1FA9A7218D674D692926926A5B093A92ACD2461D7BC91C23462",
+      "Bytes": 4798
+    },
+    {
+      "Path": "RaftNet8/src/Raft.Cluster.Server/MessageLedger.Administration.cs",
+      "Sha256": "5D4125B447B194457A40F0DEDE48BF022DC28BEEDFAE5E5DDBA72587758E6772",
+      "Bytes": 19754
+    },
+    {
+      "Path": "RaftNet8/src/Raft.Cluster.Server/MessageLedger.cs",
+      "Sha256": "2FD0B3A1B1DD76EB8AC85EA8B162AE1E0A4259C89194301C668909650A01ED46",
+      "Bytes": 17778
+    },
+    {
+      "Path": "RaftNet8/src/Raft.Cluster.Server/NodeTelemetry.cs",
+      "Sha256": "25FC8DD831F0B0BCD6A9C80F61DCFCF62A4889420833D6D04A3D46B3F7FCD8B4",
+      "Bytes": 6375
+    },
+    {
+      "Path": "RaftNet8/src/Raft.Cluster.Server/ObservationReadBatch.cs",
+      "Sha256": "B7DD55A171AE9F0733E0DB2671CEB6556D4117BA4F7195259744955EF6FC4274",
+      "Bytes": 2716
+    },
+    {
+      "Path": "RaftNet8/src/Raft.Cluster.Server/Raft.Cluster.Server.csproj",
+      "Sha256": "8637B0FCAD1601F378EF4CF79B707219720368194C668875B0B1CC7F70E8FE63",
+      "Bytes": 517
+    },
+    {
+      "Path": "RaftNet8/src/Raft.Cluster.Server/RaftClusterNode.cs",
+      "Sha256": "66D7F09A126E401B790824B4D0CAF4DC349A16827CF02EBDDFE93483F396FF2E",
+      "Bytes": 8263
+    },
+    {
+      "Path": "RaftNet8/src/Raft.Cluster.Server/RaftClusterServer.Administration.cs",
+      "Sha256": "263B618195973F4E646741E106435BB040EBF7A23096187A01016DB094DA5425",
+      "Bytes": 37756
+    },
+    {
+      "Path": "RaftNet8/src/Raft.Cluster.Server/RaftClusterServer.cs",
+      "Sha256": "1B5BC8854ACE17471AFE25DCB9BBFC6A40C365C1B30B37856C1A38B193C21BB6",
+      "Bytes": 19261
+    },
+    {
+      "Path": "RaftNet8/src/RaftClusterDashboard/.gitignore",
+      "Sha256": "9C2C959B660FBCB0695D9DE9987C02315DF58B3BDDBB74CA7FB086B7FF659C07",
+      "Bytes": 133
+    },
+    {
+      "Path": "RaftNet8/src/RaftClusterDashboard/BrowserJson.cs",
+      "Sha256": "BE4B4E2B56AF7707B2F0006BEAC9CE18FAE34D95077EBCE2211064F492AD8906",
+      "Bytes": 1052
+    },
+    {
+      "Path": "RaftNet8/src/RaftClusterDashboard/ClientApp/index.html",
+      "Sha256": "0DCD79ECF6A664D2D8FC0350073168500BF357A3D44379BACC567C6AF5E64F0F",
+      "Bytes": 319
+    },
+    {
+      "Path": "RaftNet8/src/RaftClusterDashboard/ClientApp/package-lock.json",
+      "Sha256": "65DF0B9DF89537A0AE15B9AF3F020EC26120A98C61B67DBD70C51472977CBBE8",
+      "Bytes": 108533
+    },
+    {
+      "Path": "RaftNet8/src/RaftClusterDashboard/ClientApp/package.json",
+      "Sha256": "070CC62B538D5A9126110B5289B5726196DA35C6521CD11917F749BC2B358280",
+      "Bytes": 664
+    },
+    {
+      "Path": "RaftNet8/src/RaftClusterDashboard/ClientApp/playwright.config.ts",
+      "Sha256": "C13F8A0C67E5BE407B7C568C456C4AAF10C965B8E2338F57567BF379702FDEA8",
+      "Bytes": 559
+    },
+    {
+      "Path": "RaftNet8/src/RaftClusterDashboard/ClientApp/src/api.test.ts",
+      "Sha256": "C80490E82EFA05CAC07FB42F0CAB3826FAE4D7F4F72789C21FB47624B4A0FD9D",
+      "Bytes": 2263
+    },
+    {
+      "Path": "RaftNet8/src/RaftClusterDashboard/ClientApp/src/api.ts",
+      "Sha256": "3D0F2B7D0C12715C1BF96D765D7B751EC655C28CD4C74EE36C983DF3BA4002CA",
+      "Bytes": 1706
+    },
+    {
+      "Path": "RaftNet8/src/RaftClusterDashboard/ClientApp/src/i18n.ts",
+      "Sha256": "6F0BD8A96B1056C3AE054B06315C7A398A3E800DDE2BDD94E37BF87B7A79E380",
+      "Bytes": 10925
+    },
+    {
+      "Path": "RaftNet8/src/RaftClusterDashboard/ClientApp/src/main.tsx",
+      "Sha256": "AD02D5134EB68FA656573F455C3C9819D128141D832A0F624AA512C9715A1ABF",
+      "Bytes": 45661
+    },
+    {
+      "Path": "RaftNet8/src/RaftClusterDashboard/ClientApp/src/style.css",
+      "Sha256": "7ADE9BDF342754E79E7514F69B3B782DB42058E948EE94236E8A850A2C2C2EA1",
+      "Bytes": 7068
+    },
+    {
+      "Path": "RaftNet8/src/RaftClusterDashboard/ClientApp/src/types.ts",
+      "Sha256": "A243869AFB2FB43C063D42ADEF77EAC707AE6D463E45EEE8B742861C0F985B6A",
+      "Bytes": 2678
+    },
+    {
+      "Path": "RaftNet8/src/RaftClusterDashboard/ClientApp/tests/dashboard.spec.ts",
+      "Sha256": "0DC7E81B4680C81DA2A9DECEC64A2F5C35A7F0B35F73DA066A52CFFD2D3F2607",
+      "Bytes": 9259
+    },
+    {
+      "Path": "RaftNet8/src/RaftClusterDashboard/ClientApp/tests/secure.spec.ts",
+      "Sha256": "317888DFEA2236FC30220B84F2E419C4D7F54584834223C372F8E6ADF4A9F495",
+      "Bytes": 3201
+    },
+    {
+      "Path": "RaftNet8/src/RaftClusterDashboard/ClientApp/tsconfig.json",
+      "Sha256": "2E22903665B505813B2711FF91403DC49F8690CEB353E0C3B47C0FF1E44F33E8",
+      "Bytes": 504
+    },
+    {
+      "Path": "RaftNet8/src/RaftClusterDashboard/ClientApp/vite.config.ts",
+      "Sha256": "D62CEF0EB7F9CED6A394D9A0FE981199045664D8F0160183FAB738B281BEF6F0",
+      "Bytes": 624
+    },
+    {
+      "Path": "RaftNet8/src/RaftClusterDashboard/ClientApp/vitest.config.ts",
+      "Sha256": "F8012A9AE34AFD896DB23EF7DE41089FA4F1B7ED51997D68A65E026691C3F5A1",
+      "Bytes": 120
+    },
+    {
+      "Path": "RaftNet8/src/RaftClusterDashboard/ClusterMonitor.cs",
+      "Sha256": "0C92D5C7F17A5DF02B4FBF28DED59703C17EE51B870F6B32F9B2CD8DAD09CD22",
+      "Bytes": 19578
+    },
+    {
+      "Path": "RaftNet8/src/RaftClusterDashboard/DashboardIdentityStore.cs",
+      "Sha256": "2499B5D36E9DFBB1B455A2672BE1EB4A72331AD9071E91FFEF26939300CF55DA",
+      "Bytes": 9921
+    },
+    {
+      "Path": "RaftNet8/src/RaftClusterDashboard/DashboardStore.cs",
+      "Sha256": "D5BB57A3D21B7EC04EB6437471ADA8FE1BDD2F4CDA2386F9189D284CB4473390",
+      "Bytes": 6875
+    },
+    {
+      "Path": "RaftNet8/src/RaftClusterDashboard/Program.cs",
+      "Sha256": "CE5714F9553E3A7F1E00A3176B4561CC025B658CC7EA0CD6F89840CEA0EB7875",
+      "Bytes": 31322
+    },
+    {
+      "Path": "RaftNet8/src/RaftClusterDashboard/README.md",
+      "Sha256": "D7A3DB8930DE4679BE0AE09BA9D7A21C5D27599A248AC36E63A739C344500B4C",
+      "Bytes": 1805
+    },
+    {
+      "Path": "RaftNet8/src/RaftClusterDashboard/RaftClusterDashboard.csproj",
+      "Sha256": "23A6A411215A89968D7306E92BF024DD0C2AF2DB00B6BB270C0081A08A258257",
+      "Bytes": 1300
+    },
+    {
+      "Path": "RaftNet8/src/RaftClusterDashboard/appsettings.json",
+      "Sha256": "C24BBA771344DB98895674A7FA468811FE8100C5B8930085F405BBE1861D73EB",
+      "Bytes": 450
+    },
+    {
+      "Path": "RaftNet8/src/RaftClusterDashboard/packages.lock.json",
+      "Sha256": "B9CA70309C2CE5D0F29A460F9C13A9EA279A7F0757087646844A839EA2F2D02C",
+      "Bytes": 584
+    },
+    {
+      "Path": "RaftNet8/tests/Raft.Tests/ClusterAdminCancellationTests.cs",
+      "Sha256": "C33C9DF793823F8B2C4FF7BEBF219FC55F0DA17383DB44C5198970630BCD2190",
+      "Bytes": 3795
+    },
+    {
+      "Path": "RaftNet8/tests/Raft.Tests/ClusterAdminHttpTests.cs",
+      "Sha256": "A7364146C0285F047FB776C7EE508E0A6C551824774B81DC88A1726A760AD869",
+      "Bytes": 13036
+    },
+    {
+      "Path": "RaftNet8/tests/Raft.Tests/ClusterAdministrationTests.cs",
+      "Sha256": "4ACE90EB89696FE7DE81F816D0EB44A2BCB37740DAA54ED8D193D423DFB03B78",
+      "Bytes": 13974
+    },
+    {
+      "Path": "RaftNet8/tests/Raft.Tests/ClusterApplicationTransportTests.cs",
+      "Sha256": "A62ECFF1FD3322BAEBDAEA4A9EEBBFD96AD1F9F033D8AB615027317088A4B413",
+      "Bytes": 1732
+    },
+    {
+      "Path": "RaftNet8/tests/Raft.Tests/ClusterClientTests.cs",
+      "Sha256": "0135E67C1E541006B82A25D9F3712FAAC95262DDC1A7ABCB35CE7DED2B00F1A8",
+      "Bytes": 19138
+    },
+    {
+      "Path": "RaftNet8/tests/Raft.Tests/ClusterLedgerTests.cs",
+      "Sha256": "9CD6F37199320C29F2FECFB0740DB9CEC0910CA6FD67B388EC7ACB8C05D98DCF",
+      "Bytes": 12199
+    },
+    {
+      "Path": "RaftNet8/tests/Raft.Tests/ClusterMigrationTests.cs",
+      "Sha256": "A9D5186CD75C4EEB6CDE3214959334C25F68405606C251CCCCE900CB0132A1EA",
+      "Bytes": 3880
+    },
+    {
+      "Path": "RaftNet8/tests/Raft.Tests/ClusterSecureProfileTests.cs",
+      "Sha256": "4270644824D611CF0C9C1CE54483BBAB51BAC53B50928933B62F17312562DB9F",
+      "Bytes": 7219
+    },
+    {
+      "Path": "RaftNet8/tests/Raft.Tests/DashboardIdentityTests.cs",
+      "Sha256": "E3ECBBC5349C576DC4E94CB271A43CA5E2E7023D1B409012D94D60BAFA7A3046",
+      "Bytes": 15971
+    },
+    {
+      "Path": "RaftNet8/tests/Raft.Tests/HotMembershipRuntimeTests.cs",
+      "Sha256": "F774C08A95ECE63E0A376D24F467F441653E187229D782D220F006FDE1220F2B",
+      "Bytes": 19067
+    },
+    {
+      "Path": "RaftNet8/tests/Raft.Tests/ObservationReadBatchTests.cs",
+      "Sha256": "A968F13E2202D1B84FDD16144E272AD24E754501CD28FF46F4146E6074A9D711",
+      "Bytes": 4601
+    },
+    {
+      "Path": "RaftNet8/tests/Raft.Tests/ProcessClusterTests.cs",
+      "Sha256": "681E9C5A9DD67478CACA08EED656FAC59DE3789D61470DE43819F3888C6213F0",
+      "Bytes": 19569
+    },
+    {
+      "Path": "RaftNet8/tests/Raft.Tests/Raft.Tests.csproj",
+      "Sha256": "6AF33C14BE7EFFE42823B90C6B1A0D777564723A7D4A5E5C4ADB58A430208AA4",
+      "Bytes": 1205
+    },
+    {
+      "Path": "RaftNet8/tests/Raft.Tests/ResponseBatchTests.cs",
+      "Sha256": "85D8E473BC9A61382E9ED4608D1F249ED88451A44A3A43F2613F60FB2AAF344F",
+      "Bytes": 10370
+    },
+    {
+      "Path": "RaftNet8/tests/Raft.Tests/Simulation.cs",
+      "Sha256": "4A3CBFDD4A3DE2C4BB8FB58033C452AC108DCD7F909B362B74EE6873F2B49554",
+      "Bytes": 7763
+    },
+    {
+      "Path": "RaftNet8/tests/Raft.Tests/packages.lock.json",
+      "Sha256": "84F59481B901D270A4E6FF5EBEA1BB3EA59CEA2401789B82519B71E26FA4CB0C",
+      "Bytes": 6356
+    },
+    {
+      "Path": "_docs/llm/okf/cluster-dashboard.md",
+      "Sha256": "667F95721D702B2AF703DAA75919C03A6F9CC23C436F8D06F0FFCD9F8F7D6C61",
+      "Bytes": 7784
+    },
+    {
+      "Path": "_docs/llm/okf/index.md",
+      "Sha256": "C838D448E137DD9EE15A04D4D54F4650409ED2C9C8C66C55A0713AB02C171986",
+      "Bytes": 2567
+    },
+    {
+      "Path": "_docs/llm/sdd/033-cluster-dashboard.md",
+      "Sha256": "2B6A294A9B1D655E54AA664A584211B4CEA812D73C56342EBDE065B344C80F29",
+      "Bytes": 38468
+    },
+    {
+      "Path": "_docs/raft_skill.md",
+      "Sha256": "68BDC9BAE4EB6854CC2C7590AFD94370F4D57C8B1C5D3554B092632EAAA3700E",
+      "Bytes": 27890
+    }
+  ],
+  "SourceManifestExcludesSelf": true,
+  "IntegrityRecord": "D:\\Temp\\RaftNet8\\dashboard-continuation-validation-20261115\\delivery-integrity-final.json",
+  "NoCommitOrPush": true
+}

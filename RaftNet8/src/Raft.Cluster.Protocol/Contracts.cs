@@ -21,10 +21,20 @@ public sealed record ClientEndpoint(string NodeId, Uri Address)
 
 public sealed record ClusterTopology(string GroupId, string? LeaderId, long Term,
     long ConfigurationIndex, long DirectoryIndex, bool IsAuthoritative, IReadOnlyList<ClientEndpoint> Endpoints);
-public sealed record EntityInfo(string Name, EntityMode Mode, long EntityId, long LastMessageId);
+public sealed record EntityInfo(string Name, EntityMode Mode, long EntityId, long LastMessageId)
+{
+    public long RetainedMessages { get; init; }
+    public long RetainedBytes { get; init; }
+    public int LatestPayloadBytes { get; init; }
+    public long PublishedBytes { get; init; }
+}
 public sealed record ClusterMessage(long MessageId, int PayloadLength, ReadOnlyMemory<byte> Data);
 public sealed record MessageBatch(EntityMode Mode, IReadOnlyList<ClusterMessage> Messages);
-public sealed record ClusterError(string Code, string Message, string? LeaderId = null);
+public sealed record ClusterError(string Code, string Message, string? LeaderId = null)
+{
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public ManagedNodeEndpoint? ManagementLeader { get; init; }
+}
 
 public sealed class ClusterRequestException(string code, string message) : InvalidOperationException(message)
 {

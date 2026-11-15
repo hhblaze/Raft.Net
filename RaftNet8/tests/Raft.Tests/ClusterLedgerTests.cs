@@ -28,6 +28,38 @@ internal sealed class ClusterTestDirectory : IDisposable
 public sealed class ClusterLedgerTests
 {
     [Fact]
+    public async Task Failed_application_batch_does_not_publish_an_uncommitted_cached_result()
+    {
+        using var directory = new ClusterTestDirectory();
+        using var ledger = new MessageLedger(directory.Path);
+        var id = Guid.NewGuid();
+        await Assert.ThrowsAsync<InvalidDataException>(() => ledger.ApplyBatchAsync(
+            [Append(1, "events", [1], id), new LogEntry(2, 1, [0])], default).AsTask());
+        Assert.Null(ledger.CachedOutcome(id));
+    }
+
+    [Fact]
+    public async Task Historical_snapshot_replay_does_not_publish_results_into_the_live_request_cache()
+    {
+        using var directory = new ClusterTestDirectory();
+        using var ledger = new MessageLedger(directory.Path);
+        var entries = Enumerable.Range(1, 1100).Select(index => Append(index, "events", [1], Guid.NewGuid())).ToArray();
+        for (var start = 0; start < entries.Length; start += 100)
+            await ledger.ApplyBatchAsync(entries.Skip(start).Take(100).ToArray(), default);
+        var oldId = MessageCommand.Decode(entries[0].Command).RequestId;
+        var lastId = MessageCommand.Decode(entries[^1].Command).RequestId;
+        Assert.Null(ledger.CachedOutcome(oldId));
+        Assert.Equal(1100, ledger.Outcome(lastId)!.MessageId); // Warm only the live cache before historical replay.
+        var options = new RaftOptions { NodeId = "n1", Members = ["n1"] };
+        var context = new SnapshotBuildContext(new(500, 1), new(["n1"], [], 0), null, options,
+            (start, count, _, _) => ValueTask.FromResult(new LogReadResult(Entries: entries.Where(entry => entry.Index >= start).Take(count).ToImmutableArray())));
+        await ledger.CreateSnapshotAsync(context, System.IO.Path.Combine(directory.Path, "old-prefix.zip"), default);
+        Assert.Null(ledger.CachedOutcome(oldId));
+        Assert.Equal(1100, ledger.CachedOutcome(lastId)!.MessageId);
+        Assert.Equal(1100, ledger.Checkpoint.Index);
+    }
+
+    [Fact]
     public async Task Evicting_a_bounded_request_cache_does_not_lose_the_durable_result()
     {
         using var directory = new ClusterTestDirectory();

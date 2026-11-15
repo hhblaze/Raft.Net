@@ -20,13 +20,97 @@ using var stop = new CancellationTokenSource();
 Console.CancelKeyPress += (_, eventArgs) => { eventArgs.Cancel = true; stop.Cancel(); };
 try
 {
-    if (command == "node")
+    if (command == "dashboard-process-scenario")
+        await DashboardProcessScenario.RunAsync(root, voters, Option("secure", "false") == "true", stop.Token);
+    else if (command == "create-lab-pki")
+    {
+        DemoSecurity.Generate(Path.GetFullPath(Option("pki", Path.Combine(root, "pki"))));
+        Console.WriteLine("Local laboratory certificates created; no system trust settings changed. Protect the output directory.");
+    }
+    else if (command == "bootstrap-stand")
+    {
+        using var security = args.Contains("--pki") ? new DemoSecurity(Option("pki", "")) : null;
+        using var http = security?.HttpClient();
+        var endpoints = Enumerable.Range(0, voters).Select(index => new Uri($"{(security is null ? "http" : "https")}://127.0.0.1:{Integer("management-base-port", 7201) + index}/")).ToArray();
+        await using var admin = new RaftClusterAdminClient(new() { GroupId = group, SeedEndpoints = endpoints, HttpClient = http, OperationTimeout = TimeSpan.FromMinutes(2) });
+        var secret = await File.ReadAllTextAsync(Path.Combine(root, "cluster-bootstrap.secret"), stop.Token);
+        var issued = await admin.BootstrapAsync(secret, Guid.Parse(Option("operation-id", Guid.NewGuid().ToString("D"))), stop.Token);
+        if (issued.Secret is null) throw new InvalidOperationException("Bootstrap was already committed; its secret cannot be retrieved again.");
+        var path = Path.Combine(root, "dashboard-connection.json");
+        await File.WriteAllBytesAsync(path, JsonSerializer.SerializeToUtf8Bytes(new { Name = "Raft / process stand", GroupId = group,
+            ManagementEndpoints = endpoints.Select(endpoint => endpoint.AbsoluteUri).ToArray(), Credential = issued.Secret,
+            CertificateAlias = security is null ? null : "lab" }), stop.Token);
+        Console.WriteLine("DASHBOARD CONNECTION FILE " + path);
+    }
+    else if (command == "dashboard-stand")
+    {
+        var run = Path.Combine(root, "dashboard-stand-" + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss") + "-" + Guid.NewGuid().ToString("N")[..8]);
+        Directory.CreateDirectory(run);
+        var bootstrapSecret = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+        await using var cluster = new DemoCluster(run, voters, fixedPorts: true, groupId: group,
+            peerBasePort: Integer("peer-port", 6101), clientBasePort: Integer("client-port", 7101), managementBasePort: Integer("management-port", 7201))
+            { ManagementEnabled = true, BootstrapSecret = bootstrapSecret, RequireClientTokens = Option("tokens", "false") == "true" };
+        await cluster.StartAsync(stop.Token);
+        await cluster.LeaderAsync(stop.Token);
+        await using var bootstrap = new RaftClusterAdminClient(new()
+        {
+            GroupId = group, SeedEndpoints = Enumerable.Range(1, voters).Select(index => cluster.ManagementEndpoint("n" + index).Address).ToArray()
+        });
+        var grant = await bootstrap.BootstrapAsync(bootstrapSecret, Guid.NewGuid(), stop.Token);
+        var connectionPath = Path.Combine(run, "dashboard-connection.json");
+        await File.WriteAllBytesAsync(connectionPath, JsonSerializer.SerializeToUtf8Bytes(new
+        {
+            Name = "Raft / local", GroupId = group,
+            ManagementEndpoints = Enumerable.Range(1, voters).Select(index => cluster.ManagementEndpoint("n" + index).Address.AbsoluteUri).ToArray(),
+            Credential = grant.Secret
+        }, new JsonSerializerOptions { WriteIndented = true }), stop.Token);
+        for (var index = voters + 1; index <= Math.Min(voters + 2, 9); index++) await cluster.StartNodeAsync("n" + index, stop.Token);
+        Console.WriteLine($"DASHBOARD CONNECTION FILE {connectionPath}");
+        Console.WriteLine("Already-running joining nodes are ready for Add. No synthetic messages are generated.");
+        while (!stop.IsCancellationRequested) await Task.Delay(1000, stop.Token);
+    }
+    else if (command == "migrate-cluster-v2")
+    {
+        var source = Path.GetFullPath(Option("source", ""));
+        var destination = Path.GetFullPath(Option("destination", ""));
+        var optionsFile = Option("options", Path.Combine(source, "node-options.json"));
+        var settings = JsonSerializer.Deserialize<RaftOptions>(await File.ReadAllBytesAsync(optionsFile, stop.Token))
+            ?? throw new ArgumentException("Missing original RaftOptions.");
+        Console.WriteLine(JsonSerializer.Serialize(ClusterStorageMigration.CopyNodeV1ToV2(source, destination, settings, stop.Token)));
+    }
+    else if (command == "node")
     {
         var id = args.Length > 1 ? args[1] : throw new ArgumentException("node n1 --root ...");
+        using var security = args.Contains("--pki") ? new DemoSecurity(Option("pki", "")) : null;
+        var managementEnabled = Option("management", "false") == "true";
+        string? bootstrapSecret = null;
+        if (managementEnabled)
+        {
+            Directory.CreateDirectory(root);
+            var secretFile = Path.GetFullPath(Option("bootstrap-file", Path.Combine(root, "cluster-bootstrap.secret")));
+            if (!File.Exists(secretFile))
+            {
+                var temporary = Path.Combine(Path.GetDirectoryName(secretFile)!, ".bootstrap-" + Guid.NewGuid().ToString("N"));
+                await File.WriteAllTextAsync(temporary, Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)), stop.Token);
+                try { File.Move(temporary, secretFile); }
+                catch (IOException) when (File.Exists(secretFile)) { File.Delete(temporary); }
+            }
+            if (new FileInfo(secretFile).Length > 256) throw new ArgumentException("Bootstrap secret file exceeds256 bytes.");
+            bootstrapSecret = await File.ReadAllTextAsync(secretFile, stop.Token);
+        }
         await using var cluster = new DemoCluster(root, voters, fixedPorts: true, groupId: group,
-            peerBasePort: Integer("peer-base-port", 6101), clientBasePort: Integer("client-base-port", 7101));
+            peerBasePort: Integer("peer-base-port", 6101), clientBasePort: Integer("client-base-port", 7101), managementBasePort: Integer("management-base-port", 7201), secure: security is not null)
+            { ManagementEnabled = managementEnabled, RequireClientTokens = Option("tokens", "false") == "true", BootstrapSecret = bootstrapSecret, Security = security };
         var host = await cluster.StartNodeAsync(id, stop.Token);
+        await File.WriteAllBytesAsync(Path.Combine(root, id, "node-options.json"), JsonSerializer.SerializeToUtf8Bytes(host.Options, new JsonSerializerOptions { WriteIndented = true }), stop.Token);
         Console.WriteLine($"NODE {id} peer={cluster.Peer(id).Port} client={cluster.Endpoint(id).Address} data={root}");
+        if (args.Contains("--daemon"))
+        {
+            if (args.Contains("--control-stdin"))
+                while (await Console.In.ReadLineAsync(stop.Token) is { } control && control != "quit") { }
+            else await Task.Delay(Timeout.InfiniteTimeSpan, stop.Token);
+            return;
+        }
         Console.WriteLine("Commands: status | add n4 | remove n1 | snapshot | quit. Run the new process before add.");
         while (!stop.IsCancellationRequested)
         {
@@ -150,12 +234,27 @@ try
     }
     else if (command == "benchmark")
     {
-        await ClientMeasurements.RunAsync(root, Integer("rounds", 5), Integer("requests", 512), stop.Token);
+        await ClientMeasurements.RunAsync(root, Integer("rounds", 5), Integer("requests", 512), stop.Token,
+            management: Option("management", "false") == "true", nativeTokens: Option("tokens", "false") == "true",
+            dashboardAssembly: Option("dashboard", "") is { Length: > 0 } dashboard ? Path.GetFullPath(dashboard) : null,
+            telemetry: Option("telemetry", "true") == "true", tls: Option("tls", "false") == "true",
+            onlyVoters: Integer("only-voters", 0), onlyPayload: Integer("only-payload", 0), diagnose: Option("diagnose", "false") == "true",
+            batchObservationReads: Option("batch-observation-reads", "true") == "true");
+        if (Option("trace-hold", "false") == "true") await Console.In.ReadLineAsync();
     }
     else if (command is "publish" or "subscribe" or "upload" or "download")
     {
-        var seeds = Option("seeds", "http://127.0.0.1:7101/,http://127.0.0.1:7102/,http://127.0.0.1:7103/").Split(',').Select(value => new Uri(value)).ToArray();
-        await using var client = new RaftClusterClient(new() { SeedEndpoints = seeds, GroupId = group });
+        using var security = args.Contains("--pki") ? new DemoSecurity(Option("pki", "")) : null;
+        using var http = security?.HttpClient();
+        var seeds = Option("seeds", string.Join(',', Enumerable.Range(7101, 3).Select(port => $"{(security is null ? "http" : "https")}://127.0.0.1:{port}/"))).Split(',').Select(value => new Uri(value)).ToArray();
+        string? accessToken = null;
+        if (Option("token-file", "") is { Length: > 0 } tokenFile)
+        {
+            if (new FileInfo(tokenFile).Length > 512) throw new ArgumentException("Token file exceeds512 bytes.");
+            accessToken = (await File.ReadAllTextAsync(tokenFile, stop.Token)).Trim();
+        }
+        await using var client = new RaftClusterClient(new() { SeedEndpoints = seeds, GroupId = group, HttpClient = http,
+            AccessTokenProvider = _ => ValueTask.FromResult(accessToken ?? Environment.GetEnvironmentVariable("RAFT_CLUSTER_ACCESS_TOKEN")) });
         client.TopologyChanged += topology => Console.WriteLine($"TOPOLOGY {JsonSerializer.Serialize(topology)}");
         var entity = Option("entity", "events");
         if (command == "publish") Console.WriteLine(await client.AddLogEntryAsync(Encoding.UTF8.GetBytes(Option("text", "Hello")), entity, cancellationToken: stop.Token));
@@ -168,6 +267,6 @@ try
         else if (command == "upload") Console.WriteLine(await FileMessages.UploadAsync(client, Option("file", "source.bin"), Option("chunk-entity", "chunks"), Option("metadata-entity", "movies"), Integer("chunk-bytes", ClusterLimits.MaxPayloadBytes), stop.Token));
         else await FileMessages.DownloadAsync(client, Option("metadata-entity", "movies"), long.Parse(Option("manifest", "1"), System.Globalization.CultureInfo.InvariantCulture), Option("file", "download.bin"), stop.Token);
     }
-    else Console.WriteLine("Raft.Cluster.Demo: scenario | node n1 | publish | subscribe [--ids] [--after ID] | upload --file PATH | download --manifest ID --file NEW_PATH | benchmark | stress-file --gib 80. Use --root ABSOLUTE_PATH, --voters 3/5, --group movies, --seeds HTTP_ORIGINS.");
+    else Console.WriteLine("Raft.Cluster.Demo: scenario | node n1 [--daemon --management true --tokens true --pki PATH] | dashboard-stand | dashboard-process-scenario [--secure true] | create-lab-pki --pki NEW_PATH | bootstrap-stand | migrate-cluster-v2 --source OLD --destination NEW --options JSON | publish | subscribe [--ids] [--after ID] | upload --file PATH | download --manifest ID --file NEW_PATH | benchmark [--management true --dashboard DLL --tokens true --tls true] | stress-file --gib 80. Use --root ABSOLUTE_PATH, --voters 3/5, --group movies, --seeds HTTP_ORIGINS.");
 }
 catch (OperationCanceledException) when (stop.IsCancellationRequested) { }

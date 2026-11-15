@@ -168,6 +168,7 @@ internal sealed class TestDirectory : IDisposable
     }
     public void Dispose()
     {
+        if (Environment.GetEnvironmentVariable("RAFT_KEEP_TEST_DATA") == "1") return;
         var absolute = System.IO.Path.GetFullPath(Path);
         var parent = _parent.TrimEnd(System.IO.Path.DirectorySeparatorChar) + System.IO.Path.DirectorySeparatorChar;
         if (!absolute.StartsWith(parent, StringComparison.OrdinalIgnoreCase)) throw new InvalidOperationException("Unexpected test path.");

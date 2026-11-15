@@ -1,0 +1,6 @@
+ClientApp/node_modules/
+ClientApp/dist/
+ClientApp/*.tsbuildinfo
+ClientApp/playwright-report/
+ClientApp/test-results/
+dashboard-data/

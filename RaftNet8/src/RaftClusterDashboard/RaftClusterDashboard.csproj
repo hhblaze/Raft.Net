@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <Description>Standalone administration dashboard for Raft.Net8 clusters.</Description>
+    <DefaultItemExcludes>$(DefaultItemExcludes);ClientApp/**</DefaultItemExcludes>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Remove="ClientApp/**" />
+    <None Remove="ClientApp/**" />
+    <ProjectReference Include="../Raft.Cluster.Client/Raft.Cluster.Client.csproj" />
+    <PackageReference Include="DBreeze" />
+    <InternalsVisibleTo Include="Raft.Tests" />
+  </ItemGroup>
+  <Target Name="BuildDashboardClient" AfterTargets="ComputeFilesToPublish" Condition="'$(SkipDashboardClientBuild)' != 'true'">
+    <Exec WorkingDirectory="$(MSBuildProjectDirectory)/ClientApp" Command="npm ci" />
+    <Exec WorkingDirectory="$(MSBuildProjectDirectory)/ClientApp" Command="npm run build" />
+    <ItemGroup>
+      <_DashboardDist Include="ClientApp/dist/**/*" />
+      <ResolvedFileToPublish Include="@(_DashboardDist->'%(FullPath)')" Exclude="@(ResolvedFileToPublish)">
+        <RelativePath>wwwroot/%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
+</Project>

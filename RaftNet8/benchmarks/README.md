@@ -1,5 +1,30 @@
 # Benchmarks
 
+## Dashboard and native security
+
+The [final SDK8 dashboard report](results/dashboard-final-sdk8-2026-11-15.html) uses a fresh frozen3fafaa2 HTTP/Standard-history baseline. It is independent of embedded-core R18/R19/e06/DotNext data. Read the report's gate status and uncertainty; intermediate FAIL reports are preserved. Baseline/off/on comparisons use3/5 nodes ×64B/16KiB,4096 requests +128 warmup and64 concurrent calls. Each variant/round has its own process and disk directories, with reverse variant order on even rounds. Runtime data is under D:/Temp/RaftNet8.
+
+The later [isolated SDK8 control](results/dashboard-tail-sdk8-2026-11-15.html) repeats only3nodes64Boff/baseline: ten fresh pairs, both compiled with8.0.428, same load. It did not reproduce the earlier+16.37% p99 FAIL (paired median−4.42%,95% CI−10.18…+11.63%). It is a separate experiment, not a replacement or pooled extension of the full matrix. The control folder retains its harness-only baseline filter, driver, binaries and source/IL checks. Its Core has4491 identical nonempty IL method bodies (4537 method definitions). Source tweaks to the dashboard retention default/display and rejected429 counter happened afterward and are explicitly outside those frozen timings.
+
+Build the demo at the selected source revision, copy its entire Release output to an independent frozen directory, and publish the dashboard separately. Prepare the baseline by archiving3fafaa2 into another directory and building its HumanTest/Raft.Cluster.Demo in Release. Keep all binaries/source identities; never rebuild them during measurement.
+
+```powershell
+./benchmarks/measure_dashboard.ps1 `
+  -BaselineDirectory D:/Temp/RaftNet8/dashboard-baseline-3fafaa2 `
+  -CurrentHarness D:/Temp/RaftNet8/frozen-current/Raft.Cluster.Demo.dll `
+  -DashboardAssembly D:/Temp/RaftNet8/published-dashboard/RaftClusterDashboard.dll `
+  -Rounds 5 -Requests 4096 -Variants baseline,off,on,tokens,tls
+# Extend only uncertain comparisons, keeping the first five and every slow round:
+./benchmarks/measure_dashboard.ps1 `
+  -BaselineDirectory D:/Temp/RaftNet8/dashboard-baseline-3fafaa2 `
+  -CurrentHarness D:/Temp/RaftNet8/frozen-current/Raft.Cluster.Demo.dll `
+  -DashboardAssembly D:/Temp/RaftNet8/published-dashboard/RaftClusterDashboard.dll `
+  -StartRound 6 -Rounds 10 -Requests 4096 -Variants baseline,off,on
+python benchmarks/dashboard_report.py FIRST_COHORT SECOND_COHORT --output benchmarks/results/dashboard-overhead.html
+```
+
+Dashboard on includes node collection and a real separate backend collector; no browser/SSE consumers. Managed allocations count the replicas/client process, excluding the separate BFF. Token/TLS variants have telemetry disabled and no BFF; the token variant also enables native management. Short cells may not cover minute-history writes or a repeated30s file scan. ReadIndex-call counters are native observation API calls, not wire packet counts. Isolate/profiling scripts are diagnostic tools; traced speeds are not acceptance measurements. Run tests and profilers separately from timing cohorts.
+
 ## External message-client service
 
 The optional HTTP client service has a separate [HTML report](results/cluster-clients-2026-11-15.html) with tables, charts, raw individual latencies and binary hashes. It uses Standard full retained message history, an application ledger and actual HTTP clients over3/5 loopback TCP replicas. It is a different application/transport from the accepted embedded-core workload; do not calculate an R18/R19 regression from these numbers. The36 embedded-core source files remain identical to d44147e. All intermediate raw runs are preserved in the experiment root.

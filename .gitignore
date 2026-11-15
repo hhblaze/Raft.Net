@@ -8,3 +8,4 @@ RaftNet8/.data/
 RaftNet8/.artifacts/
 *.user
 *.suo
+**/__pycache__/

@@ -11,6 +11,7 @@
     <ProjectReference Include="../../src/Raft/Raft.csproj" />
     <ProjectReference Include="../../src/Raft.Cluster.Server/Raft.Cluster.Server.csproj" />
     <ProjectReference Include="../../src/Raft.Cluster.Client/Raft.Cluster.Client.csproj" />
+    <ProjectReference Include="../../src/RaftClusterDashboard/RaftClusterDashboard.csproj" />
     <ProjectReference Include="../../HumanTest/Raft.Demo/Raft.Demo.csproj" />
     <ProjectReference Include="../../tools/Raft.CrashHarness/Raft.CrashHarness.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="../../tools/Raft.Simulator/Raft.Simulator.csproj" />

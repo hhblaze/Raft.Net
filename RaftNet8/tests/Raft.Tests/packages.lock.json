@@ -147,6 +147,13 @@
           "Raft.Net8": "[2.0.0, )"
         }
       },
+      "raftclusterdashboard": {
+        "type": "Project",
+        "dependencies": {
+          "DBreeze": "[1.142.2026.1016-beta, 1.142.2026.1016-beta]",
+          "Raft.Cluster.Client": "[1.0.0, )"
+        }
+      },
       "DBreeze": {
         "type": "CentralTransitive",
         "requested": "[1.142.2026.1016-beta, 1.142.2026.1016-beta]",

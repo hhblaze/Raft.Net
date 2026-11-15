@@ -22,12 +22,18 @@ internal sealed class ClientTestCluster : IAsyncDisposable
     private readonly Dictionary<string, ClientEndpoint> _clients = new(StringComparer.Ordinal);
     public X509Certificate2? Certificate { get; init; }
     public bool RequireToken { get; init; }
+    public bool NativeTokens { get; init; }
+    public bool ManagementEnabled { get; init; }
+    public int MaxHttpRequests { get; init; } = 4;
+    public ClusterLedgerVersion ApplicationVersion { get; init; } = ClusterLedgerVersion.V2;
+    public string BootstrapSecret { get; } = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+    private readonly Dictionary<string, Uri> _management = new(StringComparer.Ordinal);
     public string GroupId { get; } = "clients_" + Guid.NewGuid().ToString("N");
     public Dictionary<string, RaftClusterNode> Nodes { get; } = new(StringComparer.Ordinal);
     public ClientTestCluster(int count, bool https = false)
     {
         _voters = Enumerable.Range(1, count).Select(index => "n" + index).ToArray();
-        var listeners = Enumerable.Range(0, 16).Select(_ => new TcpListener(IPAddress.Loopback, 0)).ToArray();
+        var listeners = Enumerable.Range(0, 24).Select(_ => new TcpListener(IPAddress.Loopback, 0)).ToArray();
         try
         {
             foreach (var listener in listeners) listener.Start();
@@ -36,6 +42,7 @@ internal sealed class ClientTestCluster : IAsyncDisposable
                 var id = "n" + (index + 1);
                 _peers[id] = new(id, "127.0.0.1", ((IPEndPoint)listeners[index * 2].LocalEndpoint).Port);
                 _clients[id] = new(id, new Uri($"{(https ? "https" : "http")}://127.0.0.1:{((IPEndPoint)listeners[index * 2 + 1].LocalEndpoint).Port}/"));
+                _management[id] = new Uri($"http://127.0.0.1:{((IPEndPoint)listeners[index + 16].LocalEndpoint).Port}/");
             }
         }
         finally { foreach (var listener in listeners) listener.Stop(); }
@@ -43,10 +50,18 @@ internal sealed class ClientTestCluster : IAsyncDisposable
     }
     public PeerDescriptor Peer(string id) => _peers[id];
     public ClientEndpoint Endpoint(string id) => _clients[id];
+    public ManagedNodeEndpoint ManagementEndpoint(string id) => new(id, _management[id]);
     public string DataPath(string id) => Path.Combine(_directory.Path, id);
     public async Task StartAsync() { foreach (var id in _voters) await StartNodeAsync(id); }
     public async Task<RaftClusterNode> StartNodeAsync(string id)
     {
+        if (ManagementEnabled && !_management.ContainsKey(id))
+        {
+            var listener = new TcpListener(IPAddress.Loopback, 0);
+            listener.Start();
+            _management[id] = new Uri($"http://127.0.0.1:{((IPEndPoint)listener.LocalEndpoint).Port}/");
+            listener.Stop();
+        }
         var options = new RaftOptions
         {
             NodeId = id,
@@ -65,11 +80,19 @@ internal sealed class ClientTestCluster : IAsyncDisposable
         var host = await RaftClusterNode.StartAsync(new()
         {
             Raft = options,
+            ApplicationVersion = ApplicationVersion,
             Peer = _peers[id],
             DataDirectory = DataPath(id),
             ClientServer = new()
             {
                 Endpoint = _clients[id],
+                MaxConcurrentRequests = MaxHttpRequests,
+                Security = new() { RequireClientTokens = NativeTokens },
+                Management = ManagementEnabled ? new()
+                {
+                    Endpoint = _management[id], BootstrapSecret = BootstrapSecret,
+                    InitialEndpoints = _voters.Select(voter => new ManagedNodeEndpoint(voter, _management[voter])).ToArray()
+                } : null,
                 InitialEndpoints = _voters.Select(voter => _clients[voter]).ToArray(),
                 Authorize = RequireToken ? (context, _) => ValueTask.FromResult(context.Request.Headers.Authorization == "Bearer test-secret") : null,
                 ConfigureHttpServer = Certificate is null ? null : builder => builder.WebHost.ConfigureKestrel(kestrel =>
@@ -99,6 +122,17 @@ internal sealed class ClientTestCluster : IAsyncDisposable
         TopologyRefreshInterval = TimeSpan.FromMilliseconds(150),
         HandlerRetryDelay = TimeSpan.FromMilliseconds(20),
         HttpClient = http
+    });
+    public RaftClusterAdminClient Admin(string? secret = null) => new(new()
+    {
+        GroupId = GroupId, SeedEndpoints = _management.Values.ToArray(),
+        AccessTokenProvider = _ => ValueTask.FromResult(secret)
+    });
+    public RaftClusterClient AuthenticatedClient(string secret) => new(new()
+    {
+        GroupId = GroupId, SeedEndpoints = _voters.Select(id => _clients[id].Address).ToArray(),
+        AccessTokenProvider = _ => ValueTask.FromResult<string?>(secret),
+        TopologyRefreshInterval = TimeSpan.FromMilliseconds(150)
     });
     public async Task StopAsync(string id)
     {

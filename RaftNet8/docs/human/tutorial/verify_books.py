@@ -61,7 +61,7 @@ def main():
             assert match is not None
             assert excerpts == [textwrap.dedent(match[1]).rstrip()], (path, key)
     en = documents[(HERE / "book-en.html").resolve()]; ru = documents[(HERE / "book-ru.html").resolve()]
-    assert en.chapters == ru.chapters and len(en.chapters) == 30
+    assert en.chapters == ru.chapters and len(en.chapters) == 34
     assert all(anchor in en.chapters for anchor in ("cluster-clients", "entity-subscriptions", "large-client-messages"))
     manifest = json.loads((HERE / "book-manifest.json").read_text(encoding="utf-8"))
     for path, expected in manifest["source_sha256"].items():

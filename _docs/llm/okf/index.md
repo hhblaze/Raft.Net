@@ -17,6 +17,7 @@ OKF v0.2. Concept IDs are paths relative to this directory, without `.md`.
 - [R19 report](benchmark-r19.md) — current-only benchmark refresh with explicitly reused R18 reference data.
 - [Accepted hot-membership baseline](performance-recovery.md) — user-accepted d44147e, runtime improvements, preserved e06 controls and latency limits.
 - [External clients and entities](cluster-clients.md) — retained message streams, local transactional subscriber cursors, large-message APIs and endpoint discovery.
+- [Cluster dashboard](cluster-dashboard.md) — administration, client tokens, ordered policies, bounded telemetry and cluster-v2 copy migration.
 - [Work log](log.md) — dated implementation and validation evidence.
 
 The upstream specification is stored as `OKF-SPEC.reference.txt`; it is a reference, not a concept document. Specifications live in `../sdd/`; the original DBreeze skill lives in `../skill/`.
