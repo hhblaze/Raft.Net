@@ -1,5 +1,15 @@
 # Executed validation
 
+## External clients and message entities,2026-11-15
+
+Final **435/435 tests, zero skips**, locked restore/Release build with zero warnings, embedded HumanTest and **29 BDN Dry cases** pass. [Machine-readable evidence](CLIENT-VALIDATION-2026-11-15.json) records raw TRX/log paths under `D:\Temp\RaftNet8`, measured binary hashes, earlier failed development runs and limits. The36 embedded-core source files and defaults match accepted d44147e.
+
+New tests cover durable independent counters,20000-message history/resume at10000, request-cache eviction, cache restart, ID-only payload avoidance, duplicate/conflicting IDs, lost header/body responses, leader failure, cancelled Add with continuing writes, clean snapshot join,3→5 endpoint refresh and leader removal,16,000,000B messages on3/5 voters, HTTPS/auth and frame bounds. The independent OS-process scenario forces leader death, reconnects a subscriber, preserves old PIDs during Add, removes a leader and verifies file SHA-256. Real3GiB transfer used202 chunks and a manifest; all3 application DBs independently reopened with202 chunks,1manifest and checkpoint207/term1.80GB and3GiB-image snapshot tests were not run.
+
+Both RU/EN offline books have30 chapters,13 checked compiled-source files, valid links/anchors and deterministic regeneration. LLM skill validation passes. The [new client benchmark](../benchmarks/results/cluster-clients-2026-11-15.html) records final20 fresh clusters/10240 individual requests and preserves30720 observations including development series. Actual HTTP/full-history/D-drive results are a separate workload from the accepted embedded-core benchmark.
+
+Test collections run sequentially through `tests/Raft.Tests/xunit.runner.json`. This suite contains wall-clock elections, real synchronous disk commits and native TLS: running many independent clusters alongside CPU/property workloads on one shared drive can exceed their failure-detector deadlines. Explicit concurrency inside load/fault tests remains enabled and checked; benchmark execution is separate. The normal `dotnet test` command copies/uses this configuration. [xUnit runner configuration](https://xunit.net/docs/config-xunit-runner-json) describes this scheduling setting.
+
 Local host: Windows x64, .NET 8. Raw test/coverage/simulation/benchmark evidence is retained under the ignored `.artifacts/autonomous/` directory. The active GitHub Actions workflow was removed at the user's request; remote Windows/Linux CI has not been executed here. Local validation commands remain available. These results are regression evidence, not formal verification or a hardware power-loss guarantee.
 
 ## Runtime performance recovery,2026-11-14

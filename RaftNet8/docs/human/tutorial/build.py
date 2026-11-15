@@ -191,7 +191,7 @@ def build_book(language, chapters):
     contents = "".join(f'<section class="chapter" id="{ident}"><div class="chapter-number">{chapter_label} {i:02}</div><h2>{name}</h2>{body}<div class="chapter-bottom"><a href="#contents">{toc_label} ↑</a>' + (f'<a href="#{chapters[i][0]}">{chapters[i][1]} →</a>' if i < len(chapters) else '<a href="#cover">↑</a>') + '</div></section>' for i, (ident, name, body) in enumerate(chapters, 1))
     words = len(re.sub(r"<[^>]+>", " ", " ".join(body for _, _, body in chapters)).split())
     mins = max(1, round(words / 180))
-    reading = f"{len(chapters)} глав · около {mins} минут с примерами · 14 ноября 2026" if ru else f"{len(chapters)} chapters · about {mins} minutes including examples · 14 November 2026"
+    reading = f"{len(chapters)} глав · около {mins} минут с примерами · 15 ноября 2026" if ru else f"{len(chapters)} chapters · about {mins} minutes including examples · 15 November 2026"
     footer = "Самодостаточная HTML-книга. Для чтения не нужны сервер, интернет или JavaScript. Дополнительные исходники лежат рядом в examples/TutorialNode/." if ru else "A self-contained HTML book. Reading requires no server, internet connection or JavaScript. Companion sources are next to the book in examples/TutorialNode/."
     document = f'''<!doctype html>
 <html lang="{language}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><meta name="description" content="{esc(lead)}"><title>{title}</title><style>{CSS}</style></head><body>
@@ -206,7 +206,10 @@ def build_book(language, chapters):
 def main():
     from content_en import chapters as en
     from content_ru import chapters as ru
+    from client_chapters import client_chapters
     editions = {"en": en(), "ru": ru()}
+    for language, chapters in editions.items():
+        chapters[1:1] = client_chapters(language == "ru")
     if [item[0] for item in editions["en"]] != [item[0] for item in editions["ru"]]:
         raise ValueError("The language editions must have matching chapter anchors")
     stats = [build_book(language, chapters) for language, chapters in editions.items()]
@@ -214,7 +217,9 @@ def main():
     (HERE / "index.html").write_text(index, encoding="utf-8", newline="\n")
     sources = sorted(path for path in EXAMPLES.iterdir()
                      if path.suffix in (".cs", ".csproj") or path.name == "packages.lock.json")
-    manifest = {"format": 1, "date": "2026-11-14", "editions": stats, "source_sha256": {str(path.relative_to(REPO_ROOT)).replace("\\", "/"): hashlib.sha256(path.read_bytes()).hexdigest() for path in sources}}
+    sources += sorted(path for path in (RAFT_ROOT / "HumanTest/Raft.Cluster.Demo").iterdir()
+                      if path.suffix in (".cs", ".csproj") or path.name == "packages.lock.json")
+    manifest = {"format": 1, "date": "2026-11-15", "editions": stats, "source_sha256": {str(path.relative_to(REPO_ROOT)).replace("\\", "/"): hashlib.sha256(path.read_bytes()).hexdigest() for path in sources}}
     (HERE / "book-manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
     print(json.dumps(stats, ensure_ascii=False))
 

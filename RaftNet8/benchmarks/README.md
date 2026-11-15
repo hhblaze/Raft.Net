@@ -1,5 +1,16 @@
 # Benchmarks
 
+## External message-client service
+
+The optional HTTP client service has a separate [HTML report](results/cluster-clients-2026-11-15.html) with tables, charts, raw individual latencies and binary hashes. It uses Standard full retained message history, an application ledger and actual HTTP clients over3/5 loopback TCP replicas. It is a different application/transport from the accepted embedded-core workload; do not calculate an R18/R19 regression from these numbers. The36 embedded-core source files remain identical to d44147e. All intermediate raw runs are preserved in the experiment root.
+
+```sh
+dotnet run --project HumanTest/Raft.Cluster.Demo -c Release -- benchmark --rounds 5 --requests 512 --root D:/Temp/RaftNet8
+python -X utf8 -B benchmarks/render_cluster_clients.py INITIAL/results.json FINAL/results.json --out benchmarks/results/cluster-clients-2026-11-15.html
+```
+
+Each round creates a fresh disk cluster. Concurrency64, warmup128, measured512 requests, each waiting for its own commit/application/HTTP result. The runner checks every replica's final counter and applied fence. It alternates case order, saves every sample and includes all replicas/client in process-wide allocated-byte counts. It does not measure Add or images. Use the human/process/fault scenarios for those behaviors and the explicit `stress-file` command for large files.
+
 **Accepted baseline,2026-11-14:** the user accepted the Hot Add/Remove implementation at commit `d44147effdb20271854dd758cc6f9073543a554d`. Use this version for future fresh paired comparisons with membership enabled. [Baseline identity and evidence](baselines/hot-membership-2026-11-14.json) pin the source/runtime and retain the historical limitations. Existing e06/R18/R19 reports are preserved; adoption does not rewrite their measured PASS/FAIL results.
 
 The user's subsequent [lower-load recheck of long5-node16KiB Pipeline](results/p99-recheck-5n-16k-pipeline-2026-11-14.html) uses the same binaries and10 new rounds per version. Fresh e06/current p99:227.69/212.27ms (−6.77%); throughput706.87/680.75 (−3.69%). This new cohort passes the working tolerances, but current absolute p99 did not improve over the previous204.89ms. All30 observations/122880 latencies remain separate; the original full matrix below is unchanged. [JSON](results/p99-recheck-5n-16k-pipeline-2026-11-14.json) / [CSV](results/p99-recheck-5n-16k-pipeline-2026-11-14.csv).

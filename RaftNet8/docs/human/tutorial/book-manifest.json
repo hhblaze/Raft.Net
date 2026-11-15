@@ -1,18 +1,18 @@
 {
   "format": 1,
-  "date": "2026-11-14",
+  "date": "2026-11-15",
   "editions": [
     {
       "language": "en",
-      "chapters": 27,
-      "words_with_code": 11479,
-      "bytes": 250545
+      "chapters": 30,
+      "words_with_code": 13459,
+      "bytes": 292502
     },
     {
       "language": "ru",
-      "chapters": 27,
-      "words_with_code": 10794,
-      "bytes": 348101
+      "chapters": 30,
+      "words_with_code": 12801,
+      "bytes": 403143
     }
   ],
   "source_sha256": {
@@ -21,6 +21,13 @@
     "RaftNet8/docs/human/tutorial/examples/TutorialNode/packages.lock.json": "00a4393791ad8b0b9abb3c8e2bf71d9e0d7d81ac1e1410b00734f2bc0b73f1b5",
     "RaftNet8/docs/human/tutorial/examples/TutorialNode/Program.cs": "c8897d97484cdfd3000c74a1554332cf9491dc3a9780bf0cfc5ec3e307c719fe",
     "RaftNet8/docs/human/tutorial/examples/TutorialNode/TutorialNode.csproj": "6159df425dfcf9c4995b84c97f55e293ea1042ca7e2cc287c5ca52bad915cfe9",
-    "RaftNet8/docs/human/tutorial/examples/TutorialNode/TutorialSettings.cs": "b5302c9cf0271ad16f944c28779ac39d8d318a391ecb01cec3437c0c0e0ccdc4"
+    "RaftNet8/docs/human/tutorial/examples/TutorialNode/TutorialSettings.cs": "b5302c9cf0271ad16f944c28779ac39d8d318a391ecb01cec3437c0c0e0ccdc4",
+    "RaftNet8/HumanTest/Raft.Cluster.Demo/ClientMeasurements.cs": "c70c3af99a2f6711e955821881174729efc50f1baeefb034833ef6606e445f0d",
+    "RaftNet8/HumanTest/Raft.Cluster.Demo/DemoCluster.cs": "8044b6b7b05686ece49b7439df3382a884b0b3cd98c62bb65b28fe746883aa58",
+    "RaftNet8/HumanTest/Raft.Cluster.Demo/FileMessages.cs": "04f9f4b52d2dac12a101b84354a0f8646fd09a30cc4aa62e834a6217cce9a2c3",
+    "RaftNet8/HumanTest/Raft.Cluster.Demo/packages.lock.json": "6612a402282292f0f4813b2b261053ef6fc880c34fc0a87d8574c7d8cc287716",
+    "RaftNet8/HumanTest/Raft.Cluster.Demo/Program.cs": "bdd4f42a0476bf9a70a3c0a9027348d1183cf786065b645c610831abce8d6c02",
+    "RaftNet8/HumanTest/Raft.Cluster.Demo/QuickStartHost.cs": "d752a7fb74d89b2c3961353507de37f97d2317fbe2115f88dc008cefba7f225b",
+    "RaftNet8/HumanTest/Raft.Cluster.Demo/Raft.Cluster.Demo.csproj": "959faf50efc3d07100781db08e38dfae692f52e448ac911095beb458e1cf0650"
   }
 }

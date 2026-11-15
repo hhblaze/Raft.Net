@@ -1,0 +1,39 @@
+# Cluster clients and named entities
+
+Status: implemented and locally validated, 2026-11-15. The user's new description takes precedence over the legacy documentation. Experiments belong in `D:\Temp\RaftNet8`; source and reviewable reports remain in the repository.
+
+## Contract
+
+- One Raft group, arbitrary server count, one leader across entities. External clients are never peers, learners or voters. Keep the existing wire3/raft8-v4 consensus and its accepted d44147e performance baseline.
+- Separate net8.0 client DLL and server library. A separate HTTP(S) client endpoint on each node uses bounded binary payloads; peer TCP remains separate. Bootstrap from seeds, discover the leader, and refresh advertised client endpoints after hot membership changes. Client endpoints are application metadata replicated through Raft; peer addresses are not client addresses.
+- Standard entities retain every message on disk indefinitely. HighSpeedCache retains only the latest payload on disk, with a bounded RAM cache. Both persist their independent increasing message counter. First append creates a missing Standard entity; explicitly create cache entities. Entity modes cannot change, and entity deletion/counter reset is outside this version.
+- Message IDs are assigned atomically during deterministic application, independently of Raft indices. Publication success follows quorum durability and leader application. Stable caller request Guids make uncertain publication retries idempotent; a different request body with the same ID is a conflict. Request-result metadata is durable, including in cache mode; its disk usage grows with publications.
+- Payloads are opaque, including compression/encryption done by the application. Maximum payload is 16,000,000 bytes, leaving envelope headroom within the core's 16 MiB command ceiling. Stream APIs operate on one bounded message, not an entire large file. Admission precedes request-body allocation and has fixed concurrent-operation limits.
+- Subscriptions start strictly after a caller-supplied message ID. Payload and ID-only variants run callbacks serially for that subscription. True advances the in-process cursor; false or a callback exception retries the same buffered message. Standard catch-up is contiguous; cache delivery may skip overwritten IDs. After a process crash a cache subscriber receives the current latest value.
+- The application owns the durable cursor: save message effects and cursor together in its local transaction, then return true. No durable client identity, cluster consumer offsets, or Raft writes for delivery acknowledgments. Process-local cursors support automatic reconnect only. Delivery is at least once.
+- Standard history, cache latest values, counters, request results and endpoint metadata are part of application snapshots. Raft-log compaction never deletes retained Standard message history. Images use the existing generation snapshot implementation, including its extra disk/IO cost and configurable 64-bit image limits.
+
+## Delivery
+
+Implement server/client/contracts, a runnable chunk-plus-manifest example, deterministic storage tests, real HTTP/TCP recovery and membership tests, bounded large-message tests, regression and smoke checks. Update both HTML human books, operations, LLM usage guidance and OKF memory. Large-file assembly remains an application example, not a built-in file service. Real 80 GB stress is opt-in with disk preflight; never claim an unexecuted workload passed.
+
+## Limits
+
+Trusted-network HTTP is explicit; HTTPS certificates and authorization belong to the host. Use normal platform server-certificate validation in the SDK. At least one known seed or a stable DNS bootstrap must remain reachable after an offline interval: discovery cannot recover addresses when every known address has disappeared. Standard history and durable idempotence metadata grow without automatic retention. Callback-owned durable effects must be transactional or idempotent.
+
+Cache latest-only applies to logical application records. Old commands still exist in the technical log until snapshot/compaction; automatic snapshots default off (SnapshotIntervalEntries=0). DBreeze may retain reusable physical blocks after row deletion. All message-group nodes must run the same MessageLedger application. Large-message host timers are explicit sample settings, not altered core defaults.
+
+## Validation and delivery
+
+- Durable ledger/HTTP/TCP tests cover20000 messages with10000-message resume, two independent entity counters, cache restart, bounded result-cache eviction, pure ID reads, same-ID conflicts, lost replies/bodies, leader failure, cancelled Add, snapshot join,3→5 topology and leader removal,16,000,000B on3/5 voters, HTTPS/access policy and malformed batch bounds.
+- Human scenario completed:4194427B in5 chunks, ID-only local transactional cursors, separate manifest, cache, snapshot join and automatic leader removal. Real3GiB stress completed:3221225472B in202 chunks; SHA-256 download verified, then all3 application databases independently reopened with202 chunks/1manifest/checkpoint207/term1.
+- Historical full passes during development:428/429 (Windows SChannel test certificate fixture required OS-backed key);432/434 (two old fault-child file sharing races);434/435 (one old peer-mTLS fixture EOF). Failures and TRX files remain under D:\Temp\RaftNet8. Recovery assertions were not weakened: a bounded sharing-lock probe now precedes opening engines, with a deterministic regression;68 crash tests pass. Peer-mTLS fixture identities are isolated per test;5 directory/TLS checks pass. These development failures are superseded by the final passing evidence below.
+- Both HTML books regenerate deterministically with30 chapters and13 checked compiled-source files. All offline links/anchors/encoding pass. The installed skill validator passes with PyYAML isolated in D-drive scratch.
+
+Final delivery: locked restore and zero-warning Release build; **435/435 tests, zero skips**, embedded HumanTest PASS, **29/29 BenchmarkDotNet Dry cases**. Reviewable [validation manifest](../../../RaftNet8/docs/CLIENT-VALIDATION-2026-11-15.json) pins raw TRX/logs. Final suite uses sequential collections and disk-appropriate demo/fixture election/RPC profiles; explicit load concurrency and all durability/recovery assertions remain. The36 core source files/defaults are unchanged from accepted d44147e. Development failures above remain recorded and are superseded by this passing run.
+
+Independent OS processes pass leader kill, subscription reconnect, Hot Add without restarting existing processes, automatic current-leader removal and chunk/manifest SHA-256 transfer. Process result: `D:\Temp\RaftNet8\client-processes-20261115-021519-01bacd6a\result.json`. Real3GiB data and all three independently reopened application checkpoints are recorded in the validation manifest. No80GB run or3GiB snapshot claim is made.
+
+Final client measurements:20 fresh disk clusters,10240 timed commands,3/5 nodes ×64B/16KiB ×5 rounds, plus all earlier initial/intermediate10240-command series retained (30720 total raw latencies). [Offline HTML with graphs/tables](../../../RaftNet8/benchmarks/results/cluster-clients-2026-11-15.html), CSV and JSON include measured core/client/server hashes matching delivered DLLs. These full-history HTTP/D-drive results are not a comparable workload to the accepted embedded-core baseline. The sequential development series does not establish a systematic throughput improvement. Final fresh profile: median rates about462/375 commands/s on3 nodes and308/285 on5 nodes for64B/16KiB respectively; p99 and allocations remain explicit in the report.
+
+Supported CLI and all public APIs/limits are in [the service contract](../../../RaftNet8/docs/CLUSTER-CLIENTS.md), both human books, the compiled client demo and `_docs/raft_skill.md`. No commit, push or package publication performed.

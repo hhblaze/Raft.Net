@@ -1,5 +1,7 @@
 # Configuration and diagnostics
 
+The defaults below belong to the embedded core. The optional [external message service](CLUSTER-CLIENTS.md) configures a separate profile through `RaftClusterNode.ConfigureMessageLimits`: payload ceiling16,000,000B, command envelope headroom, larger append/proposal/peer byte budgets and a bounded single-message replication frame. It preserves configured election/RPC timers and batching delays. Its HTTP requests, subscriptions, value cache and endpoint-directory limits are documented separately; default core values are unchanged.
+
 `RaftOptions` is immutable. Construction freezes/copies membership lists. Recovered modern membership is authoritative; supplied `Members` bootstrap a new store and never rewrite persisted membership. IDs use 1..128 ASCII letters/digits/`-`/`_`. Each directory is bound to node/group identity.
 
 | Option | Default | Unit / contract |

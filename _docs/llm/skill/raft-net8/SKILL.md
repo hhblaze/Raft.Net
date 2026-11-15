@@ -1,6 +1,6 @@
 ---
 name: raft-net8
-description: Integrate this repository's .NET 8 Raft library, DBreeze application checkpoints, ReadIndex, membership changes, snapshots and authenticated TCP peers.
+description: Integrate this repository's .NET 8 Raft library or external cluster clients, named message entities, durable subscriber cursors, DBreeze checkpoints, hot membership and snapshots.
 ---
 
 Read the canonical [Raft.Net8 usage skill](../../../raft_skill.md). It contains the supported API, lifecycle, application checkpoint requirements, replay/retry semantics, bounds, and explicit protocol limitations. The canonical file is at the location requested by the repository owner; this entrypoint makes it usable as a skill folder without duplicating its instructions.

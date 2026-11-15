@@ -65,8 +65,8 @@ internal sealed class RuntimeCluster : IAsyncDisposable
                 // Native coverage and concurrent real disk commits are not a 150ms failure detector.
                 // Fast virtual/in-memory runtime cases retain the short deadlines; disk/TCP cases
                 // exercise the same protocol with room for measured filesystem/scheduler tails.
-                ElectionMinTicks = disk ? 60 : 15, ElectionMaxTicks = disk ? 100 : 30,
-                RpcTimeout = TimeSpan.FromMilliseconds(disk ? 300 : 100),
+                ElectionMinTicks = disk ? 150 : 15, ElectionMaxTicks = disk ? 250 : 30,
+                RpcTimeout = TimeSpan.FromMilliseconds(disk ? 750 : 100),
                 MaxPendingProposals = pending
             };
             _options.Add(id, configure is null ? options : configure(options));

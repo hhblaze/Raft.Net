@@ -1,5 +1,9 @@
 # Work log
 
+## 2026-11-15 — external clients and retained message entities
+
+Implemented spec032: separate net8.0 protocol/server/client DLLs, HTTP(S) client ports and discovery, Standard full ledger, HighSpeedCache latest durable payload, per-entity counters, durable request idempotence, payload/ID-only subscriptions with application-owned local transactional cursors, bounded16,000,000B Stream messages and chunk/manifest examples. The36 accepted core source files remain identical to d44147e. Full435/435 tests, zero skips, zero-warning build, embedded HumanTest,29BDN Dry cases and independent OS-process client/node scenario pass. Actual3GiB/202-chunk SHA-256 round trip and independent3-replica reopen pass;80GB not run. Two30-chapter books and skill updated/validated. Final client-only HTML/CSV/JSON preserve30720 individual timings across3 series, with non-comparability to old core workloads stated. Scratch and all raw logs live in user-provided D:\Temp\RaftNet8. See spec032, cluster-clients concept and validation manifest for provenance, old failed runs and limits. No commit/push/publish.
+
 ## 2026-11-14
 
 - **Baseline accepted by user**: current Hot Add/Remove implementation at commit d44147effdb20271854dd758cc6f9073543a554d becomes the reference for future fresh paired comparisons. Verified current production sources against the measured release (36 C# files, normalized SHA8851CD78…), measured DLL91FD2E34… . Recorded machine-readable identity in RaftNet8/benchmarks/baselines/hot-membership-2026-11-14.json. Preserve original14/16 and the separate passing lower-load recheck; acceptance does not rewrite benchmark results. No code changes, new benchmark, agent-created commit/tag/push or publication.

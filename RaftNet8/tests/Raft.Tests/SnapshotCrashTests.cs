@@ -54,6 +54,7 @@ public sealed class SnapshotCrashTests
         {
             if (!child.HasExited) child.Kill(entireProcessTree: true);
             await child.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(10));
+            await ChildProcessSettings.WaitForFileReleaseAsync(directory.Path);
         }
         using (var raw = new DBreezeLogStorage(Path.Combine(directory.Path, "log"), options, layout))
         {

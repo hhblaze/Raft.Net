@@ -98,7 +98,7 @@ Console.WriteLine($"Applied ({written.Index}, {written.Term}); counter={count}")
 await tcp.DisposeAsync(); // stop inbound calls before automatic node/application disposal
 ```
 
-For three/five nodes, use distinct directories/IDs/endpoints and the same initial voters/group and compatible limits. Send proposals/reads/configuration changes to the leader; `NotLeaderException.LeaderId` supplies a hint, possibly null. There is no automatic client service/routing. Success means quorum durability **and leader application**; followers may lag.
+For three/five nodes, use distinct directories/IDs/endpoints and the same initial voters/group and compatible limits. Send proposals/reads/configuration changes to the leader; `NotLeaderException.LeaderId` supplies a hint, possibly null. The embedded API leaves routing to its caller; the optional [cluster client service](docs/CLUSTER-CLIENTS.md) supplies external HTTP(S) clients, discovery and retries. Success means quorum durability **and leader application**; followers may lag.
 
 New clusters should select **wire3 / `DBreezeLogLayout.UnifiedTableV4`** explicitly. [Hot Add/Remove](docs/HOT-MEMBERSHIP.md) accepts new IDs/routes without restarting existing nodes, journals the complete operation, survives leadership changes and exposes results by caller Guid. `AddNodeAsync(peer, operationId, token)` includes learner/catch-up/promotion; `RemoveNodeAsync(id, operationId, token)` transfers first for leader removal. Caller wait cancellation does not cancel an accepted operation; use `CancelMembershipOperationAsync` explicitly and `GetMembershipOperationAsync` for a fresh leader/quorum lookup.
 
@@ -138,7 +138,7 @@ Automatic GitHub Actions validation is disabled: the active workflow was removed
 
 Recommended for new data: explicit **raft8-v4**, wire **3**. No v2/v3-to-v4 converter is provided; use fresh directories for a new group. Existing constructors retain v2; select its layout when continuing those databases, or use the stopped copy migration to v3. V1 golden bytes/readers remain for existing .NET 8 integrations; v1 lacks CRC-frontier/configuration/snapshot support. Mixed wire versions are rejected. Upgrade v1 by **offline copy migration**, then restart the whole group on wire2; physical v2/v3 layouts use that same wire. See [upgrade/restore procedures](docs/OPERATIONS.md). Historical pre-.NET-8 data/packages need application-specific migration; the tool cannot infer their committed history.
 
-The model is non-Byzantine crash/recovery within one region. Joint consensus, lease reads, follower read forwarding, automatic client retries, external side-effect exactly-once delivery, a public client protocol and cross-region capacity guarantees are outside scope. Leases are absent/off. Snapshot replay uses extra disk/CPU for consistency without assuming MVCC. Durability relies on the OS/device honoring flushes; software tests cannot prove hardware power-loss behavior. Retain backups and measure network/storage tails before tuning deadlines.
+The model is non-Byzantine crash/recovery within one region. Joint consensus, lease reads, follower read forwarding inside the core, external side-effect exactly-once delivery and cross-region capacity guarantees are outside scope. The optional cluster service adds its own client protocol, discovery and publication retries. Leases are absent/off. Snapshot replay uses extra disk/CPU for consistency without assuming MVCC. Durability relies on the OS/device honoring flushes; software tests cannot prove hardware power-loss behavior. Retain backups and measure network/storage tails before tuning deadlines.
 
 
 
@@ -148,3 +148,13 @@ Base version, Newest Raft-NET-8, DotNext: RaftNet8/benchmarks/results/winner-r18
 # Books, Tutorial ru, eng
 RaftNet8/docs/human/tutorial/book-ru.html
 RaftNet8/docs/human/tutorial/book-en.html
+
+## External clients and named message streams
+
+Use the optional **Raft.Cluster.Server / Raft.Cluster.Client / Raft.Cluster.Protocol** projects for a ready message service: Standard full disk history, HighSpeedCache latest durable value, independent per-entity IDs, automatic leader/endpoint discovery, stable publication request IDs, payload or ID-only subscriptions, and bounded Stream APIs up to16,000,000 bytes per message. The subscriber application stores its own durable cursor atomically with business effects; the cluster has no consumer ClientIds/offsets/ACK writes. [Full contract and limits](docs/CLUSTER-CLIENTS.md).
+
+```sh
+dotnet run --project HumanTest/Raft.Cluster.Demo -c Release -- scenario --root D:/Temp/RaftNet8
+```
+
+The scenario uses real TCP/HTTP, chunks plus a separate manifest entity, atomic local cursor/data transactions, snapshot catch-up and automatic leader removal. Its new generated directory is retained for inspection. Open `HumanTest/Raft.HumanTest.sln` for both demos; use the guide for independent node/client processes and the explicit large-file stress command. The existing embedded-core API and its wire/storage formats remain supported.

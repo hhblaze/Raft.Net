@@ -50,6 +50,8 @@ internal static class WorkerHost
             _ => throw new ArgumentException("Worker log layout must be v2, v3 or v4.")
         };
         var options = new RaftOptions { NodeId = id, GroupId = "process_test", Members = voters,
+            // A disk/process demonstration must not use a 300ms failure detector during recovery or native scheduling tails.
+            ElectionMinTicks = 200, ElectionMaxTicks = 240, RpcTimeout = TimeSpan.FromSeconds(2),
             WireVersion = layout == DBreezeLogLayout.UnifiedTableV4 ? 3 : 2,
             JoiningNode = layout == DBreezeLogLayout.UnifiedTableV4 && !voters.Contains(id, StringComparer.Ordinal),
             Learners = layout == DBreezeLogLayout.UnifiedTableV4 || voters.Contains(id, StringComparer.Ordinal) ? [] : [id],

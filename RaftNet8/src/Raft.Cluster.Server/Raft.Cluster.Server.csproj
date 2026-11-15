@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Durable named message streams and HTTP(S) gateway over Raft.Net8.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Raft/Raft.csproj" />
+    <ProjectReference Include="../Raft.Cluster.Protocol/Raft.Cluster.Protocol.csproj" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <InternalsVisibleTo Include="Raft.Tests" />
+  </ItemGroup>
+</Project>

@@ -112,6 +112,7 @@ internal sealed class DemoCluster : IAsyncDisposable
         if (_members.ContainsKey(id)) throw new InvalidOperationException($"{id} is already running.");
         var root = Path.Combine(_data, id);
         var options = new RaftOptions { NodeId = id, GroupId = "human_test", Members = Ids,
+            ElectionMinTicks = 200, ElectionMaxTicks = 240, RpcTimeout = TimeSpan.FromSeconds(2),
             WireVersion = _layout == DBreezeLogLayout.UnifiedTableV4 ? 3 : 2,
             JoiningNode = _layout == DBreezeLogLayout.UnifiedTableV4 && !Ids.Contains(id),
             Learners = _layout == DBreezeLogLayout.UnifiedTableV4 || Ids.Contains(id) ? [] : [id],

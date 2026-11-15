@@ -34,6 +34,9 @@
 
 ## Validation and delivery
 
+- User-provided experiment root: `D:\Temp\RaftNet8` (2026-11-14). Keep new large databases, raw traces, process logs and benchmark scratch data there; repository sources and reviewable reports remain here. Use checked owned subdirectories for cleanup, never delete other experiment/user data. Set `RAFT_EXPERIMENT_ROOT` for new client tests and `RAFT_BENCHMARK_ROOT` for benchmark storage.
+- The external client/message contract is [spec032](_docs/llm/sdd/032-cluster-clients-and-entities.md). The subscriber owns its durable cursor in a local effects+cursor transaction; no durable consumer ClientId or cluster ACK offsets. Standard retains all history, HighSpeedCache retains its latest durable payload; both are snapshotted application state. Preserve the accepted embedded-core baseline while measuring the optional HTTP service separately.
+
 - From `RaftNet8/`: `dotnet restore Raft.Net8.sln`, `dotnet build Raft.Net8.sln -c Release --no-restore`, `dotnet test Raft.Net8.sln -c Release --no-build`.
 - Run the demo's automated scenario and BenchmarkDotNet smoke run after changes affecting them. See the solution README for exact commands.
 - Keep `_docs/raft_skill.md` aligned with the public API and demonstrated examples. State protocol/storage compatibility and operational limits explicitly.

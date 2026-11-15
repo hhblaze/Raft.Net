@@ -1,5 +1,14 @@
 # Watch a Raft cluster
 
+For external message clients use **Raft.Cluster.Demo**, included in this solution:
+
+```sh
+dotnet run --project HumanTest/Raft.Cluster.Demo -c Release -- scenario --root D:/Temp/RaftNet8
+python -X utf8 -B HumanTest/Raft.Cluster.Demo/verify_processes.py --root D:/Temp/RaftNet8
+```
+
+The first scenario demonstrates message entities, a local durable subscriber cursor, ID-only delivery, chunk/manifest transfer, snapshot join and leader removal. The second uses independent OS server/client processes, kills a leader, reconnects a subscriber, hot-adds a node without restarting existing nodes, removes a leader and verifies file SHA-256. Generated data/logs remain in the supplied experiment root. See [client startup and limits](../docs/CLUSTER-CLIENTS.md) for separate terminals and APIs. The original embedded demo follows.
+
 Open `Raft.HumanTest.sln`, select `Raft.Demo`, or run from `RaftNet8/`:
 
 ```sh
@@ -7,6 +16,8 @@ dotnet run --project HumanTest/Raft.Demo -c Release
 ```
 
 Three voters start with real loopback TCP and separate DBreeze log/application/snapshot directories. New directories use wire3/v4. Status prints roles, terms, frontiers, snapshot index, membership operation ID/stage and replication windows. Ports are automatic; `--base-port 5000` selects5000–5005 for n1..n6. V4 saves endpoints in demo-endpoints.json and reuses them after full restart.
+
+The disk/process demo now explicitly uses5–6s election and2sRPC deadlines to accommodate shared-drive/recovery tails; these are sample settings, not changed `RaftOptions` defaults. Startup may take several seconds. The tests also isolate independent collections on a shared drive; intentional parallel load remains inside the load scenarios.
 
 ```text
 status

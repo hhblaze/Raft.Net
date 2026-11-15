@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Contracts for external clients of a Raft.Net8 message cluster.</Description>
+  </PropertyGroup>
+</Project>

@@ -158,12 +158,18 @@ internal sealed class SimCluster : IDisposable
 
 internal sealed class TestDirectory : IDisposable
 {
-    public string Path { get; } = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "raftnet8-tests", Guid.NewGuid().ToString("N"));
-    public TestDirectory() => Directory.CreateDirectory(Path);
+    private readonly string _parent;
+    public string Path { get; }
+    public TestDirectory()
+    {
+        _parent = System.IO.Path.GetFullPath(System.IO.Path.Combine(Environment.GetEnvironmentVariable("RAFT_EXPERIMENT_ROOT") ?? System.IO.Path.GetTempPath(), "raftnet8-tests"));
+        Path = System.IO.Path.Combine(_parent, Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(Path);
+    }
     public void Dispose()
     {
         var absolute = System.IO.Path.GetFullPath(Path);
-        var parent = System.IO.Path.GetFullPath(System.IO.Path.Combine(System.IO.Path.GetTempPath(), "raftnet8-tests")) + System.IO.Path.DirectorySeparatorChar;
+        var parent = _parent.TrimEnd(System.IO.Path.DirectorySeparatorChar) + System.IO.Path.DirectorySeparatorChar;
         if (!absolute.StartsWith(parent, StringComparison.OrdinalIgnoreCase)) throw new InvalidOperationException("Unexpected test path.");
         for (var attempt = 0; ; attempt++)
         {

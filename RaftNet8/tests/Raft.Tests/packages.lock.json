@@ -112,6 +112,22 @@
           "DBreeze": "[1.142.2026.1016-beta, 1.142.2026.1016-beta]"
         }
       },
+      "raft.cluster.client": {
+        "type": "Project",
+        "dependencies": {
+          "Raft.Cluster.Protocol": "[1.0.0, )"
+        }
+      },
+      "raft.cluster.protocol": {
+        "type": "Project"
+      },
+      "raft.cluster.server": {
+        "type": "Project",
+        "dependencies": {
+          "Raft.Cluster.Protocol": "[1.0.0, )",
+          "Raft.Net8": "[2.0.0, )"
+        }
+      },
       "raft.demo": {
         "type": "Project",
         "dependencies": {

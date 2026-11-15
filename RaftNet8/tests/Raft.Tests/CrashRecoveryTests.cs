@@ -27,6 +27,7 @@ public sealed class CrashRecoveryTests
         {
             if (!process.HasExited) process.Kill(entireProcessTree: true);
             await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(10));
+            await ChildProcessSettings.WaitForFileReleaseAsync(directory.Path);
         }
         using var recoveredEngine = new DBreezeEngine(directory.Path);
         var recovered = new DBreezeStateMachine(recoveredEngine, "business/checkpoint", ["business/values"], Increment);
@@ -71,6 +72,7 @@ public sealed class CrashRecoveryTests
         {
             if (!process.HasExited) process.Kill(entireProcessTree: true);
             await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(10));
+            await ChildProcessSettings.WaitForFileReleaseAsync(directory.Path);
         }
         using var recovered = new DBreezeLogStorage(directory.Path, options, layout);
         Assert.Equal(new HardState(committed ? 8 : 7, "n2", committed ? 2 : 1), recovered.HardState);
@@ -86,6 +88,7 @@ public sealed class CrashRecoveryTests
         using var process = StartHarness(directory.Path, "committed");
         await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(15));
         Assert.Equal(17, process.ExitCode);
+        await ChildProcessSettings.WaitForFileReleaseAsync(directory.Path);
         using var storage = Open(directory.Path);
         Assert.Equal(new HardState(7, "n2", 1), storage.HardState);
         Assert.Equal("crash-durable"u8.ToArray(), storage.Read(1, 1, 1024)[0].Command.ToArray());
@@ -107,6 +110,7 @@ public sealed class CrashRecoveryTests
         {
             if (!process.HasExited) process.Kill(entireProcessTree: true);
             await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(10));
+            await ChildProcessSettings.WaitForFileReleaseAsync(directory.Path);
         }
         using var recovered = Open(directory.Path);
         Assert.Equal(new HardState(7, "n2", 1), recovered.HardState);

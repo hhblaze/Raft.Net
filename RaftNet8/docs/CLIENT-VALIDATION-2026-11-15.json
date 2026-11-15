@@ -1,0 +1,162 @@
+{
+  "Date": "2026-11-15",
+  "TargetFramework": "net8.0",
+  "DBreezeVersion": "1.142.2026.1016-beta",
+  "CoreWireVersion": 3,
+  "CoreStorageFormat": "raft8-v4",
+  "ClientProtocolVersion": 1,
+  "ApplicationFormat": "cluster-v1",
+  "CoreSourceMatchesAcceptedBaseline": true,
+  "CoreSourceFingerprint": "8851CD78E3A5042138F12E367805DDBB50CA51F28119347DB9EF0EACC29E58E5",
+  "FullRegression": {
+    "Passed": 435,
+    "Total": 435,
+    "Skipped": 0,
+    "TRX": "D:\\Temp\\RaftNet8\\delivery-serial-2968920e0e74410c9b6d2828f32ede9c\\all-tests.trx",
+    "Counters": {
+      "total": "435",
+      "executed": "435",
+      "passed": "435",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    },
+    "Execution": "sequential test collections; explicit concurrency inside load tests retained; disk-appropriate sample/fixture deadlines; core defaults unchanged"
+  },
+  "EmbeddedHumanTest": {
+    "Passed": true,
+    "Log": "D:\\Temp\\RaftNet8\\delivery-serial-2968920e0e74410c9b6d2828f32ede9c\\embedded-human.log"
+  },
+  "BenchmarkDotNetSmoke": {
+    "Passed": 29,
+    "Total": 29,
+    "Log": "D:\\Temp\\RaftNet8\\delivery-serial-2968920e0e74410c9b6d2828f32ede9c\\bdn.log"
+  },
+  "IndependentProcesses": {
+    "Result": {
+      "Passed": true,
+      "DataRoot": "D:\\Temp\\RaftNet8\\client-processes-20261115-021519-01bacd6a",
+      "IndependentProcesses": true,
+      "OriginalPids": {
+        "n1": 31724,
+        "n2": 21916,
+        "n3": 52816
+      },
+      "FinalMessages": 6,
+      "FileBytes": 2097275,
+      "ManifestId": 1,
+      "AbruptLeaderCrash": true,
+      "AddWithoutRestart": true,
+      "LeaderRemoval": true,
+      "CursorResume": true,
+      "FileSha256": true
+    },
+    "Path": "D:\\Temp\\RaftNet8\\client-processes-20261115-021519-01bacd6a\\result.json"
+  },
+  "LargeFile": {
+    "Result": {
+      "Passed": true,
+      "FileBytes": 3221225472,
+      "Chunks": 202,
+      "ManifestId": 1,
+      "IdsDelivered": 202,
+      "DataRoot": "D:\\Temp\\RaftNet8\\large-file-validation-33e032491b5c43129916a21de6188835\\stress-file-20261115-003814-6214f20d"
+    },
+    "Path": "D:\\Temp\\RaftNet8\\large-file-validation-33e032491b5c43129916a21de6188835\\stress-file-20261115-003814-6214f20d\\result.json",
+    "IndependentReopen": {
+      "Passed": true,
+      "Replicas": [
+        {
+          "NodeId": "n1",
+          "Chunks": 202,
+          "Manifests": 1,
+          "Checkpoint": {
+            "Index": 207,
+            "Term": 1
+          }
+        },
+        {
+          "NodeId": "n2",
+          "Chunks": 202,
+          "Manifests": 1,
+          "Checkpoint": {
+            "Index": 207,
+            "Term": 1
+          }
+        },
+        {
+          "NodeId": "n3",
+          "Chunks": 202,
+          "Manifests": 1,
+          "Checkpoint": {
+            "Index": 207,
+            "Term": 1
+          }
+        }
+      ]
+    },
+    "ReopenPath": "D:\\Temp\\RaftNet8\\large-file-audit-9275222b1d834051889411767b8a0bf7\\result.json",
+    "EightyGBTestExecuted": false
+  },
+  "Books": {
+    "Languages": [
+      "ru",
+      "en"
+    ],
+    "ChaptersPerLanguage": 30,
+    "OfflineLinksAndAnchorsChecked": true,
+    "RegenerationDeterministic": true,
+    "CompiledSourceManifestFiles": 13
+  },
+  "SkillValidation": "passed; PyYAML isolated under D-drive scratch",
+  "Measurements": {
+    "Report": "../benchmarks/results/cluster-clients-2026-11-15.html",
+    "FinalMeasuredRequests": 10240,
+    "AllSavedMeasuredRequests": 30720,
+    "FinalRoundsPerCase": 5,
+    "Storage": "D drive; actual HTTP and disk DBreeze; all replicas and client in one process",
+    "DirectComparisonToAcceptedCoreWorkloadValid": false
+  },
+  "Limitations": [
+    "Standard and durable request-result metadata have no TTL; cache retains only latest logical payload but old technical commands require snapshot/compaction.",
+    "80GB and 3GiB-image snapshot workloads were not executed; small snapshot joins and a real 3GiB chunk/manifest transfer were executed separately.",
+    "Clients need a surviving known seed or stable DNS/bootstrap after complete address turnover.",
+    "Application owns local transactional cursor; external effects are at least once without application dedup/outbox."
+  ],
+  "DevelopmentRuns": [
+    {
+      "TRX": "D:\\Temp\\RaftNet8\\validation-20261115-cluster-clients\\cluster-full.trx",
+      "Passed": 428,
+      "Total": 429,
+      "Reason": "Windows test certificate needed an OS-backed key"
+    },
+    {
+      "TRX": "D:\\Temp\\RaftNet8\\validation-20261115-cluster-final\\cluster-final.trx",
+      "Passed": 432,
+      "Total": 434,
+      "Reason": "Native handle release before recovery engine initialization"
+    },
+    {
+      "TRX": "D:\\Temp\\RaftNet8\\validation-20261115-cluster-delivery\\cluster-delivery.trx",
+      "Passed": 434,
+      "Total": 435,
+      "Reason": "Peer-mTLS test identity isolation"
+    },
+    {
+      "TRX": "D:\\Temp\\RaftNet8\\delivery-920c865852d64cc59cddec86898ad160\\all-tests.trx",
+      "Passed": 428,
+      "Total": 435,
+      "Reason": "Shared-drive parallel wall-clock tests / short demo deadlines; final serialized disk profiles passed"
+    }
+  ]
+}

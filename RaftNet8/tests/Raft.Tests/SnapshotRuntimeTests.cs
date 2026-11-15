@@ -68,7 +68,7 @@ internal sealed class SnapshotTestCluster : IAsyncDisposable
             Options[id] = new() { NodeId = id, Members = ids, SnapshotDirectory = Path.Combine(_directories[id].Path, "snapshots"),
                 SnapshotChunkBytes = 4096, SnapshotRetainEntries = 3, SnapshotIntervalEntries = interval,
                 SnapshotBytesPerSecond = bandwidth,
-                TickInterval = TimeSpan.FromMilliseconds(20), ElectionMinTicks = 15, ElectionMaxTicks = 30, RpcTimeout = TimeSpan.FromMilliseconds(200) };
+                TickInterval = TimeSpan.FromMilliseconds(20), ElectionMinTicks = 100, ElectionMaxTicks = 150, RpcTimeout = TimeSpan.FromSeconds(1) };
         }
         var listeners = ids.Select(_ => new TcpListener(IPAddress.Loopback, 0)).ToArray();
         try

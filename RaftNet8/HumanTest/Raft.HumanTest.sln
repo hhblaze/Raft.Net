@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raft.Demo", "Raft.Demo\Raft
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raft", "..\src\Raft\Raft.csproj", "{1C48BF9E-B111-4DAB-B006-B98CE7AA845A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raft.Cluster.Demo", "Raft.Cluster.Demo\Raft.Cluster.Demo.csproj", "{DBDD1BC1-A85D-4F84-8BD7-2A23B1B3C131}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{1C48BF9E-B111-4DAB-B006-B98CE7AA845A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1C48BF9E-B111-4DAB-B006-B98CE7AA845A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1C48BF9E-B111-4DAB-B006-B98CE7AA845A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DBDD1BC1-A85D-4F84-8BD7-2A23B1B3C131}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBDD1BC1-A85D-4F84-8BD7-2A23B1B3C131}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBDD1BC1-A85D-4F84-8BD7-2A23B1B3C131}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBDD1BC1-A85D-4F84-8BD7-2A23B1B3C131}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

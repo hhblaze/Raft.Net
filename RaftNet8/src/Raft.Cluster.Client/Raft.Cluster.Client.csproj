@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>External Raft.Net8 client with discovery, resumable subscriptions and bounded message streams.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Raft.Cluster.Protocol/Raft.Cluster.Protocol.csproj" />
+  </ItemGroup>
+</Project>

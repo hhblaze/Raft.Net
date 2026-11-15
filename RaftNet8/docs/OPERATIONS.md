@@ -1,5 +1,7 @@
 # Operations
 
+The optional external message service has a separate [client/ledger runbook](CLUSTER-CLIENTS.md). Keep its HTTP(S) origins separate from peer TCP addresses. All nodes in a message group must run the same MessageLedger application; use fresh application directories rather than mixing arbitrary old state machines. Hosts require the ASP.NET Core8 shared framework; external clients require only.NET8. The subscriber owns the durable cursor locally, not on the cluster. Standard history and request-result metadata grow without TTL. Cache's latest-only application policy does not remove old technical log entries until snapshot/compaction; the default snapshot interval is0/manual. For large histories raise image/unpack limits and reserve replay/install space before adding an empty node.
+
 Use distinct absolute log/application/snapshot directories per stable node ID. Never open two engines/nodes over the same directory. Provision compatible command/batch/image limits, group ID, identities, endpoints and certificates on every peer. Persisted membership overrides bootstrap lists on restart.
 
 ## Transport identities and TLS
